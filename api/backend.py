@@ -1,5 +1,10 @@
-from typing import TypedDict
+from typing import TypedDict, Required, Callable, Literal
 
+
+def endpoint[F](_method: Literal['GET', 'POST', 'PUT', 'DELETE'], _route: str) -> Callable[[F], F]:
+    def inner(fn: F) -> F:
+        return fn
+    return inner
 
 class Id(TypedDict):
     id: int
@@ -15,9 +20,9 @@ class RequiresAuth(TypedDict):
 
 
 # I want to be able to upload a song, # I want to be able to update a song, # I want to be able to delete a song that I posted
-# POST /api/songs
-# PUT /api/songs/:song_id
-# DELETE /api/songs/:song_id
+@endpoint("POST", "/api/songs")
+@endpoint("PUT", "/api/songs/:song_id")
+@endpoint("DELETE", "/api/songs/:song_id")
 class Song(TypedDict):
     name: str
     artist_id: int
@@ -29,30 +34,43 @@ class Song(TypedDict):
 
 # I want to view a song's total likes
 # Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
-# GET /api/songs/:song_id
+@endpoint("GET", "/api/songs/:song_id")
 class GetSong(Song, IdAndTimestamps):
     pass
 
 # I want a landing page of other peoples' songs (showing newest first)
 # I want to see all of my songs # ! filter by current session's user_id
 # I want to see other songs by the same artist on a song's page - # ! filter by artist_id
-# GET /api/songs
+@endpoint("GET", "/api/songs")
 class GetSongs(TypedDict):
     data: list[GetSong]
     
     
-    
+
 # * Playlists
-
-
 # I want to be able to make a playlist
-# POST /api/users/:user_id/playlists
+# POST /api/playlists
+
+@endpoint("POST", "/api/playlists")
+class NewPlaylist(TypedDict, total=False):
+    name: Required[str]
+    thumbnail: str
+
+class NewPlaylistReturns(IdAndTimestamps):
+    pass
+
+
+# I want to be able to add songs to a playlist I created
+@endpoint("POST", "/api/playlists/:playlistId")
+class AddToPlaylist(RequiresAuth):
+    song_id: int
+    
 
 # I want to be able to see all of my playlists
 # GET /api/users/:user_id/playlists 
 
 # I want for any songs that I liked to automatically be added to a "My Favorites" playlist
-# POST /api/users/:user_id/playlists/1   # ! (was thinking everyone's 1st playlist could be any songs they liked - could this empty playlist be created when a user first signs up?)
+# POST /api/users/:user_id/playlists/1  # ! (was thinking everyone's 1st playlist could be any songs they liked - could this empty playlist be created when a user first signs up?)
 
 # I want to be able to update a playlist (I guess change its name?)
 # PUT /api/playlists/playlist_id
@@ -68,6 +86,7 @@ class Playlist(TypedDict):
 
 class GetPlaylist(Playlist, IdAndTimestamps):
     pass
+
 
     
     

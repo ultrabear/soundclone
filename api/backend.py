@@ -1,35 +1,45 @@
 from typing import TypedDict
 
+
+class Id(TypedDict):
+    id: int
+
+class IdAndTimestamps(Id):
+    created_at: str
+    updated_at: str
+
+class RequiresAuth(TypedDict):
+    pass
+
 # * Songs 
 
 
-# I want to be able to upload a song
+# I want to be able to upload a song, # I want to be able to update a song, # I want to be able to delete a song that I posted
 # POST /api/songs
-
-# I want to be able to update a song
 # PUT /api/songs/:song_id
-
-# I want to be able to delete a song that I posted
 # DELETE /api/songs/:song_id
+class Song(TypedDict):
+    name: str
+    artist_id: int
+    genre: str | None
+    thumb_url: str | None
+    song_ref: str
+
+
+
+# I want to view a song's total likes
+# Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
+# GET /api/songs/:song_id
+class GetSong(Song, IdAndTimestamps):
+    pass
 
 # I want a landing page of other peoples' songs (showing newest first)
 # I want to see all of my songs # ! filter by current session's user_id
 # I want to see other songs by the same artist on a song's page - # ! filter by artist_id
 # GET /api/songs
-
-
-# I want to view a song's total likes
-# Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
-
-class Song(TypedDict):
-    id: int
-    name: str
-    artist_id: int
-    genre: typing.Optional(str)
-    thumb_url: typing.Optional(str)
-    song_ref: str
-    created_at: typing.Optional(str)
-    updated_at: typing.Optional(str) # * if user is posting a Song, the request body would not yet have an id, created_at, or updated_at
+class GetSongs(TypedDict):
+    data: list[GetSong]
+    
     
     
 # * Playlists
@@ -52,11 +62,13 @@ class Song(TypedDict):
 
     
 class Playlist(TypedDict):
-    id: int
     name: str
     user_id: int
-    created_at: typing.Optional(str)
-    updated_at: typing.Optional(str) # * if first posting a Playlist, id, created_at, and updated_at would not yet be there
+    
+
+class GetPlaylist(Playlist, IdAndTimestamps):
+    pass
+
     
     
 
@@ -72,26 +84,21 @@ class Playlist(TypedDict):
 # DELETE /api/songs/:song_id/comments/:comment_id
 
 class Comment(TypedDict):
-    id: int
     song_id: int
     author_id: int
     comment_text: str
-    created_at: typing.Optional(str)
-    updated_at: typing.Optional(str) # * won't be there if first posting the Comment
+
+class GetComment(Comment, IdAndTimestamps):
+    pass
+    
  
 # * Likes - Posted to and Deleted from the likes_join table
 
-# I want to be able to like a song
+# I want to be able to like a song and unlike a song
 # POST /api/songs/:song_id/likes
-
-# I want to be able to un-like a song
-# DELETE /api/songs/:song_id/likes/:like_id
-
-
-class Like(TypedDict):
-    id: int # * won't be there if Like is first being posted
-    song_id: int
-    user_id: int
+# DELETE /api/songs/:song_id/likes
+class Like(RequiresAuth):
+    pass
     
 
 

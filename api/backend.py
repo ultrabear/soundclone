@@ -14,7 +14,7 @@ from datetime import date
 # DELETE /api/songs/:song_id
 
 # I want a landing page of other peoples' songs (showing newest first)
-# I want to see all of my songs # ! filter by current session user_id
+# I want to see all of my songs # ! filter by current session's user_id
 # I want to see other songs by the same artist on a song's page - # ! filter by artist_id
 # GET /api/songs
 

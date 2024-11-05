@@ -1,5 +1,4 @@
 from typing import TypedDict
-from datetime import date
 
 # * Songs 
 
@@ -23,14 +22,14 @@ from datetime import date
 # Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
 
 class Song(TypedDict):
-    id: int or None
+    id: int
     name: str
     artist_id: int
-    genre: str or None
-    thumb_url: str or None
+    genre: typing.Optional(str)
+    thumb_url: typing.Optional(str)
     song_ref: str
-    created_at: date or None
-    updated_at: date or None # * if user is posting a Song, the request body would not yet have an id, created_at, or updated_at
+    created_at: typing.Optional(str)
+    updated_at: typing.Optional(str) # * if user is posting a Song, the request body would not yet have an id, created_at, or updated_at
     
     
 # * Playlists
@@ -53,11 +52,11 @@ class Song(TypedDict):
 
     
 class Playlist(TypedDict):
-    id: int or None 
+    id: int
     name: str
     user_id: int
-    created_at: date or None
-    updated_at: date or None # * if first posting a Playlist, id, created_at, and updated_at would not yet be there
+    created_at: typing.Optional(str)
+    updated_at: typing.Optional(str) # * if first posting a Playlist, id, created_at, and updated_at would not yet be there
     
     
 
@@ -73,12 +72,12 @@ class Playlist(TypedDict):
 # DELETE /api/songs/:song_id/comments/:comment_id
 
 class Comment(TypedDict):
-    id: int or None
+    id: int
     song_id: int
     author_id: int
     comment_text: str
-    created_at: date or None
-    updated_at: date or None # * won't be there if first posting the Comment
+    created_at: typing.Optional(str)
+    updated_at: typing.Optional(str) # * won't be there if first posting the Comment
  
 # * Likes - Posted to and Deleted from the likes_join table
 
@@ -104,11 +103,11 @@ class Like(TypedDict):
 # if a user posts a song, they are assigned an artist meta page
 # POST /api/artists
 
-class Artist(TypedDict):
-    id: int
-    stage_name: str
-    first_release: date
-    biography: str
-    location: str
-    homepage: str # ! could this also be called artists_website?
+# class Artist(TypedDict):
+#     id: int
+#     stage_name: str
+#     first_release: str
+#     biography: str
+#     location: str
+#     homepage: str # ! could this also be called artists_website?
     

@@ -1,4 +1,4 @@
 # SoundClone
 
 ## Current Working Schema
-![image](https://github.com/user-attachments/assets/08ce28bb-462c-4c27-ab54-58732d4ca9f8)
+![image](https://github.com/user-attachments/assets/9ef33faa-5b13-4447-a263-4adf6330aa4f)

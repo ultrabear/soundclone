@@ -121,6 +121,12 @@ class ListOfPlaylist(TypedDict):
 class GetLikes(RequiresAuth, GetSongs):
     pass
 
+# I want to be able to like a song and unlike a song
+@endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes")
+class ChangeLike(NoPayload):
+    pass
+
+
 
 # * Comments
 
@@ -142,12 +148,14 @@ class CommentResponse(IdAndTimestamps):
 class DeleteComment(NoPayload):
     pass
 
+class UserComment(Comment, IdAndTimestamps):
+    user_id: int
 
-# I want to be able to like a song and unlike a song
-@endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes")
-class ChangeLike(NoPayload):
-    pass
 
+# I want to view all comments of a song
+@endpoint("GET", "/api/songs/:song_id/comments")
+class GetComments(TypedDict):
+    comments: list[UserComment]
 
 # * Artists
 

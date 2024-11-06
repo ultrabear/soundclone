@@ -86,6 +86,16 @@ endpoint<Comment, Id & Timestamps>("PUT", "/api/comments/:comment_id", {
 
 endpoint<void, void>("DELETE", "/api/comments/:comment_id", { RequireAuth });
 
+export type UserComment = Comment &
+	Id &
+	Timestamps & {
+		user_id: number;
+	};
+
+export type GetComments = { comments: UserComment[] };
+
+endpoint<void, GetComments>("GET", "/api/songs/:song_id/comments");
+
 endpoint<void, void>(["POST", "DELETE"], "/api/songs/:song_id/likes", {
 	RequireAuth,
 });

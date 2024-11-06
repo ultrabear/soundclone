@@ -2,7 +2,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey, Table, Column, Integer
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from datetime import datetime
-from typing import List
 
 
 class Base(DeclarativeBase):
@@ -39,10 +38,10 @@ class User(Base):
     location: Mapped[str] = mapped_column(nullable=True)
     homepage: Mapped[str] = mapped_column(nullable=True)
     # Relationships
-    playlists: Mapped[List["Playlist"]] = relationship(back_populates="user")
-    comments: Mapped[List["Comment"]] = relationship(back_populates="author")
-    songs: Mapped[List["Song"]] = relationship(back_populates="artist")
-    liked_songs: Mapped[List["Song"]] = relationship(
+    playlists: Mapped[list["Playlist"]] = relationship(back_populates="user")
+    comments: Mapped[list["Comment"]] = relationship(back_populates="author")
+    songs: Mapped[list["Song"]] = relationship(back_populates="artist")
+    liked_songs: Mapped[list["Song"]] = relationship(
         secondary=likes_join, 
         back_populates="liking_users"
     )
@@ -59,12 +58,12 @@ class Song(Base):
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
     # Relationships
     artist: Mapped["User"] = relationship(back_populates="songs")
-    playlists: Mapped[List["Playlist"]] = relationship(
+    playlists: Mapped[list["Playlist"]] = relationship(
         secondary=playlists_join,
         back_populates="songs"
     )
-    comments: Mapped[List["Comment"]] = relationship(back_populates="song")
-    liking_users: Mapped[List["User"]] = relationship(
+    comments: Mapped[list["Comment"]] = relationship(back_populates="song")
+    liking_users: Mapped[list["User"]] = relationship(
         secondary=likes_join,
         back_populates="liked_songs"
     )
@@ -79,7 +78,7 @@ class Playlist(Base):
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
     # Relationships
     user: Mapped["User"] = relationship(back_populates="playlists")
-    songs: Mapped[List["Song"]] = relationship(
+    songs: Mapped[list["Song"]] = relationship(
         secondary=playlists_join,
         back_populates="playlists"
     )

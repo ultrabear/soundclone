@@ -1,35 +1,53 @@
-from typing import TypedDict, Required, Callable, Literal
+from typing import NotRequired, TypedDict, Callable, Literal
 
 
-def endpoint[F](_method: Literal['GET', 'POST', 'PUT', 'DELETE'], _route: str) -> Callable[[F], F]:
+type HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
+
+
+def endpoint[F](_method: HttpMethod | list[HttpMethod], _route: str) -> Callable[[F], F]:
     def inner(fn: F) -> F:
         return fn
+
     return inner
+
 
 class Id(TypedDict):
     id: int
+
+
+type SongId = int
+
 
 class IdAndTimestamps(Id):
     created_at: str
     updated_at: str
 
+
 class RequiresAuth(TypedDict):
     pass
 
-# * Songs 
+
+class NoPayload(TypedDict):
+    pass
+
+
+# * Songs
 
 
 # I want to be able to upload a song, # I want to be able to update a song, # I want to be able to delete a song that I posted
 @endpoint("POST", "/api/songs")
 @endpoint("PUT", "/api/songs/:song_id")
-@endpoint("DELETE", "/api/songs/:song_id")
 class Song(TypedDict):
     name: str
     artist_id: int
-    genre: str | None
-    thumb_url: str | None
+    genre: NotRequired[str]
+    thumb_url: NotRequired[str]
     song_ref: str
 
+
+@endpoint("DELETE", "/api/songs/:song_id")
+class DeleteSong(NoPayload):
+    pass
 
 
 # I want to view a song's total likes
@@ -38,48 +56,63 @@ class Song(TypedDict):
 class GetSong(Song, IdAndTimestamps):
     pass
 
+
 # I want a landing page of other peoples' songs (showing newest first)
 # I want to see all of my songs # ! filter by current session's user_id
 # I want to see other songs by the same artist on a song's page - # ! filter by artist_id
 @endpoint("GET", "/api/songs")
 class GetSongs(TypedDict):
-    data: list[GetSong]
-    
-    
+    songs: list[GetSong]
+
 
 # * Playlists
-# I want to be able to make a playlist
-# POST /api/playlists
 
+
+# I want to be able to make a playlist
 @endpoint("POST", "/api/playlists")
-class NewPlaylist(TypedDict, total=False):
-    name: Required[str]
-    thumbnail: str
+class BasePlaylist(TypedDict):
+    name: str
+    thumbnail: NotRequired[str]
+
 
 class NewPlaylistReturns(IdAndTimestamps):
     pass
 
 
-# I want to be able to add songs to a playlist I created
-@endpoint("POST", "/api/playlists/:playlistId")
+class PlaylistInfo(BasePlaylist, IdAndTimestamps):
+    pass
+
+# I want to delete a playlist
 @endpoint("DELETE", "/api/playlists/:playlistId")
+class DeletePlaylist(NoPayload):
+    pass
+
+
+# I want to be able to add and remove songs to a playlist I created
+@endpoint(["DELETE", "POST"], "/api/playlists/:playlistId/songs")
 class PopulatePlaylist(RequiresAuth):
     song_id: int
-    
+
+
+# I want to see all of the songs in my playlist
+@endpoint("GET", "/api/playlists/:playlistId/songs")
+class PlaylistSongs(GetSongs):
+    pass
+
 
 # I want to be able to see all of my playlists
-# GET /api/users/:user_id/playlists 
-@endpoint("GET","/api/playlists/current")
+@endpoint("GET", "/api/playlists/current")
 class ListOfPlaylist(TypedDict):
-
-    playlists: list[NewPlaylist]
-
+    playlists: list[PlaylistInfo]
 
 
 # I want for any songs that I liked to automatically be added to a "My Favorites" playlist
 # POST /api/users/:user_id/playlists/1  # ! (was thinking everyone's 1st playlist could be any songs they liked - could this empty playlist be created when a user first signs up?)
 
 
+@endpoint("GET", "/api/likes")
+class GetLikes(RequiresAuth, GetSongs):
+    pass
 
 
 # I want to be able to update a playlist (I guess change its name?)
@@ -88,20 +121,8 @@ class ListOfPlaylist(TypedDict):
 # I want to be able to delete a playlist I made (as long as it's not My Favorites)
 # DELETE /api/playlists/playlist_id (where playlist_id is not 1)
 
-    
-class Playlist(TypedDict):
-    name: str
-    user_id: int
-    
 
-class GetPlaylist(Playlist, IdAndTimestamps):
-    pass
-
-
-    
-    
-
-# * Comments 
+# * Comments
 
 # I want to be able to comment on a song on that song's page
 # POST /api/songs/:song_id/comments  we could have /api/comments but I wasn't sure that we'd need to manage comments the way we did reviews for the Airbnb project.  Perhaps comments could just exist on song pages
@@ -112,23 +133,25 @@ class GetPlaylist(Playlist, IdAndTimestamps):
 # I want to be able to delete a comment that I left on a song's page
 # DELETE /api/songs/:song_id/comments/:comment_id
 
+
 class Comment(TypedDict):
     song_id: int
     author_id: int
     comment_text: str
 
+
 class GetComment(Comment, IdAndTimestamps):
     pass
-    
- 
+
+
 # * Likes - Posted to and Deleted from the likes_join table
+
 
 # I want to be able to like a song and unlike a song
 # POST /api/songs/:song_id/likes
 # DELETE /api/songs/:song_id/likes
 class Like(RequiresAuth):
     pass
-    
 
 
 # * Artists
@@ -146,4 +169,4 @@ class Like(RequiresAuth):
 #     biography: str
 #     location: str
 #     homepage: str # ! could this also be called artists_website?
-    
+

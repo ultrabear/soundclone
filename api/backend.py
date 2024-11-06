@@ -62,15 +62,25 @@ class NewPlaylistReturns(IdAndTimestamps):
 
 # I want to be able to add songs to a playlist I created
 @endpoint("POST", "/api/playlists/:playlistId")
-class AddToPlaylist(RequiresAuth):
+@endpoint("DELETE", "/api/playlists/:playlistId")
+class PopulatePlaylist(RequiresAuth):
     song_id: int
     
 
 # I want to be able to see all of my playlists
 # GET /api/users/:user_id/playlists 
+@endpoint("GET","/api/playlists/current")
+class ListOfPlaylist(TypedDict):
+
+    playlists: list[NewPlaylist]
+
+
 
 # I want for any songs that I liked to automatically be added to a "My Favorites" playlist
 # POST /api/users/:user_id/playlists/1  # ! (was thinking everyone's 1st playlist could be any songs they liked - could this empty playlist be created when a user first signs up?)
+
+
+
 
 # I want to be able to update a playlist (I guess change its name?)
 # PUT /api/playlists/playlist_id

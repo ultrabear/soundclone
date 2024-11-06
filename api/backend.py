@@ -75,12 +75,19 @@ class BasePlaylist(TypedDict):
     thumbnail: NotRequired[str]
 
 
+# I want to be able to update a playlist (I guess change its name?)
+@endpoint("PUT", "/api/playlists/:playlistId")
+class UpdatePlaylist(RequiresAuth, BasePlaylist):
+    pass
+
+
 class NewPlaylistReturns(IdAndTimestamps):
     pass
 
 
 class PlaylistInfo(BasePlaylist, IdAndTimestamps):
     pass
+
 
 # I want to delete a playlist
 @endpoint("DELETE", "/api/playlists/:playlistId")
@@ -107,7 +114,7 @@ class ListOfPlaylist(TypedDict):
 
 
 # I want for any songs that I liked to automatically be added to a "My Favorites" playlist
-# POST /api/users/:user_id/playlists/1  # ! (was thinking everyone's 1st playlist could be any songs they liked - could this empty playlist be created when a user first signs up?)
+# ^ Implemented in frontend via /api/likes call
 
 
 @endpoint("GET", "/api/likes")
@@ -115,58 +122,53 @@ class GetLikes(RequiresAuth, GetSongs):
     pass
 
 
-# I want to be able to update a playlist (I guess change its name?)
-# PUT /api/playlists/playlist_id
-
-# I want to be able to delete a playlist I made (as long as it's not My Favorites)
-# DELETE /api/playlists/playlist_id (where playlist_id is not 1)
-
-
 # * Comments
 
+
 # I want to be able to comment on a song on that song's page
-# POST /api/songs/:song_id/comments  we could have /api/comments but I wasn't sure that we'd need to manage comments the way we did reviews for the Airbnb project.  Perhaps comments could just exist on song pages
-
+@endpoint("POST", "/api/songs/:song_id/comments")
 # I want to be able to update a comment that I left on a song's page
-# PUT /api/songs/:song_id/comments/:comment_id
-
-# I want to be able to delete a comment that I left on a song's page
-# DELETE /api/songs/:song_id/comments/:comment_id
-
-
+@endpoint("PUT", "/api/comments/:comment_id")
 class Comment(TypedDict):
-    song_id: int
-    author_id: int
-    comment_text: str
+    text: str
 
 
-class GetComment(Comment, IdAndTimestamps):
+class CommentResponse(IdAndTimestamps):
     pass
 
 
-# * Likes - Posted to and Deleted from the likes_join table
+# I want to be able to delete a comment that I left on a song's page
+@endpoint("DELETE", "/api/comments/:comment_id")
+class DeleteComment(NoPayload):
+    pass
 
 
 # I want to be able to like a song and unlike a song
-# POST /api/songs/:song_id/likes
-# DELETE /api/songs/:song_id/likes
-class Like(RequiresAuth):
+@endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes")
+class ChangeLike(NoPayload):
     pass
 
 
 # * Artists
 
+
+class BaseArtist(TypedDict, total=False):
+    profile_image: str
+    first_release: str
+    biography: str
+    location: str
+    homepage: str
+
+
 # I want a link to see an artist's details (from a song page or the homepage)
-# GET /api/artists/:artist_id
+@endpoint("GET", "/api/artists/:artist_id")
+class Artist(BaseArtist):
+    id: int
+    # Do not have username field, backend only shows stage name with username as fallback
+    stage_name: str
 
-# if a user posts a song, they are assigned an artist meta page
-# POST /api/artists
 
-# class Artist(TypedDict):
-#     id: int
-#     stage_name: str
-#     first_release: str
-#     biography: str
-#     location: str
-#     homepage: str # ! could this also be called artists_website?
-
+# if a user posts a song, they can have an artists page
+@endpoint("POST", "/api/artists")
+class PostArtist(BaseArtist, RequiresAuth):
+    stage_name: NotRequired[str]

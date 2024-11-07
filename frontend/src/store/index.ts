@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import homeReducer from './homeSlice';
 import playerReducer from './playerSlice';
 import playlistReducer from './playlistSlice';
+import sessionReducer from "./session";
 
 
 export const store = configureStore({
@@ -10,6 +11,7 @@ export const store = configureStore({
         home: homeReducer,
         player: playerReducer,
         playlist: playlistReducer,
+        session: sessionReducer
     },
 });
 

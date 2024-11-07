@@ -3,7 +3,7 @@ name = "backend"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.14.0",
     "flask>=3.0.3",
@@ -12,12 +12,26 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "sqlalchemy>=2.0.36",
     "pydantic>=2.9.2",
-    "psycopg2-binary>=2.9.9",
+    "flask-login>=0.6.3",
+    "werkzeug>=3.1.2",
+    "wtforms>=3.2.1",
+    "flask-wtf>=1.2.2",
+    "flask-cors>=5.0.0",
+    "pyright>=1.1.388",
+    "email-validator>=2.2.0",
+    # "psycopg2-binary>=2.9.9",
 ]
+
 [tool.ruff]
 line-length = 120
+exclude = ["migrations"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["F"]
+
 [tool.pyright]
-pythonVersion = "3.9"
+pythonVersion = "3.12"
 strict = ["*"]
 
 [tool.uv]

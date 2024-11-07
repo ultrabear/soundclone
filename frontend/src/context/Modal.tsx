@@ -1,17 +1,7 @@
 import { useContext, useState } from "react";
-import { useRef, createContext } from "react";
-import "./Modal.css";
+import { useRef } from "react";
 import { createPortal } from "react-dom";
-
-interface ModalContextTy {
-	modalRef: React.MutableRefObject<HTMLDivElement | null>;
-	modalContent: JSX.Element | null;
-	setModalContent: (_: JSX.Element | null) => void;
-	closeModal: () => void;
-	setOnModalClose: (_: () => void) => void;
-}
-
-export const ModalContext = createContext({} as ModalContextTy);
+import { ModalContext } from "./ModalCore";
 
 export function ModalProvider<T>({
 	children,
@@ -23,7 +13,9 @@ export function ModalProvider<T>({
 		() => null as JSX.Element | null,
 	);
 
-	const [onModalClose, setOnModalClose] = useState(() => () => { return });
+	const [onModalClose, setOnModalClose] = useState(() => () => {
+		return;
+	});
 
 	const closeModal = () => {
 		setModalContent(null);

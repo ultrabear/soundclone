@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useModal } from "../../context/useModal";
 import { thunkSignup } from "../../store/session";
-import "./SignupForm.css";
 import { useAppDispatch } from "../../store";
 
 function SignupFormModal() {

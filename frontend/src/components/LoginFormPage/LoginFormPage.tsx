@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { thunkLogin } from "../../store/session";
 import { Navigate, useNavigate } from "react-router-dom";
-import "./LoginForm.css";
 import { useAppDispatch, useAppSelector } from "../../store";
 
 function LoginFormPage() {

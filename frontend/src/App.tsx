@@ -1,16 +1,54 @@
-import { useState } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
+import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
 
-function App() {
-	const [count, setCount] = useState(0);
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
+import { ModalProvider, Modal } from "./context/Modal";
+import { thunkAuthenticate } from "./store/session";
+import Navigation from "./components/Navigation/Navigation";
+import { useAppDispatch } from "./store";
+
+function Layout() {
+	const dispatch = useAppDispatch();
+	const [isLoaded, setIsLoaded] = useState(false);
+	useEffect(() => {
+		dispatch(thunkAuthenticate()).then(() => setIsLoaded(true));
+	}, [dispatch]);
 
 	return (
 		<>
-			<h1>SoundClone</h1>
-			<button type="button" onClick={() => setCount((count) => count + 1)}>
-				count is {count}
-			</button>
+			<ModalProvider>
+				<Navigation />
+				{isLoaded && <Outlet />}
+				<Modal />
+			</ModalProvider>
 		</>
 	);
+}
+
+const router = createBrowserRouter([
+	{
+		element: <Layout />,
+		children: [
+			{
+				path: "/",
+				element: <h1>Welcome!</h1>,
+			},
+			{
+				path: "login",
+				element: <LoginFormPage />,
+			},
+			{
+				path: "signup",
+				element: <SignupFormPage />,
+			},
+		],
+	},
+]);
+
+function App() {
+	return <RouterProvider router={router} />;
 }
 
 export default App;

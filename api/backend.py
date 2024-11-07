@@ -4,7 +4,14 @@ from typing import NotRequired, TypedDict, Callable, Literal
 type HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
 
 
-def endpoint[F](_method: HttpMethod | list[HttpMethod], _route: str) -> Callable[[F], F]:
+def endpoint[F](
+    method: HttpMethod | list[HttpMethod],
+    route: str,
+    *,
+    returns: object | None = None,
+) -> Callable[[F], F]:
+    _ = method, route, returns
+
     def inner(fn: F) -> F:
         return fn
 
@@ -121,11 +128,11 @@ class ListOfPlaylist(TypedDict):
 class GetLikes(RequiresAuth, GetSongs):
     pass
 
+
 # I want to be able to like a song and unlike a song
 @endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes")
 class ChangeLike(NoPayload):
     pass
-
 
 
 # * Comments
@@ -148,6 +155,7 @@ class CommentResponse(IdAndTimestamps):
 class DeleteComment(NoPayload):
     pass
 
+
 class UserComment(Comment, IdAndTimestamps):
     user_id: int
 
@@ -156,6 +164,7 @@ class UserComment(Comment, IdAndTimestamps):
 @endpoint("GET", "/api/songs/:song_id/comments")
 class GetComments(TypedDict):
     comments: list[UserComment]
+
 
 # * Artists
 
@@ -180,3 +189,32 @@ class Artist(BaseArtist):
 @endpoint("POST", "/api/artists")
 class PostArtist(BaseArtist, RequiresAuth):
     stage_name: NotRequired[str]
+
+
+@endpoint("GET", "/api/auth")
+class User(TypedDict):
+    id: int
+    username: str
+    email: str
+    profile_image: NotRequired[str]
+    stage_name: NotRequired[str]
+    first_release: NotRequired[str]
+    biography: NotRequired[str]
+    location: NotRequired[str]
+    homepage: NotRequired[str]
+
+
+@endpoint("POST", "/api/auth/login", returns=User)
+class Login(TypedDict):
+    email: str
+    password: str
+
+
+@endpoint("POST", "/api/auth/signup", returns=User)
+class Signup(Login):
+    username: str
+
+
+@endpoint("GET", "/api/auth/logout")
+class Logout(NoPayload):
+    pass

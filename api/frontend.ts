@@ -118,3 +118,27 @@ export type PostArtist = BaseArtist & {
 	stage_name?: string;
 };
 endpoint<PostArtist, void>("POST", "/api/artists", { RequireAuth });
+
+export type User = {
+	id: number;
+	username: string;
+	email: string;
+	profile_image?: string;
+	stage_name?: string;
+	first_release?: string;
+	biography?: string;
+	location?: string;
+	homepage?: string;
+};
+
+export type Login = {
+	email: string;
+	password: string;
+};
+
+export type Signup = { username: string; email: string; password: string };
+
+endpoint<void, User>("GET", "/api/auth");
+endpoint<Login, User>("POST", "/api/auth/login");
+endpoint<Signup, User>("POST", "/api/auth/signup");
+endpoint<void, void>("GET", "/api/auth/logout");

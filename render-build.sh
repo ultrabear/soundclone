@@ -14,5 +14,4 @@ cd backend
   uv sync
   uv run flask db upgrade
   uv run flask seed all
-  uv run gunicorn src:app
 cd ..

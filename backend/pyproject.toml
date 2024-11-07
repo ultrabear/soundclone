@@ -19,8 +19,11 @@ dependencies = [
     "flask-cors>=5.0.0",
     # "psycopg2-binary>=2.9.9",
 ]
+
 [tool.ruff]
 line-length = 120
+exclude = ["migrations"]
+
 [tool.pyright]
 pythonVersion = "3.12"
 strict = ["*"]

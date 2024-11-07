@@ -1,5 +1,5 @@
-
 import os
+
 
 def env(s: str) -> str:
     return os.environ[s]

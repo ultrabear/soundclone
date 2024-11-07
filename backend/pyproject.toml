@@ -23,6 +23,10 @@ dependencies = [
 [tool.ruff]
 line-length = 120
 exclude = ["migrations"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["F"]
 
 [tool.pyright]
 pythonVersion = "3.12"

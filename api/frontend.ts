@@ -138,7 +138,7 @@ export type Login = {
 
 export type Signup = { username: string; email: string; password: string };
 
-endpoint<void, void>("GET", "/api/auth");
+endpoint<void, User>("GET", "/api/auth");
 endpoint<Login, User>("POST", "/api/auth/login");
 endpoint<Signup, User>("POST", "/api/auth/signup");
 endpoint<void, void>("GET", "/api/auth/logout");

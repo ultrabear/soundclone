@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { ModalContext } from "./ModalCore";
+import "./Modal.css";
 
 export function ModalProvider<T>({
 	children,

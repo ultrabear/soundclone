@@ -11,4 +11,3 @@ interface ModalContextTy {
 export const ModalContext = createContext({} as ModalContextTy);
 
 export const useModal = () => useContext(ModalContext);
-

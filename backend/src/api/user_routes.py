@@ -22,4 +22,5 @@ def user(id: str):
     Query for a user by id and returns that user in a dictionary
     """
     user = db.session.query(User).get(int(id))
+    assert user is not None
     return user.to_dict()

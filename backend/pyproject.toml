@@ -17,6 +17,7 @@ dependencies = [
     "wtforms>=3.2.1",
     "flask-wtf>=1.2.2",
     "flask-cors>=5.0.0",
+    "pyright>=1.1.388",
     # "psycopg2-binary>=2.9.9",
 ]
 

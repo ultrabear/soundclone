@@ -30,6 +30,7 @@ def login():
         # Add the user to the session, we are logged in!
         user = db.session.query(User).filter(User.email == form.data["email"]).first()
         login_user(user)
+        assert user is not None
         return user.to_dict()
     return form.errors, 401
 

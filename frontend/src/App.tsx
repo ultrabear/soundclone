@@ -1,25 +1,17 @@
-import { useState } from "react";
-import HomePage from './components/HomePage';
-import './styles/Layout.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './components/Home/HomePage';
+import PlaylistView from './components/Playlist/PlaylistView';
 
 function App() {
     return (
-        <div className="app-container">
-            <header className="app-header">
-                <div className="header-content">
-                    <h1 className="app-title">SoundClone</h1>
-                    <div className="header-right">
-                        <input
-                            type="search"
-                            placeholder="Search..."
-                            className="search-input"
-                        />
-                        <div className="user-avatar" />
-                    </div>
-                </div>
-            </header>
-            <HomePage />
-        </div>
+        <Router>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/playlist/:id" element={<PlaylistView />} />
+                {/* other routes to be added */}
+            </Routes>
+        </Router>
     );
 }
 

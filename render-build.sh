@@ -11,7 +11,8 @@ cd ..
 
 cd backend
   pip install uv psycopg2 gunicorn
-  uv sync
-  uv run flask db upgrade
-  uv run flask seed all
+  uv export > requirements.txt
+  pip install -r requirements.txt
+  flask db upgrade
+  flask seed all
 cd ..

@@ -1,14 +1,81 @@
-from flask import Blueprint
+from typing import cast
+from datetime import datetime, timezone
 
-from ..backend_api import GetComments
+from flask import Blueprint, request
+from flask_login import current_user, login_required  # pyright: ignore
+from sqlalchemy import desc
+
+from ..backend_api import ApiErrorResponse, CommentResponse, GetComments, Comment as ApiComment
+from ..models import db, Comment, User as DbUser, Song as DbSong
 
 
-comment_routes = Blueprint("comment", __name__, url_prefix="/api/comments")
-comment_song_routes = Blueprint("comment_song", __name__, url_prefix="/api/songs")
+comment_routes = Blueprint("comment", __name__, url_prefix="/api")
 
 
-@comment_song_routes.get("/<int:song_id>/comments")
-def get_comments(song_id: str) -> GetComments:
-    _id = int(song_id)
-
+class TODO(Exception):
     pass
+
+
+def dt_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+@comment_routes.get("/songs/<int:song_id>/comments")
+def get_comments(song_id: str) -> GetComments:
+    id = int(song_id)
+
+    comments = db.session.query(Comment).filter(Comment.song_id == id).order_by(desc(Comment.created_at)).all()
+
+    return {
+        "comments": [
+            {
+                "id": c.id,
+                "text": c.comment_text,
+                "user_id": c.author_id,
+                "created_at": str(c.created_at),
+                "updated_at": str(c.updated_at),
+            }
+            for c in comments
+        ]
+    }
+
+
+@comment_routes.post("/songs/<int:song_id>/comments")
+@login_required
+def post_new_comment(song_id: str) -> CommentResponse | ApiErrorResponse:
+    id = int(song_id)
+
+    user = cast(DbUser, current_user)
+    text = cast(ApiComment, request.json)
+
+    song = db.session.query(DbSong).where(DbSong.id == id).one_or_none()
+
+    if song is None:
+        return {"message": "Song not found", "errors": {}}, 404
+
+    cu = dt_now()
+
+    c = Comment(comment_text=text["text"], song=song, author=user, created_at=cu, updated_at=cu)
+
+    db.session.add(c)
+    db.session.commit()
+
+    return {"id": c.id, "created_at": str(cu), "updated_at": str(cu)}
+
+
+@comment_routes.put("/comments/<int:comment_id>")
+@login_required
+def edit_comment(comment_id: str) -> CommentResponse | ApiErrorResponse:
+    cid = int(comment_id)
+
+    user = cast(DbUser, current_user)
+
+    comment = db.session.query(Comment).where(Comment.id == cid).one_or_none()
+
+    if comment is None:
+        return {"message": "Could not find comment", "errors": {}}, 404
+
+    if comment.author_id != user.id:
+        return {"message": "You do not have permission to edit this comment", "errors": {}}, 403
+
+    raise TODO

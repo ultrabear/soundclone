@@ -5,15 +5,11 @@ from flask import Blueprint, request
 from flask_login import current_user, login_required  # pyright: ignore
 from sqlalchemy import desc
 
-from ..backend_api import ApiErrorResponse, CommentResponse, GetComments, Comment as ApiComment
+from ..backend_api import ApiErrorResponse, CommentResponse, GetComments, Comment as ApiComment, NoPayload
 from ..models import db, Comment, User as DbUser, Song as DbSong
 
 
-comment_routes = Blueprint("comment", __name__, url_prefix="/api")
-
-
-class TODO(Exception):
-    pass
+comment_routes = Blueprint("comment", __name__)
 
 
 def dt_now() -> datetime:
@@ -69,6 +65,7 @@ def edit_comment(comment_id: str) -> CommentResponse | ApiErrorResponse:
     cid = int(comment_id)
 
     user = cast(DbUser, current_user)
+    text = cast(ApiComment, request.json)
 
     comment = db.session.query(Comment).where(Comment.id == cid).one_or_none()
 
@@ -78,4 +75,27 @@ def edit_comment(comment_id: str) -> CommentResponse | ApiErrorResponse:
     if comment.author_id != user.id:
         return {"message": "You do not have permission to edit this comment", "errors": {}}, 403
 
-    raise TODO
+    comment.comment_text = text["text"]
+    comment.updated_at = dt_now()
+
+    db.session.commit()
+
+    return {"id": comment.id, "created_at": str(comment.created_at), "updated_at": str(comment.updated_at)}
+
+
+@comment_routes.delete("/comments/<int:comment_id>")
+@login_required
+def delete_comment(comment_id: str) -> ApiErrorResponse | NoPayload:
+    cid = int(comment_id)
+
+    user = cast(DbUser, current_user)
+
+    comment = db.session.query(Comment).filter(Comment.id == cid).one_or_none()
+
+    if comment is None:
+        return {"message": "Comment not found", "errors": {}}, 404
+
+    if comment.author_id != user.id:
+        return {"message": "You do not have permission to delete this comment", "errors": {}}, 403
+
+    return {}

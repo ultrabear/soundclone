@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
 from ..models import Song, likes_join, db
-from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong
+from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
 from ..forms.song_form import SongForm
 from datetime import datetime, timezone
 
@@ -56,22 +56,7 @@ def get_all_songs_of_user() -> GetSongs:
     Query for all songs uploaded by the current_user and return them in a list of song dictionaries.
     """
     songs = db.session.query(Song).filter(Song.artist_id == current_user.id).order_by(Song.created_at.desc())
-
-    return {
-        "songs": [
-            {
-                "id": song.id,
-                "name": song.name,
-                "artist_id": song.artist_id,
-                "genre": song.genre,
-                "thumb_url": song.thumb_url,
-                "song_ref": song.song_ref,
-                "created_at": str(song.created_at),
-                "updated_at": str(song.updated_at),
-            }
-            for song in songs
-        ]
-    }
+    return {"songs": [db_song_to_api_song(song) for song in songs]}
 
 
 # # I want to see other songs by the same artist on a song's page - # ! filter by artist_id
@@ -83,21 +68,7 @@ def get_all_songs_by_artist(artist_id: str) -> GetSongs:
     id = int(artist_id)
     songs = db.session.query(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc())
 
-    return {
-        "songs": [
-            {
-                "id": song.id,
-                "name": song.name,
-                "artist_id": song.artist_id,
-                "genre": song.genre,
-                "thumb_url": song.thumb_url,
-                "song_ref": song.song_ref,
-                "created_at": str(song.created_at),
-                "updated_at": str(song.updated_at),
-            }
-            for song in songs
-        ]
-    }
+    return {"songs": [db_song_to_api_song(song) for song in songs]}
 
 
 # # I want to view a song's total likes
@@ -198,15 +169,22 @@ def update_song(song_id: str) -> ApiErrorResponse | IdAndTimestamps:
 
 @song_routes.delete("/<int:song_id>")
 @login_required
-def delete_song(song_id: str) -> ApiErrorResponse:
+def delete_song(song_id: str) -> DeleteSong | ApiErrorResponse:
     """
-    Delete a song as long as the current_user is authorized to do so
+    Delete a song as long as the song exists and the current_user is authorized to do so
     """
     id = int(song_id)
-    song_to_delete = db.session.query(Song).filter(Song.id == id)
+    song_to_delete = db.session.query(Song).filter(Song.id == id).one_or_none()
 
     if not song_to_delete:
         return song_not_found_error
 
     if song_to_delete.artist_id != current_user.id:
         return not_authorized_error
+
+    db.session.delete(song_to_delete)
+    db.session.commit()
+
+    data: DeleteSong = {}
+
+    return data

@@ -17,8 +17,13 @@ def dt_now() -> datetime:
 
 
 @comment_routes.get("/songs/<int:song_id>/comments")
-def get_comments(song_id: str) -> GetComments:
+def get_comments(song_id: str) -> GetComments | ApiErrorResponse:
     id = int(song_id)
+
+    song_exists = db.session.query(DbSong).filter(DbSong.id == id).one_or_none()
+
+    if song_exists is None:
+        return {"message": "Song does not exist", "errors": {}}, 404
 
     comments = db.session.query(Comment).filter(Comment.song_id == id).order_by(desc(Comment.created_at)).all()
 

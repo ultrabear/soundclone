@@ -3,14 +3,13 @@ from flask_login import current_user  # pyright: ignore
 from ..models import User, db
 from typing import cast, Union, Tuple
 from datetime import datetime
-from ..api import (
+from ..backend_api import (
     Artist,
-    PostArtist,
-    ApiError,
+    PostArtist, 
+    ApiError, 
 )
 
 artist_routes = Blueprint("artists", __name__, url_prefix="/api/artists")
-
 
 @artist_routes.get("/<int:artist_id>")
 def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
@@ -32,13 +31,13 @@ def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
             errors={"artist_id": f"User {artist_id} is not an artist"}
         ), 404)
     
-    # artist response
+    # Build artist response
     result: Artist = {
         "id": artist.id,
         "stage_name": artist.stage_name
     }
     
-    #optional fields
+    # Add optional fields if they exist
     if artist.profile_image:
         result["profile_image"] = artist.profile_image
     if artist.first_release:
@@ -52,14 +51,13 @@ def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
         
     return result
 
-
-@artist_routes.post("") 
+@artist_routes.post("")
 def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
     """
     Update artist profile details.
     User must be authenticated and already be an artist (have uploaded at least one song).
     """
-    if not current_user.is_authenticated: 
+    if not current_user.is_authenticated:
         return (ApiError(
             message="Authentication required",
             errors={"auth": "You must be logged in to update artist profile"}
@@ -79,7 +77,7 @@ def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
             errors={"body": "Request body is required"}
         ), 400)
     
-    # validate inputs
+    # Validate inputs
     if "stage_name" in data and not isinstance(data["stage_name"], str):
         return (ApiError(
             message="Invalid stage name",
@@ -104,51 +102,44 @@ def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
             errors={"homepage": "Homepage must be a string"}
         ), 400)
     
-    # update allowed fields
     try:
+        # Create PostArtist response structure
+        response: PostArtist = {}  # Start with empty dict since all fields are optional
+        
         if "stage_name" in data:
             user.stage_name = data["stage_name"]
+            response["stage_name"] = data["stage_name"]
+            
         if "profile_image" in data:
             # TODO: AWS S3 implementation
             user.profile_image = data["profile_image"]
+            response["profile_image"] = data["profile_image"]
+            
         if "first_release" in data:
             try:
                 user.first_release = datetime.fromisoformat(data["first_release"])
+                response["first_release"] = data["first_release"]
             except ValueError:
                 return (ApiError(
                     message="Invalid date format",
                     errors={"first_release": "Date must be in ISO format (YYYY-MM-DD)"}
                 ), 400)
+                
         if "biography" in data:
             user.biography = data["biography"]
+            response["biography"] = data["biography"]
+            
         if "location" in data:
             user.location = data["location"]
+            response["location"] = data["location"]
+            
         if "homepage" in data:
             user.homepage = data["homepage"]
+            response["homepage"] = data["homepage"]
             
         db.session.commit()
         
-        # create response
-        artist_data: Artist = {
-            "id": user.id,
-            "stage_name": user.stage_name
-        }
-        
-        if user.profile_image:
-            artist_data["profile_image"] = user.profile_image
-        if user.first_release:
-            artist_data["first_release"] = str(user.first_release)
-        if user.biography:
-            artist_data["biography"] = user.biography
-        if user.location:
-            artist_data["location"] = user.location
-        if user.homepage:
-            artist_data["homepage"] = user.homepage
-
-        return PostArtist(
-            message="Artist profile updated successfully",
-            artist=artist_data
-        )
+        return response
         
     except Exception as e:
         db.session.rollback()

@@ -18,14 +18,6 @@ def endpoint[F](
     return inner
 
 
-class ApiError(TypedDict):
-    message: str
-    errors: dict[str, str]
-
-
-type ApiErrorResponse = tuple[ApiError, int]
-
-
 class Id(TypedDict):
     id: int
 

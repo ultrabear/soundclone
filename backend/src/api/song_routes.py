@@ -1,9 +1,16 @@
+from typing import TypedDict, NotRequired
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
 from ..models import Song, likes_join, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
 from ..forms.song_form import SongForm
 from datetime import datetime, timezone
+
+
+class GetSongWithNumLikes(TypedDict):
+    song_data: GetSong
+    num_likes: NotRequired[int]
+
 
 song_routes = Blueprint("songs", __name__)
 
@@ -14,7 +21,7 @@ song_not_found_error: ApiErrorResponse = (
 not_authorized_error: ApiErrorResponse = (
     {
         "message": "Not Authorized",
-        "errors": {"user_not_authorized_error": "You are not authorized to update this song"},
+        "errors": {"user_not_authorized_error": "You are not authorized to modify or delete this song"},
     },
     401,
 )
@@ -22,9 +29,9 @@ not_authorized_error: ApiErrorResponse = (
 
 def db_song_to_api_song(song: Song) -> GetSong:
     api_song: GetSong = {
-        "id": int(song.id),
+        "id": song.id,
         "name": song.name,
-        "artist_id": int(song.artist_id),
+        "artist_id": song.artist_id,
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
@@ -49,7 +56,7 @@ def get_all_songs() -> GetSongs:
     """
     artist_id: str | None = request.args.get("artist_id")
 
-    if artist_id:
+    if artist_id and artist_id.isdigit():
         id: int = int(artist_id)
         songs = db.session.query(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc())
         return {"songs": [db_song_to_api_song(song) for song in songs]}
@@ -60,22 +67,25 @@ def get_all_songs() -> GetSongs:
 
 
 # # I want to view a song's total likes
-# # Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
-# ? Why is song_id an int in the song_routes.get route but a str in the def get_song(song_id: str) ?
 @song_routes.get("/<int:song_id>")
 def get_song(
     song_id: str,
-) -> (
-    ApiErrorResponse | GetSong
-):  # ? Should I be returning GetLikes as well since that's being associated with the song?  That class is defined at the endpoint /api/likes in backend_api.py
+) -> ApiErrorResponse | GetSongWithNumLikes:
     """
     Query for single song where song_id matches and associate any likes with that song through likes_join table
     """
     id = int(song_id)
-    song = db.session.query(Song).join(likes_join).get(id)
+    song = db.session.query(Song).outerjoin(likes_join).filter(Song.id == id).one_or_none()
     if not song:
         return song_not_found_error
-    return song
+
+    data: GetSongWithNumLikes = {"song_data": db_song_to_api_song(song)}
+
+    num_likes = len(song.liking_users)
+    if num_likes > 0:
+        data["num_likes"] = num_likes
+
+    return data
 
 
 @song_routes.post("")

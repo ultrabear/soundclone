@@ -40,35 +40,23 @@ def db_song_to_api_song(song: Song) -> GetSong:
 
 
 # # I want a landing page of all songs (showing newest first)
+# # I want to be able to filter these results to show only songs uploaded by a specific artist, including possibly the current_user
 @song_routes.get("")
 def get_all_songs() -> GetSongs:
     """
-    Query for all songs and return them in a list of song dictionaries. ***use order by instead of sorted***
+    Check for query params first to see if we need to filter by an artist_id.
+    Query for all songs and return them in a list of song dictionaries.
     """
-    songs = db.session.query(Song).order_by(Song.created_at.desc()).all()
-    return {"songs": [db_song_to_api_song(song) for song in songs]}
+    artist_id: str | None = request.args.get("artist_id")
 
+    if artist_id:
+        id: int = int(artist_id)
+        songs = db.session.query(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc())
+        return {"songs": [db_song_to_api_song(song) for song in songs]}
 
-# # I want to see all of my songs # ! filter by current session's user_id
-@song_routes.get("/current_user")
-def get_all_songs_of_user() -> GetSongs:
-    """
-    Query for all songs uploaded by the current_user and return them in a list of song dictionaries.
-    """
-    songs = db.session.query(Song).filter(Song.artist_id == current_user.id).order_by(Song.created_at.desc())
-    return {"songs": [db_song_to_api_song(song) for song in songs]}
-
-
-# # I want to see other songs by the same artist on a song's page - # ! filter by artist_id
-@song_routes.get("/<int:artist_id>")
-def get_all_songs_by_artist(artist_id: str) -> GetSongs:
-    """
-    Query for all songs uploaded by a specific artist and return them in a list of song dictionaries.
-    """
-    id = int(artist_id)
-    songs = db.session.query(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc())
-
-    return {"songs": [db_song_to_api_song(song) for song in songs]}
+    else:
+        songs = db.session.query(Song).order_by(Song.created_at.desc()).all()
+        return {"songs": [db_song_to_api_song(song) for song in songs]}
 
 
 # # I want to view a song's total likes
@@ -90,20 +78,17 @@ def get_song(
     return song
 
 
-@song_routes.post("/")
+@song_routes.post("")
 @login_required
 def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     """
     Create a new record of a song on the Songs table.  Redirect user to that song's page
     """
-    form = (
-        SongForm()
-    )  # ? How is the form data getting from the frontend to this form = SongForm() from implicit global scope
-    # ? Do we need this csrf? Got this from the auth_routes where validate_on_submit is also being used
+    form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
         new_song = Song(
-            name=form.data["username"],
+            name=form.data["name"],
             artist_id=current_user.id,
             genre=form.data["genre"],
             thumb_url=form.data["thumb_url"],
@@ -143,8 +128,6 @@ def update_song(song_id: str) -> ApiErrorResponse | IdAndTimestamps:
 
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
-        # new_song_details = {"name" : str(form.data["name"]), "genre" : str(form.data["genre"]), "thumb_url" : str(form.data["thumb_url"]), "song_ref" : str(form.data["song_ref"]), "updated_at" : datetime.now(timezone.utc)}
-
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
         song_to_update.thumb_url = form.data["thumb_url"]
@@ -165,8 +148,6 @@ def update_song(song_id: str) -> ApiErrorResponse | IdAndTimestamps:
 
 
 # I want to be able to delete a song that I uploaded
-
-
 @song_routes.delete("/<int:song_id>")
 @login_required
 def delete_song(song_id: str) -> DeleteSong | ApiErrorResponse:
@@ -185,6 +166,4 @@ def delete_song(song_id: str) -> DeleteSong | ApiErrorResponse:
     db.session.delete(song_to_delete)
     db.session.commit()
 
-    data: DeleteSong = {}
-
-    return data
+    return {}  # can we avoid returning this empty dictionary?

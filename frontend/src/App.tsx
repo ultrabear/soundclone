@@ -1,6 +1,10 @@
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
+import HomePage from './components/Home/HomePage';
+import PlaylistView from './components/Playlist/PlaylistView';
+
 
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -33,7 +37,11 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: "/",
-				element: <h1>Welcome!</h1>,
+				element: <HomePage />,
+			},
+      {
+				path: "/home",
+				element: <HomePage />,
 			},
 			{
 				path: "login",
@@ -43,6 +51,10 @@ const router = createBrowserRouter([
 				path: "signup",
 				element: <SignupFormPage />,
 			},
+      {
+        path: "/playlist/:id",
+        element: <PlaylistView />,
+      }
 		],
 	},
 ]);

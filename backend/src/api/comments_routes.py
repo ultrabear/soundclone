@@ -17,15 +17,13 @@ def dt_now() -> datetime:
 
 
 @comment_routes.get("/songs/<int:song_id>/comments")
-def get_comments(song_id: str) -> GetComments | ApiErrorResponse:
-    id = int(song_id)
-
-    song_exists = db.session.query(DbSong).filter(DbSong.id == id).one_or_none()
+def get_comments(song_id: int) -> GetComments | ApiErrorResponse:
+    song_exists = db.session.query(DbSong).filter(DbSong.id == song_id).one_or_none()
 
     if song_exists is None:
         return {"message": "Song does not exist", "errors": {}}, 404
 
-    comments = db.session.query(Comment).filter(Comment.song_id == id).order_by(desc(Comment.created_at)).all()
+    comments = db.session.query(Comment).filter(Comment.song_id == song_id).order_by(desc(Comment.created_at)).all()
 
     return {
         "comments": [
@@ -43,13 +41,11 @@ def get_comments(song_id: str) -> GetComments | ApiErrorResponse:
 
 @comment_routes.post("/songs/<int:song_id>/comments")
 @login_required
-def post_new_comment(song_id: str) -> CommentResponse | ApiErrorResponse:
-    id = int(song_id)
-
+def post_new_comment(song_id: int) -> CommentResponse | ApiErrorResponse:
     user = cast(DbUser, current_user)
     text = cast(ApiComment, request.json)
 
-    song = db.session.query(DbSong).where(DbSong.id == id).one_or_none()
+    song = db.session.query(DbSong).where(DbSong.id == song_id).one_or_none()
 
     if song is None:
         return {"message": "Song not found", "errors": {}}, 404
@@ -66,13 +62,11 @@ def post_new_comment(song_id: str) -> CommentResponse | ApiErrorResponse:
 
 @comment_routes.put("/comments/<int:comment_id>")
 @login_required
-def edit_comment(comment_id: str) -> CommentResponse | ApiErrorResponse:
-    cid = int(comment_id)
-
+def edit_comment(comment_id: int) -> CommentResponse | ApiErrorResponse:
     user = cast(DbUser, current_user)
     text = cast(ApiComment, request.json)
 
-    comment = db.session.query(Comment).where(Comment.id == cid).one_or_none()
+    comment = db.session.query(Comment).where(Comment.id == comment_id).one_or_none()
 
     if comment is None:
         return {"message": "Could not find comment", "errors": {}}, 404
@@ -90,12 +84,10 @@ def edit_comment(comment_id: str) -> CommentResponse | ApiErrorResponse:
 
 @comment_routes.delete("/comments/<int:comment_id>")
 @login_required
-def delete_comment(comment_id: str) -> ApiErrorResponse | NoPayload:
-    cid = int(comment_id)
-
+def delete_comment(comment_id: int) -> ApiErrorResponse | NoPayload:
     user = cast(DbUser, current_user)
 
-    comment = db.session.query(Comment).filter(Comment.id == cid).one_or_none()
+    comment = db.session.query(Comment).filter(Comment.id == comment_id).one_or_none()
 
     if comment is None:
         return {"message": "Comment not found", "errors": {}}, 404

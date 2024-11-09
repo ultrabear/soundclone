@@ -46,6 +46,13 @@ class NoPayload(TypedDict):
     pass
 
 
+class ApiError(TypedDict):
+    message: str
+    errors: dict[str, str]
+
+
+type ApiErrorResponse = tuple[ApiError, int]
+
 # * Songs
 
 

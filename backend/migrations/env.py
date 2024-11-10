@@ -11,7 +11,7 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+fileConfig(config.config_file_name) # pyright: ignore
 logger = logging.getLogger('alembic.env')
 
 
@@ -83,10 +83,10 @@ def run_migrations_online():
     # this callback is used to prevent an auto-migration from being generated
     # when there are no changes to the schema
     # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
-    def process_revision_directives(context, revision, directives):
-        if getattr(config.cmd_opts, 'autogenerate', False):
-            script = directives[0]
-            if script.upgrade_ops.is_empty():
+    def process_revision_directives(context, revision, directives): # pyright: ignore
+        if getattr(config.cmd_opts, 'autogenerate', False): # pyright: ignore
+            script = directives[0] # pyright: ignore
+            if script.upgrade_ops.is_empty(): # pyright: ignore
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 

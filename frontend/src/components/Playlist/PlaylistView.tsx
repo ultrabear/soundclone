@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { fetchPlaylist, addSongToPlaylist } from "../../store/playlistSlice";
+import { fetchPlaylist, addSongToPlaylist } from "../../store/slices/playlistsSlice";
 import { setCurrentSong } from "../../store/playerSlice";
 import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
@@ -9,13 +9,11 @@ import "./PlaylistView.css";
 const PlaylistView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
-  const { currentPlaylist, loading, error } = useAppSelector(
-    (state) => state.playlist
-  );
-  const { userPlaylists } = useAppSelector((state) => state.home);
-  const [showAddToPlaylist, setShowAddToPlaylist] = useState<number | null>(
-    null
-  );
+  
+  // Updated selectors for new store structure
+  const { currentPlaylist, loading, error } = useAppSelector((state) => state.playlists);
+  const { userPlaylists } = useAppSelector((state) => state.playlists);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState<number | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -129,7 +127,7 @@ const PlaylistView: React.FC = () => {
                   >
                     +
                   </button>
-                  {showAddToPlaylist === song.id && (
+                  {showAddToPlaylist === song.id && userPlaylists && (
                     <div className="playlist-dropdown">
                       {userPlaylists.map((playlist) => (
                         <button

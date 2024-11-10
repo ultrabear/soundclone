@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import {
-  fetchFeaturedArtists,
-  fetchNewReleases,
-  fetchUserPlaylists,
-} from "../../store/homeSlice";
-import { setCurrentSong, togglePlayPause } from '../../store/playerSlice';
-import { SongWithUser } from '../../types';
+import { fetchFeaturedArtists } from "../../store/slices/artistsSlice";
+import { fetchNewReleases } from "../../store/slices/songsSlice";
+import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
+import { SongWithUser } from "../../types";
 import Layout from "../Layout/Layout";
-import { mockPlaylistData } from "../../store/playlistSlice";
+import LoginFormModal from "../LoginFormModal/LoginFormModal";
+import SignupFormModal from "../SignupFormModal/SignupFormModal";
+import OpenModalButton from "../OpenModalButton/OpenModalButton";
+import { mockPlaylistData } from "../../store/slices/playlistsSlice";
 
 interface ScrollableSectionProps {
   title: string;
@@ -71,8 +71,16 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { featuredArtists, newReleases, loading, error } = useAppSelector(
-    (state) => state.home
+
+  // Updated selectors
+  const { featuredArtists } = useAppSelector((state) => state.artists);
+  const { newReleases } = useAppSelector((state) => state.songs);
+  const { user } = useAppSelector((state) => state.session);
+  const loading = useAppSelector(
+    (state) => state.artists.loading || state.songs.loading
+  );
+  const error = useAppSelector(
+    (state) => state.artists.error || state.songs.error
   );
 
   const featuredRef = useRef<HTMLDivElement>(null);
@@ -86,14 +94,17 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     dispatch(fetchFeaturedArtists());
     dispatch(fetchNewReleases());
-    dispatch(fetchUserPlaylists());
   }, [dispatch]);
 
-  if (loading.artists || loading.releases || loading.playlists) {
-    return <Layout><div className="loading-container">Loading...</div></Layout>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="loading-container">Loading...</div>
+      </Layout>
+    );
   }
 
-  if (error.artists || error.releases || error.playlists) {
+  if (error) {
     return (
       <Layout>
         <div className="error-container">
@@ -107,7 +118,25 @@ const HomePage: React.FC = () => {
     <Layout>
       <section className="content-section">
         <div className="section-header">
-          <h2 className="section-title">More of what you like</h2>
+          <div className="header-content">
+            <h2 className="section-title">
+              {user
+                ? `Welcome back, ${user.username}!`
+                : "More of what you like"}
+            </h2>
+            {!user && (
+              <div className="auth-buttons">
+                <OpenModalButton
+                  buttonText="Log In"
+                  modalComponent={<LoginFormModal />}
+                />
+                <OpenModalButton
+                  buttonText="Sign Up"
+                  modalComponent={<SignupFormModal />}
+                />
+              </div>
+            )}
+          </div>
         </div>
         <div className="hero-section">
           <div className="hero-artwork">
@@ -119,7 +148,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="hero-content">
             <div className="hero-songs">
-              {mockPlaylistData.songs.map((song) => (
+              {mockPlaylistData?.songs?.map((song) => (
                 <div key={song.id} className="hero-song-item">
                   <div className="song-info">
                     <span className="song-title">{song.name}</span>
@@ -128,7 +157,7 @@ const HomePage: React.FC = () => {
                       {song.user.stage_name || song.user.username}
                     </span>
                   </div>
-                  <button 
+                  <button
                     className="song-play-button"
                     onClick={() => handlePlaySong(song)}
                     aria-label="Play song"
@@ -151,7 +180,7 @@ const HomePage: React.FC = () => {
       </section>
 
       <ScrollableSection title="Featured artists" containerRef={featuredRef}>
-        {featuredArtists.map((artist) => (
+        {featuredArtists?.map((artist) => (
           <div key={artist.id} className="artist-card">
             <div className="artist-image">
               {artist.profile_image && (
@@ -171,12 +200,8 @@ const HomePage: React.FC = () => {
       </ScrollableSection>
 
       <ScrollableSection title="New releases" containerRef={releasesRef}>
-        {newReleases.map((song) => (
-          <div 
-            key={song.id} 
-            className="track-card"
-            onClick={() => handlePlaySong(song as SongWithUser)}
-          >
+        {newReleases?.map((song) => (
+          <div key={song.id} className="track-card">
             <div className="track-artwork">
               {song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
             </div>

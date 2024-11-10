@@ -1,16 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
-import homeReducer from './homeSlice';
+import artistsReducer from './slices/artistsSlice';
+import songsReducer from './slices/songsSlice';
+import playlistsReducer from './slices/playlistsSlice';
 import playerReducer from './playerSlice';
-import playlistReducer from './playlistSlice';
 import sessionReducer from "./session";
-
 
 export const store = configureStore({
     reducer: {
-        home: homeReducer,
+        artists: artistsReducer,
+        songs: songsReducer,
+        playlists: playlistsReducer,
         player: playerReducer,
-        playlist: playlistReducer,
         session: sessionReducer
     },
 });

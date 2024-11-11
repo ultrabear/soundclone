@@ -9,8 +9,10 @@ from .models import db, User
 from .api.user_routes import user_routes
 from .api.auth_routes import auth_routes
 from .api.comments_routes import comment_routes
+from .api.song_routes import song_routes
 from .seeds import seed_commands
 from .config import Config
+
 
 app = Flask(__name__, static_folder="../../frontend/dist", static_url_path="/")
 
@@ -31,6 +33,7 @@ app.config.from_object(Config)
 app.register_blueprint(user_routes, url_prefix="/api/users")
 app.register_blueprint(auth_routes, url_prefix="/api/auth")
 app.register_blueprint(comment_routes, url_prefix="/api")
+app.register_blueprint(song_routes, url_prefix="/api/songs")
 db.init_app(app)
 Migrate(app, db)
 
@@ -65,12 +68,12 @@ def inject_csrf_token(response: Response):
 
 
 @app.route("/api/docs")
-def api_help():
+def api_help():  # pyright: ignore
     """
     Returns all API routes and their doc strings
     """
     acceptable_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    route_list = {
+    route_list = {  # pyright: ignore
         rule.rule: [
             [method for method in rule.methods if method in acceptable_methods],  # pyright: ignore
             app.view_functions[rule.endpoint].__doc__,
@@ -78,7 +81,7 @@ def api_help():
         for rule in app.url_map.iter_rules()
         if rule.endpoint != "static"
     }
-    return route_list
+    return route_list  # pyright: ignore
 
 
 @app.route("/", defaults={"path": ""})
@@ -88,9 +91,12 @@ def react_root(path: str):  # pyright: ignore
     This route will direct to the public directory in our
     react builds in the production environment for favicon
     or index.html requests
+
     """
+    print("inside react root")
     if path == "favicon.ico":
         return app.send_from_directory("public", "favicon.ico")  # pyright: ignore
+
     return app.send_static_file("index.html")
 
 

@@ -1,18 +1,13 @@
 FROM debian:bookworm-slim
 RUN apt update -y
-RUN apt install nodejs python3 python3-pip npm -y
-RUN apt install pipx -y
+RUN apt install nodejs python3 npm pipx -y
 ENV PATH="$PATH:/root/.local/bin"
 
 RUN pipx install uv
 RUN npm install -g pnpm
 
-ENV FLASK_RUN_PORT=8000
+ENV FLASK_RUN_PORT=80
 ENV FLASK_ENV=production
-
-ARG DATABASE_URL
-ARG SCHEMA
-ARG SECRET_KEY
 
 WORKDIR /backend
 COPY backend/.python-version /backend/
@@ -31,4 +26,4 @@ RUN pnpm build
 
 COPY backend /backend/
 WORKDIR /backend
-CMD [ "uv", "run", "gunicorn", "-b", "0.0.0.0", "src:app" ]
+CMD uv run flask db upgrade && uv run flask seed all && uv run gunicorn -b 0.0.0.0:$FLASK_RUN_PORT src:app

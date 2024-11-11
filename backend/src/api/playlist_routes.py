@@ -210,9 +210,6 @@ def change_like(song_id: int) -> Union[dict, Tuple[ApiError, int]]:
     db.session.commit()
     return {"message": f"Song has been {action}"}, 200
 
-    db.session.commit()
-    return {}, 200
-
 # 9. Add to my favorite
 def add_to_favorites_playlist(song: Song) -> None:
     # check "My Favorites" for the current user

@@ -45,6 +45,12 @@ def post_new_comment(song_id: int) -> CommentResponse | ApiErrorResponse:
     user = cast(DbUser, current_user)
     text = cast(ApiComment, request.json)
 
+    if "text" not in text:
+        return {"message": "Invalid schema", "errors": {"text": "Missing text field"}}, 401
+
+    if len(text["text"]) < 5:
+        return {"message": "Invalid schema", "errors": {"text": "Textfield not long enough"}}, 401
+
     song = db.session.query(DbSong).where(DbSong.id == song_id).one_or_none()
 
     if song is None:
@@ -65,6 +71,12 @@ def post_new_comment(song_id: int) -> CommentResponse | ApiErrorResponse:
 def edit_comment(comment_id: int) -> CommentResponse | ApiErrorResponse:
     user = cast(DbUser, current_user)
     text = cast(ApiComment, request.json)
+
+    if "text" not in text:
+        return {"message": "Invalid schema", "errors": {"text": "Missing text field"}}, 401
+
+    if len(text["text"]) < 5:
+        return {"message": "Invalid schema", "errors": {"text": "Textfield not long enough"}}, 401
 
     comment = db.session.query(Comment).where(Comment.id == comment_id).one_or_none()
 

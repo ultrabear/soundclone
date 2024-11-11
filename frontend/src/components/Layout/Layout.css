@@ -3,11 +3,13 @@
     --sidebar-width: 420px;
     --section-width: 70%;
     --primary-color: #ff5500;
-    --background-color: #f2f2f2;
+    --background-color: #ffffff;
     --text-primary: #333;
     --text-secondary: #999;
     --border-color: #e5e5e5;
     --header-background: #333;
+    margin-top: -60px;
+    padding-top: 60px;
     --search-background: #e5e5e5;
 }
 
@@ -60,9 +62,10 @@ body {
 /* Wrapper for centering the main content and sidebar */
 .centered-content {
     display: flex;
-    max-width: 80%; 
-    margin: 0 auto; 
-    gap: 20px; 
+    width: 90%; 
+    max-width: 1240px;
+    margin: 0 auto;
+    position: relative;
 }
 
 /* Header Styles */
@@ -206,19 +209,23 @@ body {
 
 /* Sidebar Styles */
 .sidebar {
-    width: var(--sidebar-width);
-    min-width: var(--sidebar-width);
+    width: 300px;
+    flex-shrink: 0; 
     background: white;
     border-left: 1px solid var(--border-color);
     padding: 30px;
     height: calc(100vh - var(--header-height));
-    position: fixed;
-    right: 0;
+    position: sticky; 
+    top: 0;
+    height: 100vh;
     overflow-y: auto;
+    margin-top: 0;
+    margin-top: calc(var(--header-height) * -1);
 }
 
 .sidebar-section {
     margin-bottom: 40px;
+    margin-top: var(--header-height);
 }
 
 .sidebar-heading {
@@ -245,8 +252,8 @@ body {
 /* Main Content Area */
 .main-content {
     flex: 1;
-    margin-right: var(--sidebar-width);
-    padding: 20px 0 30px;
+    min-width: 0;
+    padding: 20px 40px 30px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -255,7 +262,7 @@ body {
 /* Content Sections */
 .content-section {
     width: 100%;
-    max-width: var(--section-width);
+    max-width: 1000px;
     margin-bottom: 30px;
     padding-top: 20px;
     border-top: 1px solid var(--border-color);
@@ -263,13 +270,14 @@ body {
 
 .content-section:first-child {
     margin-bottom: 30px;
+    border-top: none;
 }
 
 .content-wrapper {
-    padding-top: var(--header-height); 
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    padding-top: var(--header-height);
+    margin-top: 0
 }
 
 .section-header {
@@ -644,3 +652,33 @@ body {
         --section-width: 90%;
     }
 }
+
+@media screen and (max-width: 1280px) {
+    .content-section {
+        max-width: 850px;
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    .content-section {
+        max-width: 700px;
+    }
+    
+    .centered-content {
+        padding: 0 20px;
+    }
+}
+    
+    @media screen and (max-width: 768px) {
+        .main-content {
+            margin-right: 0;
+        }
+        
+        .sidebar {
+            display: none; 
+        }
+        
+        .content-section {
+            max-width: 100%;
+        }
+    }

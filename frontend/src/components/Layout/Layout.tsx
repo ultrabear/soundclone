@@ -101,52 +101,53 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
 
-      {/* Main Content Wrapper */}
-      <div className="content-wrapper">
-        {/* Centered content containing main content and sidebar */}
-        <div className="centered-content">
-          <aside className="sidebar">
-            <div className="sidebar-section">
-              <h2 className="sidebar-heading">Your Playlists</h2>
-              {user ? (
-                userPlaylists?.length ? (
-                  userPlaylists.map((playlist) => (
-                    <Link
-                      key={playlist.id}
-                      to={`/playlist/${playlist.id}`}
-                      className="sidebar-link"
-                    >
-                      {playlist.name}
-                    </Link>
-                  ))
-                ) : (
-                  <div className="sidebar-link placeholder">
-                    No playlists yet
-                  </div>
-                )
-              ) : (
-                <div className="sidebar-link placeholder">
-                  Log in to see your playlists
-                </div>
-              )}
+   {/* Main Content Wrapper */}
+<div className="content-wrapper">
+  {/* Centered content containing main content and sidebar */}
+  <div className="centered-content">
+    <main className="main-content">{children}</main>
+    
+    <aside className="sidebar">
+      <div className="sidebar-section">
+        <h2 className="sidebar-heading">Your Playlists</h2>
+        {user ? (
+          userPlaylists?.length ? (
+            userPlaylists.map((playlist) => (
+              <Link
+                key={playlist.id}
+                to={`/playlist/${playlist.id}`}
+                className="sidebar-link"
+              >
+                {playlist.name}
+              </Link>
+            ))
+          ) : (
+            <div className="sidebar-link placeholder">
+              No playlists yet
             </div>
+          )
+        ) : (
+          <div className="sidebar-link placeholder">
+            Log in to see your playlists
+          </div>
+        )}
+      </div>
 
-            <div className="sidebar-section">
-              <h2 className="sidebar-heading">Liked Songs</h2>
-              {user ? (
-                <div className="sidebar-link placeholder">
-                  No liked songs yet
-                </div>
-              ) : (
-                <div className="sidebar-link placeholder">
-                  Log in to see your liked songs
-                </div>
-              )}
-            </div>
-          </aside>
-
-          <main className="main-content">{children}</main>
-        </div>
+      <div className="sidebar-section">
+        <h2 className="sidebar-heading">Liked Songs</h2>
+        {user ? (
+          <div className="sidebar-link placeholder">
+            No liked songs yet
+          </div>
+        ) : (
+          <div className="sidebar-link placeholder">
+            Log in to see your liked songs
+          </div>
+        )}
+      </div>
+    </aside>
+  </div>
+</div>
 
         <NowPlaying
           currentSong={currentSong}
@@ -154,7 +155,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           className="now-playing-bar"
         />
       </div>
-    </div>
   );
 };
 

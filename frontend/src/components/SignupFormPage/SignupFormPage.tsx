@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { thunkSignup } from "../../store/session";
 import { useAppDispatch, useAppSelector } from "../../store";
+import { thunkSignup } from "../../store/session";
 
 function SignupFormPage() {
 	const dispatch = useAppDispatch();

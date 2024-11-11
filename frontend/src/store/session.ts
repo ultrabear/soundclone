@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { User as ApiUser } from "./api";
 import type { AppDispatch } from ".";
+import type { User as ApiUser } from "./api";
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 	const response = await fetch("/api/auth/");

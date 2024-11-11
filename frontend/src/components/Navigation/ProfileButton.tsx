@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
+import { useAppDispatch, useAppSelector } from "../../store";
 import { thunkLogout } from "../../store/session";
-import OpenModalMenuItem from "./OpenModalMenuItem";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
-import { useAppDispatch, useAppSelector } from "../../store";
+import OpenModalMenuItem from "./OpenModalMenuItem";
 
 function ProfileButton() {
 	const dispatch = useAppDispatch();

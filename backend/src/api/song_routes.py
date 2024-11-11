@@ -1,15 +1,9 @@
-from typing import TypedDict, NotRequired
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
 from ..models import Song, likes_join, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
 from ..forms.song_form import SongForm
 from datetime import datetime, timezone
-
-
-class GetSongWithNumLikes(TypedDict):
-    song_data: GetSong
-    num_likes: NotRequired[int]
 
 
 song_routes = Blueprint("songs", __name__)
@@ -69,23 +63,22 @@ def get_all_songs() -> GetSongs:
 # # I want to view a song's total likes
 @song_routes.get("/<int:song_id>")
 def get_song(
-    song_id: str,
-) -> ApiErrorResponse | GetSongWithNumLikes:
+    song_id: int,
+) -> ApiErrorResponse | GetSong:
     """
     Query for single song where song_id matches and associate any likes with that song through likes_join table
     """
-    id = int(song_id)
-    song = db.session.query(Song).outerjoin(likes_join).filter(Song.id == id).one_or_none()
+    song = db.session.query(Song).outerjoin(likes_join).filter(Song.id == song_id).one_or_none()
     if not song:
         return song_not_found_error
 
-    data: GetSongWithNumLikes = {"song_data": db_song_to_api_song(song)}
+    song_details: GetSong = db_song_to_api_song(song)
 
     num_likes = len(song.liking_users)
     if num_likes > 0:
-        data["num_likes"] = num_likes
+        song_details["num_likes"] = num_likes
 
-    return data
+    return song_details
 
 
 @song_routes.post("")
@@ -121,12 +114,11 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
 
 @song_routes.put("/<int:song_id>")
 @login_required
-def update_song(song_id: str) -> ApiErrorResponse | IdAndTimestamps:
+def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
     """
     Change data about a song that exists as long as song exists and current_user is authorized to do so
     """
-    id = int(song_id)
-    song_to_update = db.session.query(Song).filter(Song.id == id).one_or_none()
+    song_to_update = db.session.query(Song).filter(Song.id == song_id).one_or_none()
 
     if not song_to_update:
         return song_not_found_error
@@ -160,12 +152,11 @@ def update_song(song_id: str) -> ApiErrorResponse | IdAndTimestamps:
 # I want to be able to delete a song that I uploaded
 @song_routes.delete("/<int:song_id>")
 @login_required
-def delete_song(song_id: str) -> DeleteSong | ApiErrorResponse:
+def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
     """
     Delete a song as long as the song exists and the current_user is authorized to do so
     """
-    id = int(song_id)
-    song_to_delete = db.session.query(Song).filter(Song.id == id).one_or_none()
+    song_to_delete = db.session.query(Song).filter(Song.id == song_id).one_or_none()
 
     if not song_to_delete:
         return song_not_found_error
@@ -176,4 +167,4 @@ def delete_song(song_id: str) -> DeleteSong | ApiErrorResponse:
     db.session.delete(song_to_delete)
     db.session.commit()
 
-    return {}  # can we avoid returning this empty dictionary?
+    return {}

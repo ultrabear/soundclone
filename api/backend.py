@@ -68,7 +68,7 @@ class DeleteSong(NoPayload):
 # Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
 @endpoint("GET", "/api/songs/:song_id")
 class GetSong(Song, IdAndTimestamps):
-    pass
+    num_likes: NotRequired[int]
 
 
 # I want a landing page of other peoples' songs (showing newest first)

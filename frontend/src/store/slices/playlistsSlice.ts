@@ -1,6 +1,6 @@
 // src/store/slices/playlistsSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Playlist, PlaylistWithUser, SongWithUser } from "../../types";
+import type { PlaylistWithUser } from "../../types";
 
 export const mockPlaylistData = {
   id: 1,
@@ -62,7 +62,7 @@ export const fetchUserPlaylists = createAsyncThunk(
 
 export const fetchPlaylist = createAsyncThunk(
   "playlists/fetchPlaylist",
-  async (id: number) => {
+  async (_id: number) => {
     // For now return mock data
     await new Promise(resolve => setTimeout(resolve, 500));
     return { playlist: mockPlaylistData };
@@ -110,7 +110,7 @@ const playlistsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? "Failed to fetch user playlists";
       })
-      .addCase(addSongToPlaylist.fulfilled, (state, action) => {
+      .addCase(addSongToPlaylist.fulfilled, (_state, _action) => {
         // Implementation for adding song to playlist
       });
   },

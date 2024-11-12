@@ -38,10 +38,6 @@ class IdAndTimestamps(Id):
     updated_at: str
 
 
-class RequiresAuth(TypedDict):
-    pass
-
-
 class NoPayload(TypedDict):
     pass
 
@@ -109,11 +105,15 @@ class PlaylistInfo(BasePlaylist, IdAndTimestamps):
     pass
 
 
+# I want to get playlist info
+endpoint("GET", "/api/playlists/:playlistId", req=None, res=PlaylistInfo, auth=True)
+
+
 # I want to delete a playlist
 endpoint("DELETE", "/api/playlists/:playlistId", req=None, res=Ok[NoBody], auth=True)
 
 
-class PopulatePlaylist(RequiresAuth):
+class PopulatePlaylist(TypedDict):
     song_id: int
 
 
@@ -121,12 +121,8 @@ class PopulatePlaylist(RequiresAuth):
 endpoint(["DELETE", "POST"], "/api/playlists/:playlistId/songs", req=PopulatePlaylist, res=Ok[NoBody], auth=True)
 
 
-class PlaylistSongs(GetSongs):
-    pass
-
-
 # I want to see all of the songs in my playlist
-endpoint("GET", "/api/playlists/:playlistId/songs", req=None, res=PlaylistSongs, auth=True)
+endpoint("GET", "/api/playlists/:playlistId/songs", req=None, res=GetSongs, auth=True)
 
 
 class ListOfPlaylist(TypedDict):
@@ -140,12 +136,8 @@ endpoint("GET", "/api/playlists/current", req=None, res=ListOfPlaylist, auth=Tru
 # ^ Implemented in frontend via /api/likes call
 
 
-class GetLikes(RequiresAuth, GetSongs):
-    pass
-
-
 # I want to get all of my likes
-endpoint("GET", "/api/likes", req=None, res=GetLikes, auth=True)
+endpoint("GET", "/api/likes", req=None, res=GetSongs, auth=True)
 
 
 # I want to be able to like a song and unlike a song
@@ -159,15 +151,11 @@ class Comment(TypedDict):
     text: str
 
 
-class CommentResponse(IdAndTimestamps):
-    pass
-
-
 # I want to be able to comment on a song on that song's page
-endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=CommentResponse, auth=True)
+endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=IdAndTimestamps, auth=True)
 
 # I want to be able to update a comment that I left on a song's page
-endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=CommentResponse, auth=True)
+endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=IdAndTimestamps, auth=True)
 
 
 class UserComment(Comment, IdAndTimestamps):
@@ -207,7 +195,7 @@ class Artist(BaseArtist):
 endpoint("GET", "/api/artists/:artist_id", req=None, res=Artist)
 
 
-class PostArtist(BaseArtist, RequiresAuth):
+class PostArtist(BaseArtist):
     stage_name: NotRequired[str]
 
 
@@ -237,11 +225,11 @@ class Signup(Login):
 
 
 # I want to restore my session
-endpoint("GET", "/api/auth", req=None, res=User)
+endpoint("GET", "/api/auth", req=None, res=User, auth=True)
 
 # I want to login/signup
-endpoint("POST", "/api/auth/login", req=Login, res=User)
-endpoint("POST", "/api/auth/signup", req=Signup, res=User)
+endpoint("POST", "/api/auth/login", req=Login, res=User, auth=False)
+endpoint("POST", "/api/auth/signup", req=Signup, res=User, auth=False)
 
 # I want to log out
-endpoint("GET", "/api/auth/logout", req=None, res=None)
+endpoint("GET", "/api/auth/logout", req=None, res=None, auth=False)

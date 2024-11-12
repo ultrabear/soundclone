@@ -1,13 +1,15 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import HomePage from "./components/Home/HomePage";
 import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
+import PlaylistView from "./components/Playlist/PlaylistView";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
 
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
-import { ModalProvider, Modal } from "./context/Modal";
-import { thunkAuthenticate } from "./store/session";
 import Navigation from "./components/Navigation/Navigation";
+import { Modal, ModalProvider } from "./context/Modal";
 import { useAppDispatch } from "./store";
+import { thunkAuthenticate } from "./store/session";
 
 function Layout() {
 	const dispatch = useAppDispatch();
@@ -33,7 +35,11 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: "/",
-				element: <h1>Welcome!</h1>,
+				element: <HomePage />,
+			},
+			{
+				path: "/home",
+				element: <HomePage />,
 			},
 			{
 				path: "login",
@@ -42,6 +48,10 @@ const router = createBrowserRouter([
 			{
 				path: "signup",
 				element: <SignupFormPage />,
+			},
+			{
+				path: "/playlist/:id",
+				element: <PlaylistView />,
 			},
 		],
 	},

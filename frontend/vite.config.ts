@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { defineConfig } from "vite";
 //@ts-expect-error no typestubs
 import eslint from "vite-plugin-eslint";
 

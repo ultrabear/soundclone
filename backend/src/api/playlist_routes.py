@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request
 from flask_login import login_required, current_user
-from typing import Union, Tuple
+from typing import Union, Tuple, Dict, List
 from datetime import datetime, timezone
 from ..models import db, Playlist, Song
 from ..backend_api import (
@@ -45,6 +45,8 @@ def create_playlist() -> Union[NewPlaylistReturns, Tuple[ApiError, int]]:
 
     response: NewPlaylistReturns = {
         "id": playlist.id,
+        "name": playlist.name,  
+        "thumbnail": playlist.thumbnail, 
         "created_at": str(playlist.created_at),
         "updated_at": str(playlist.updated_at),
     }
@@ -52,6 +54,8 @@ def create_playlist() -> Union[NewPlaylistReturns, Tuple[ApiError, int]]:
 
 
 # 2. Update a playlist (name can be changed)
+@playlist_routes.route("/<int:playlist_id>", methods=["PUT"]) 
+@login_required
 def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, int]]:
     data: UpdatePlaylist = request.get_json()
     name = data.get("name")
@@ -73,7 +77,7 @@ def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, i
         "created_at": str(playlist.created_at),
         "updated_at": str(playlist.updated_at),
     }
-    return response
+    return response,200
 
 
 # 3.Delete a playlist
@@ -130,7 +134,7 @@ def get_playlist_songs(playlist_id: int) -> Union[PlaylistSongs, Tuple[ApiError,
             message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
 
-    songs = [
+    songs: List[Dict[str, str]] = [
         {
             "id": song.id,
             "name": song.name,
@@ -151,7 +155,7 @@ def get_playlist_songs(playlist_id: int) -> Union[PlaylistSongs, Tuple[ApiError,
 # 6. get all of my playlist of a user
 @playlist_routes.route("/current", methods=["GET"])
 @login_required
-def get_user_playlists() -> ListOfPlaylist:
+def get_user_playlists() -> Tuple[ListOfPlaylist, int]:
     playlists = Playlist.query.filter_by(user_id=current_user.id).all()
     playlist_data: list[PlaylistInfo] = [
         {
@@ -174,7 +178,7 @@ def get_user_playlists() -> ListOfPlaylist:
 def get_likes() -> Union[GetSongs, Tuple[ApiError, int]]:
     favorite_songs = current_user.liked_songs
 
-    songs = [
+    songs: List[Dict[str, str]] = [
         {
             "id": song.id,
             "name": song.name,
@@ -195,12 +199,13 @@ def get_likes() -> Union[GetSongs, Tuple[ApiError, int]]:
 # 8. like a song and unlike a song
 @playlist_routes.route("/songs/<int:song_id>/likes", methods=["POST", "DELETE"])
 @login_required
-def change_like(song_id: int) -> Union[dict, Tuple[ApiError, int]]:
+def change_like(song_id: int) -> Union[Dict[str, str], Tuple[ApiError, int]]:
     song = Song.query.get(song_id)
 
     if not song:
         return ApiError(message="Song not found", errors={"song_id": f"No song found with id {song_id}"}), 404
 
+    action = ""
     if request.method == "POST":
         # add to the "My favorite" playlist
         if song not in current_user.liked_songs:
@@ -238,3 +243,6 @@ def add_to_favorites_playlist(song: Song) -> None:
     if song not in favorites_playlist.songs:
         favorites_playlist.songs.append(song)
         favorites_playlist.updated_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        

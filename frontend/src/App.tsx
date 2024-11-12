@@ -1,8 +1,12 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import ArtistPage from "./components/ArtistPage/ArtistPage";
+import ArtistsSongsPage from "./components/ArtistsSongsPage/ArtistsSongsPage";
 import HomePage from "./components/Home/HomePage";
 import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
+import PlaylistsScreen from "./components/PlaylistsScreen/PlaylistsScreen";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
+import UserView from "./components/UserView/UserView";
 
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -52,6 +56,44 @@ const router = createBrowserRouter([
 			{
 				path: "/playlist/:id",
 				element: <PlaylistView />,
+			},
+			// Regular user view for playlists
+			{
+				path: "/user/:userId",
+				element: <UserView />,
+				children: [
+					{
+						index: true,
+						element: <PlaylistsScreen />,
+					},
+					{
+						path: "playlists",
+						element: <PlaylistsScreen />,
+					},
+					{
+						path: "likes",
+						element: <div>Likes Content</div>,
+					},
+					{
+						path: "profile",
+						element: <div>Profile Content</div>,
+					},
+				],
+			},
+			// Artist view (user with songs)
+			{
+				path: "/artist/:userId",
+				element: <ArtistPage />, // Different component for artist profiles
+				children: [
+					{
+						index: true,
+						element: <ArtistsSongsPage />,
+					},
+					{
+						path: "tracks",
+						element: <ArtistsSongsPage />,
+					},
+				],
 			},
 		],
 	},

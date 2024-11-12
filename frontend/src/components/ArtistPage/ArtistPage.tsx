@@ -3,105 +3,98 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import {
-	addSongToPlaylist,
-	fetchPlaylist,
-} from "../../store/slices/playlistsSlice";
+import { fetchFeaturedArtists } from "../../store/slices/artistsSlice";
+import { fetchArtistSongs } from "../../store/slices/songsSlice";
 import Layout from "../Layout/Layout";
-import "./PlaylistView.css";
+import "./ArtistPage.css";
 
-const PlaylistView: React.FC = () => {
-	const { id } = useParams<{ id: string }>();
+const ArtistPage: React.FC = () => {
+	const { userId } = useParams<{ userId: string }>();
 	const dispatch = useAppDispatch();
-	const { currentPlaylist, loading, error } = useAppSelector(
-		(state) => state.playlists,
-	);
-	const { userPlaylists } = useAppSelector((state) => state.playlists);
 	const [showAddToPlaylist, setShowAddToPlaylist] = useState<number | null>(
 		null,
 	);
 
+	const { featuredArtists, loading: artistLoading } = useAppSelector(
+		(state) => state.artists,
+	);
+	const { artistSongs, loading: songsLoading } = useAppSelector(
+		(state) => state.songs,
+	);
+	const { userPlaylists } = useAppSelector((state) => state.playlists);
+
+	const artist = featuredArtists.find((a) => a.id === Number(userId));
+
 	useEffect(() => {
-		if (id) {
-			dispatch(fetchPlaylist(Number.parseInt(id)));
+		if (userId) {
+			dispatch(fetchFeaturedArtists());
+			dispatch(fetchArtistSongs(Number(userId)));
 		}
-	}, [dispatch, id]);
+	}, [dispatch, userId]);
 
 	const handlePlaySong = (index: number) => {
-		if (currentPlaylist?.songs && currentPlaylist.songs[index]) {
-			dispatch(setCurrentSong(currentPlaylist.songs[index]));
+		if (artistSongs[index]) {
+			dispatch(setCurrentSong(artistSongs[index]));
 		}
 	};
 
-	const handleAddToPlaylist = (songId: number, targetPlaylistId: number) => {
-		dispatch(addSongToPlaylist({ playlistId: targetPlaylistId, songId }));
-		setShowAddToPlaylist(null);
-	};
+	//   const handleAddToPlaylist = (songId: number, targetPlaylistId: number) => {
+	//     dispatch(addSongToPlaylist({ playlistId: targetPlaylistId, songId }));
+	//     setShowAddToPlaylist(null);
+	//   };
 
-	if (loading) {
+	if (artistLoading || songsLoading) {
 		return (
 			<Layout>
-				<div className="loading-container">Loading playlist...</div>
+				<div className="loading-container">Loading artist profile...</div>
 			</Layout>
 		);
 	}
 
-	if (error) {
+	if (!artist) {
 		return (
 			<Layout>
-				<div className="error-container">{error}</div>
-			</Layout>
-		);
-	}
-
-	if (!currentPlaylist) {
-		return (
-			<Layout>
-				<div className="error-container">Playlist not found</div>
+				<div className="error-container">Artist not found</div>
 			</Layout>
 		);
 	}
 
 	return (
 		<Layout>
-			<div className="playlist-view-wrapper">
-				{/* Hero Section */}
-				<div className="playlist-hero">
-					<div className="playlist-hero-overlay"></div>
-					<div className="playlist-hero-content">
-						<div className="playlist-hero-info">
-							<div className="playlist-artwork">
-								{currentPlaylist.thumbnail && (
-									<img
-										src={currentPlaylist.thumbnail}
-										alt={currentPlaylist.name}
-									/>
-								)}
+			<div className="artist-page">
+				<div className="artist-hero-container">
+					<div className="artist-hero-background">
+						<img
+							src={artist.profile_image || ""}
+							alt=""
+							className="hero-background-image"
+						/>
+						<div className="hero-overlay"></div>
+					</div>
+
+					<div className="artist-hero-content">
+						<div className="artist-profile">
+							<div className="artist-profile-image">
+								<img src={artist.profile_image || ""} alt={artist.username} />
 							</div>
-							<div className="playlist-details">
-								<h1 className="playlist-title">{currentPlaylist.name}</h1>
-								<div className="playlist-meta">
-									<span>
-										Created by{" "}
-										{currentPlaylist.user.stage_name ||
-											currentPlaylist.user.username}
-									</span>
-									<span className="meta-divider">•</span>
-									<span>{currentPlaylist.songs?.length || 0} songs</span>
-								</div>
+							<div className="artist-info">
+								<h1>{artist.stage_name || artist.username}</h1>
+								{artist.location && (
+									<div className="artist-meta">
+										<span className="artist-location">{artist.location}</span>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
 				</div>
 
-				{/* Content Section */}
-				<div className="playlist-content">
-					<div className="playlist-actions">
+				<div className="artist-content">
+					<div className="content-actions">
 						<button className="play-all-button">▶ Play All</button>
-						<button className="share-button">Share Playlist</button>
 					</div>
 
-					{/* Songs List */}
+					{/* Songs Table */}
 					<div className="songs-table">
 						<div className="songs-header">
 							<div className="song-number">#</div>
@@ -112,7 +105,7 @@ const PlaylistView: React.FC = () => {
 						</div>
 
 						<div className="songs-list">
-							{currentPlaylist.songs?.map((song, index) => (
+							{artistSongs.map((song, index) => (
 								<div key={song.id} className="song-row">
 									<div className="song-number">{index + 1}</div>
 									<div className="song-title-cell">
@@ -147,9 +140,9 @@ const PlaylistView: React.FC = () => {
 												{userPlaylists.map((playlist) => (
 													<button
 														key={playlist.id}
-														onClick={() =>
-															handleAddToPlaylist(song.id, playlist.id)
-														}
+														// onClick={() =>
+														//   handleAddToPlaylist(song.id, playlist.id)
+														// }
 														className="playlist-option"
 													>
 														{playlist.name}
@@ -168,4 +161,4 @@ const PlaylistView: React.FC = () => {
 	);
 };
 
-export default PlaylistView;
+export default ArtistPage;

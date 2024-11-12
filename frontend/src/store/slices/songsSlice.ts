@@ -92,6 +92,7 @@ export const mockSongs: SongWithUser[] = [
 
 interface SongsState {
 	newReleases: SongWithUser[];
+	artistSongs: SongWithUser[];
 	songs: Record<number, Song>;
 	loading: boolean;
 	error: string | null;
@@ -99,6 +100,7 @@ interface SongsState {
 
 const initialState: SongsState = {
 	newReleases: [],
+	artistSongs: [],
 	songs: {},
 	loading: false,
 	error: null,
@@ -125,12 +127,30 @@ export const fetchNewReleases = createAsyncThunk(
 	},
 );
 
+export const fetchArtistSongs = createAsyncThunk(
+	"songs/fetchArtistSongs",
+	async (artistId: number) => {
+		// mock data filtered by artist_id
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		const artistSongs = mockSongs.filter((song) => song.artist_id === artistId);
+		return { data: artistSongs };
+
+		// When ready for API:
+		// const response = await fetch(`/api/songs?artist_id=${artistId}`);
+		// if (!response.ok) {
+		//   throw new Error('Failed to fetch artist songs');
+		// }
+		// return response.json();
+	},
+);
+
 const songsSlice = createSlice({
 	name: "songs",
 	initialState,
 	reducers: {},
 	extraReducers: (builder) => {
 		builder
+			// New Releases cases
 			.addCase(fetchNewReleases.pending, (state) => {
 				state.loading = true;
 				state.error = null;
@@ -142,6 +162,19 @@ const songsSlice = createSlice({
 			.addCase(fetchNewReleases.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.error.message ?? "Failed to fetch releases";
+			})
+			// Artist Songs cases
+			.addCase(fetchArtistSongs.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(fetchArtistSongs.fulfilled, (state, action) => {
+				state.loading = false;
+				state.artistSongs = action.payload.data;
+			})
+			.addCase(fetchArtistSongs.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.error.message ?? "Failed to fetch artist songs";
 			});
 	},
 });

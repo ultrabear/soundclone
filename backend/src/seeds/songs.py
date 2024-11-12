@@ -10,6 +10,7 @@ song_data: list[SongType] = [
         "artist_id": 4, 
         "genre": "jazz",
         "thumb_url": "thumbnail-image.jpg",
+        # TODO LINK TO LIVE AWS AUDIO FILE
         "song_ref": "west-end-blues.mp3",
     },
     {

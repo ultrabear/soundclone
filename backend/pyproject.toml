@@ -11,7 +11,6 @@ dependencies = [
     "flask-sqlalchemy>=3.1.1",
     "python-dotenv>=1.0.1",
     "sqlalchemy>=2.0.36",
-    "pydantic>=2.9.2",
     "flask-login>=0.6.3",
     "werkzeug>=3.1.2",
     "wtforms>=3.2.1",
@@ -20,8 +19,6 @@ dependencies = [
     "pyright>=1.1.388",
     "email-validator>=2.2.0",
     # "psycopg2-binary>=2.9.9",
-    "boto3[ec2,s3]>=1.35.58",
-    "boto3-stubs[ec2,s3]>=1.35.58",
 ]
 
 [tool.ruff]

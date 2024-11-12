@@ -8,8 +8,17 @@ SOUND_BUCKET_NAME = os.environ["S3_SOUND_BUCKET"]
 IMAGE_BUCKET_NAME = os.environ["S3_IMAGE_BUCKET"]
 S3_SOUND_LOCATION = f"http://{SOUND_BUCKET_NAME}.s3.amazonaws.com/"
 S3_IMAGE_LOCATION = f"http://{IMAGE_BUCKET_NAME}.s3.amazonaws.com/"
-ALLOWED_SOUND_EXTENSIONS = {"mp3", "mp4", "m4a", "wav", "ogg"}
-ALLOWED_IMAGE_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "gif"}
+ALLOWED_SOUND_EXTENSIONS = {"mp3", "aac", "m4a", "opus", "wav", "flac", "ogg"}
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+AUDIO_CONTENT_EXT_MAP = {
+    "ogg": "ogg",
+    "aac": "aac",
+    "flac": "flac",
+    "m4a": "mp4",
+    "opus": "ogg",
+    "wav": "wav",
+    "mp3": "mpeg",
+}
 
 s3_session = boto3.Session(aws_access_key_id=os.environ["S3_KEY"], aws_secret_access_key=os.environ["S3_SECRET"])
 
@@ -22,35 +31,31 @@ class AWS_File:
     content_type: str
     content: bytes
 
-    @property
-    def bucket(self) -> str:
-        if self.content_type == "audio/mpeg":
-            return SOUND_BUCKET_NAME
-        else:
-            return IMAGE_BUCKET_NAME
-
-    @property
-    def location(self) -> str:
-        if self.content_type == "audio/mpeg":
-            return S3_SOUND_LOCATION
-        else:
-            return S3_IMAGE_LOCATION
-
-    def upload_to_s3(self, acl: str = "public-read"):
+    def upload_to_s3(self, location: str, bucket: str, acl: str = "public-read"):
         with tempfile.NamedTemporaryFile() as temp_file:
             temp_file.write(self.content)
             temp_file.seek(0)
             try:
                 s3_client.upload_fileobj(
                     temp_file,
-                    self.bucket,
+                    bucket,
                     self.filename,
                     ExtraArgs={"ACL": acl, "ContentType": self.content_type},
                 )
             except Exception as e:
                 return {"errors": str(e)}
 
-            return {"url": f"{self.location}{self.filename}"}
+            return {"url": f"{location}{self.filename}"}
+
+
+class SongFile(AWS_File):
+    def upload(self):
+        return self.upload_to_s3(S3_SOUND_LOCATION, SOUND_BUCKET_NAME)
+
+
+class ImageFile(AWS_File):
+    def upload(self):
+        return self.upload_to_s3(S3_IMAGE_LOCATION, IMAGE_BUCKET_NAME)
 
 
 def remove_file_from_s3(filename: str, bucket: str):

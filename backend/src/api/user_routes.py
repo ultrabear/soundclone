@@ -5,7 +5,7 @@ from ..models import User, db
 user_routes = Blueprint("users", __name__)
 
 
-@user_routes.get("/")
+@user_routes.get("")
 @login_required
 def users():
     """

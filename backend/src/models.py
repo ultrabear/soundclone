@@ -15,21 +15,14 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 environment = os.environ["FLASK_ENV"]
-SCHEMA = os.environ["SCHEMA"]
 
 # ----------------------- Association Tables ------------------------- #
-
-if environment == "production":
-    kwargs = {"schema": SCHEMA}
-else:
-    kwargs = {}
 
 playlists_join = Table(
     "playlists_join",
     Base.metadata,
     Column("playlist_id", Integer, ForeignKey("playlists.id"), primary_key=True),
     Column("song_id", Integer, ForeignKey("songs.id"), primary_key=True),
-    **kwargs,  # pyright: ignore schema is a valid key
 )
 
 likes_join = Table(
@@ -37,7 +30,6 @@ likes_join = Table(
     Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
     Column("song_id", Integer, ForeignKey("songs.id"), primary_key=True),
-    **kwargs,  # pyright: ignore schema is a valid key
 )
 
 
@@ -60,9 +52,6 @@ class User(Base, UserMixin):
     __tablename__ = "users"
 
     # Starter code
-
-    if environment == "production":
-        __table_args__ = {"schema": SCHEMA}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
@@ -115,9 +104,6 @@ class User(Base, UserMixin):
 class Song(Base):
     __tablename__ = "songs"
 
-    if environment == "production":
-        __table_args__ = {"schema": SCHEMA}
-
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     artist_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
@@ -136,9 +122,6 @@ class Song(Base):
 class Playlist(Base):
     __tablename__ = "playlists"
 
-    if environment == "production":
-        __table_args__ = {"schema": SCHEMA}
-
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
@@ -152,9 +135,6 @@ class Playlist(Base):
 
 class Comment(Base):
     __tablename__ = "comments"
-
-    if environment == "production":
-        __table_args__ = {"schema": SCHEMA}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), nullable=False)

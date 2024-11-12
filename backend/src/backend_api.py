@@ -225,4 +225,3 @@ class Signup(Login):
 @endpoint("GET", "/api/auth/logout")
 class Logout(NoPayload):
     pass
-

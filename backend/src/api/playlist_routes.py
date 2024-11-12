@@ -18,7 +18,8 @@ from ..backend_api import (
     NoPayload,
 )
 
-playlist_routes = Blueprint('playlists', __name__, url_prefix='/api/playlists')
+playlist_routes = Blueprint("playlists", __name__, url_prefix="/api/playlists")
+
 
 # 1. user creates a playlist
 @playlist_routes.route("", methods=["POST"])
@@ -29,17 +30,14 @@ def create_playlist() -> Union[NewPlaylistReturns, Tuple[ApiError, int]]:
     thumbnail = data.get("thumbnail")
 
     if not name:
-        return ApiError(
-            message="Name is required",
-            errors={"name": "Playlist name cannot be empty"}
-        ), 400
+        return ApiError(message="Name is required", errors={"name": "Playlist name cannot be empty"}), 400
 
     playlist = Playlist(
         name=name,
         user_id=current_user.id,
         thumbnail=thumbnail,
         created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc)
+        updated_at=datetime.now(timezone.utc),
     )
 
     db.session.add(playlist)
@@ -48,9 +46,10 @@ def create_playlist() -> Union[NewPlaylistReturns, Tuple[ApiError, int]]:
     response: NewPlaylistReturns = {
         "id": playlist.id,
         "created_at": str(playlist.created_at),
-        "updated_at": str(playlist.updated_at)
+        "updated_at": str(playlist.updated_at),
     }
     return response, 201
+
 
 # 2. Update a playlist (name can be changed)
 def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, int]]:
@@ -60,8 +59,7 @@ def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, i
     playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
     if not playlist:
         return ApiError(
-            message="Playlist not found",
-            errors={"playlist_id": f"No playlist found with id {playlist_id}"}
+            message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
 
     if name:
@@ -73,9 +71,10 @@ def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, i
         "name": playlist.name,
         "thumbnail": playlist.thumbnail,
         "created_at": str(playlist.created_at),
-        "updated_at": str(playlist.updated_at)
+        "updated_at": str(playlist.updated_at),
     }
     return response
+
 
 # 3.Delete a playlist
 @playlist_routes.route("/<int:playlist_id>", methods=["DELETE"])
@@ -84,13 +83,13 @@ def delete_playlist(playlist_id: int) -> Union[NoPayload, Tuple[ApiError, int]]:
     playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
     if not playlist:
         return ApiError(
-            message="Playlist not found",
-            errors={"playlist_id": f"No playlist found with id {playlist_id}"}
+            message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
 
     db.session.delete(playlist)
     db.session.commit()
     return {}, 200
+
 
 # 4. Add/Remove songs to a playlist I created
 @playlist_routes.route("/<int:playlist_id>/songs", methods=["POST", "DELETE"])
@@ -105,7 +104,7 @@ def modify_playlist_songs(playlist_id: int) -> Union[PopulatePlaylist, Tuple[Api
     if not playlist or not song:
         return ApiError(
             message="Playlist or song not found",
-            errors={"playlist_id": f"No playlist with id {playlist_id}", "song_id": f"No song with id {song_id}"}
+            errors={"playlist_id": f"No playlist with id {playlist_id}", "song_id": f"No song with id {song_id}"},
         ), 404
 
     if request.method == "POST":
@@ -120,6 +119,7 @@ def modify_playlist_songs(playlist_id: int) -> Union[PopulatePlaylist, Tuple[Api
     db.session.commit()
     return PopulatePlaylist(song_id=song_id), 200
 
+
 # 5. get all the songs from a playlist
 @playlist_routes.route("/<int:playlist_id>/songs", methods=["GET"])
 @login_required
@@ -127,36 +127,42 @@ def get_playlist_songs(playlist_id: int) -> Union[PlaylistSongs, Tuple[ApiError,
     playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
     if not playlist:
         return ApiError(
-            message="Playlist not found",
-            errors={"playlist_id": f"No playlist found with id {playlist_id}"}
+            message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
 
-    songs = [{
-        "id": song.id,
-        "name": song.name,
-        "artist_id": song.artist_id,
-        "genre": song.genre,
-        "thumb_url": song.thumb_url,
-        "song_ref": song.song_ref,
-        "created_at": str(song.created_at),
-        "updated_at": str(song.updated_at)
-    } for song in playlist.songs]
+    songs = [
+        {
+            "id": song.id,
+            "name": song.name,
+            "artist_id": song.artist_id,
+            "genre": song.genre,
+            "thumb_url": song.thumb_url,
+            "song_ref": song.song_ref,
+            "created_at": str(song.created_at),
+            "updated_at": str(song.updated_at),
+        }
+        for song in playlist.songs
+    ]
 
     response: PlaylistSongs = {"songs": songs}
     return response, 200
+
 
 # 6. get all of my playlist of a user
 @playlist_routes.route("/current", methods=["GET"])
 @login_required
 def get_user_playlists() -> ListOfPlaylist:
     playlists = Playlist.query.filter_by(user_id=current_user.id).all()
-    playlist_data: list[PlaylistInfo] = [{
-        "id": playlist.id,
-        "name": playlist.name,
-        "thumbnail": playlist.thumbnail,
-        "created_at": str(playlist.created_at),
-        "updated_at": str(playlist.updated_at)
-    } for playlist in playlists]
+    playlist_data: list[PlaylistInfo] = [
+        {
+            "id": playlist.id,
+            "name": playlist.name,
+            "thumbnail": playlist.thumbnail,
+            "created_at": str(playlist.created_at),
+            "updated_at": str(playlist.updated_at),
+        }
+        for playlist in playlists
+    ]
 
     response: ListOfPlaylist = {"playlists": playlist_data}
     return response, 200
@@ -168,19 +174,23 @@ def get_user_playlists() -> ListOfPlaylist:
 def get_likes() -> Union[GetSongs, Tuple[ApiError, int]]:
     favorite_songs = current_user.liked_songs
 
-    songs = [{
-        "id": song.id,
-        "name": song.name,
-        "artist_id": song.artist_id,
-        "genre": song.genre,
-        "thumb_url": song.thumb_url,
-        "song_ref": song.song_ref,
-        "created_at": str(song.created_at),
-        "updated_at": str(song.updated_at)
-    } for song in favorite_songs]
+    songs = [
+        {
+            "id": song.id,
+            "name": song.name,
+            "artist_id": song.artist_id,
+            "genre": song.genre,
+            "thumb_url": song.thumb_url,
+            "song_ref": song.song_ref,
+            "created_at": str(song.created_at),
+            "updated_at": str(song.updated_at),
+        }
+        for song in favorite_songs
+    ]
 
     response: GetSongs = {"songs": songs}
     return response, 200
+
 
 # 8. like a song and unlike a song
 @playlist_routes.route("/songs/<int:song_id>/likes", methods=["POST", "DELETE"])
@@ -189,13 +199,10 @@ def change_like(song_id: int) -> Union[dict, Tuple[ApiError, int]]:
     song = Song.query.get(song_id)
 
     if not song:
-        return ApiError(
-            message="Song not found",
-            errors={"song_id": f"No song found with id {song_id}"}
-        ), 404
+        return ApiError(message="Song not found", errors={"song_id": f"No song found with id {song_id}"}), 404
 
     if request.method == "POST":
-        # add to the "My favorite" playlist 
+        # add to the "My favorite" playlist
         if song not in current_user.liked_songs:
             current_user.liked_songs.append(song)
             add_to_favorites_playlist(song)
@@ -210,6 +217,7 @@ def change_like(song_id: int) -> Union[dict, Tuple[ApiError, int]]:
     db.session.commit()
     return {"message": f"Song has been {action}"}, 200
 
+
 # 9. Add to my favorite
 def add_to_favorites_playlist(song: Song) -> None:
     # check "My Favorites" for the current user
@@ -221,7 +229,7 @@ def add_to_favorites_playlist(song: Song) -> None:
             name="My Favorites",
             user_id=current_user.id,
             created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc)
+            updated_at=datetime.now(timezone.utc),
         )
         db.session.add(favorites_playlist)
         db.session.commit()

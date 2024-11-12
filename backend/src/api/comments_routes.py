@@ -5,7 +5,7 @@ from flask import Blueprint, request
 from flask_login import current_user, login_required  # pyright: ignore
 from sqlalchemy import desc
 
-from ..backend_api import ApiErrorResponse, CommentResponse, GetComments, Comment as ApiComment, NoPayload
+from ..backend_api import ApiErrorResponse, Created, GetComments, Comment as ApiComment, IdAndTimestamps, NoPayload, Ok
 from ..models import db, Comment, User as DbUser, Song as DbSong
 
 
@@ -41,7 +41,7 @@ def get_comments(song_id: int) -> GetComments | ApiErrorResponse:
 
 @comment_routes.post("/songs/<int:song_id>/comments")
 @login_required
-def post_new_comment(song_id: int) -> CommentResponse | ApiErrorResponse:
+def post_new_comment(song_id: int) -> Created[IdAndTimestamps] | ApiErrorResponse:
     user = cast(DbUser, current_user)
     text = cast(ApiComment, request.json)
 
@@ -63,12 +63,12 @@ def post_new_comment(song_id: int) -> CommentResponse | ApiErrorResponse:
     db.session.add(c)
     db.session.commit()
 
-    return {"id": c.id, "created_at": str(cu), "updated_at": str(cu)}
+    return {"id": c.id, "created_at": str(cu), "updated_at": str(cu)}, 201
 
 
 @comment_routes.put("/comments/<int:comment_id>")
 @login_required
-def edit_comment(comment_id: int) -> CommentResponse | ApiErrorResponse:
+def edit_comment(comment_id: int) -> Ok[IdAndTimestamps] | ApiErrorResponse:
     user = cast(DbUser, current_user)
     text = cast(ApiComment, request.json)
 

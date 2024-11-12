@@ -7,31 +7,42 @@ from datetime import datetime, timezone
 song_data: list[SongType] = [
     {
         "name": "West End Blues",
-        "artist_id": 1,
+        "artist_id": 4, 
         "genre": "jazz",
         "thumb_url": "thumbnail-image.jpg",
         "song_ref": "west-end-blues.mp3",
     },
-    {"name": "Jubilee", "artist_id": 1, "genre": "jazz", "thumb_url": "thumbnail-image.jpg", "song_ref": "jubilee.mp3"},
+    {
+        "name": "Jubilee", 
+        "artist_id": 4, 
+        "genre": "jazz", 
+        "thumb_url": "thumbnail-image.jpg", 
+        "song_ref": "jubilee.mp3"
+    },
     {
         "name": "Instance",
-        "artist_id": 1,
+        "artist_id": 5,  
         "genre": "hip-hop",
         "thumb_url": "thumbnail-image.jpg",
         "song_ref": "instance.mp3",
     },
     {
         "name": "String Quartet in F",
-        "artist_id": 1,
+        "artist_id": 6,  
         "genre": "classical",
         "thumb_url": "thumbnail-image.jpg",
         "song_ref": "string-qtet-in-F.mp3",
     },
-    {"name": "Move", "artist_id": 1, "genre": "rap", "thumb_url": "thumbnail-image.jpg", "song_ref": "move.mp3"},
+    {
+        "name": "Move", 
+        "artist_id": 7,  
+        "genre": "rap", 
+        "thumb_url": "thumbnail-image.jpg", 
+        "song_ref": "move.mp3"
+    },
 ]
 
 
-# Adds the song seeder data
 def seed_songs() -> None:
     for song in song_data:
         new_song = Song(
@@ -48,7 +59,6 @@ def seed_songs() -> None:
     db.session.commit()
 
 
-# Undoes the seeded song data
 def undo_songs() -> None:
     if environment == "production":
         db.session.execute(f"TRUNCATE table {SCHEMA}.songs RESTART IDENTITY CASCADE;")  # pyright: ignore

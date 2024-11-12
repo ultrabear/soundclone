@@ -1,9 +1,9 @@
 from ..models import db, User, environment, SCHEMA
 from sqlalchemy.sql import text
 from datetime import datetime
-from werkzeug.security import generate_password_hash
 
-# Adds users and artists
+
+# Add users and artists
 def seed_users() -> None:
     # Regular users
     demo = User(username="Demo", email="demo@aa.io", password="password")
@@ -73,7 +73,7 @@ def seed_users() -> None:
 
 def undo_users() -> None:
     if environment == "production":
-        db.session.execute(f"TRUNCATE table {SCHEMA}.users RESTART IDENTITY CASCADE;")
+        db.session.execute(text(f"TRUNCATE table {SCHEMA}.users RESTART IDENTITY CASCADE;"))
     else:
         db.session.execute(text("DELETE FROM users"))
 

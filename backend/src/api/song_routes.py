@@ -3,6 +3,7 @@ from flask_login import login_required, current_user  # pyright: ignore
 from ..models import Song, likes_join, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
 from ..forms.song_form import SongForm
+from .aws_integration import get_unique_filename, AWS_File, remove_file_from_s3, SOUND_BUCKET_NAME
 from datetime import datetime, timezone
 
 
@@ -90,12 +91,21 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
+        # upload the song file to aws
+        unique_file_name = get_unique_filename(
+            str(form.data["song_file"])
+        )  # will this give a string version of the file name or a string of the file contents?
+        aws_file = AWS_File(
+            unique_file_name, "audio/mpeg", form.data["song_file"].read_bytes()
+        )  # instantiate an AWS_File object; not sure if the 3rd argument is correct
+        song_reference = aws_file.upload_to_s3()  # upload the file and return a dictionary with a url key of type str
+
         new_song = Song(
             name=form.data["name"],
             artist_id=current_user.id,
             genre=form.data["genre"],
             thumb_url=form.data["thumb_url"],
-            song_ref=form.data["song_ref"],
+            song_ref=song_reference["url"],  # store the url in the db as the song_ref
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -163,6 +173,10 @@ def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
 
     if song_to_delete.artist_id != current_user.id:
         return not_authorized_error
+
+    # delete the resource from AWS s3
+    file_to_remove = song_to_delete.song_ref.rsplit("/", 1)[1]
+    remove_file_from_s3(file_to_remove, SOUND_BUCKET_NAME)
 
     db.session.delete(song_to_delete)
     db.session.commit()

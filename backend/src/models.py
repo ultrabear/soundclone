@@ -18,6 +18,7 @@ environment = os.environ["FLASK_ENV"]
 
 # ----------------------- Association Tables ------------------------- #
 
+
 class playlists_join(Base):
     __tablename__ = "playlists_join"
 

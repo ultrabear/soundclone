@@ -137,13 +137,16 @@ class ListOfPlaylist(TypedDict):
 # ^ Implemented in frontend via /api/likes call
 
 
-@endpoint("GET", "/api/likes")
 class GetLikes(RequiresAuth, GetSongs):
     pass
 
 
+# I want to get all of my likes
+endpoint("GET", "/api/likes", req=None, res=GetLikes)
+
+
 # I want to be able to like a song and unlike a song
-@endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes")
+@endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes", req=None, res=None)
 class ChangeLike(NoPayload):
     pass
 
@@ -151,10 +154,6 @@ class ChangeLike(NoPayload):
 # * Comments
 
 
-# I want to be able to comment on a song on that song's page
-@endpoint("POST", "/api/songs/:song_id/comments")
-# I want to be able to update a comment that I left on a song's page
-@endpoint("PUT", "/api/comments/:comment_id")
 class Comment(TypedDict):
     text: str
 
@@ -163,20 +162,27 @@ class CommentResponse(IdAndTimestamps):
     pass
 
 
-# I want to be able to delete a comment that I left on a song's page
-@endpoint("DELETE", "/api/comments/:comment_id")
-class DeleteComment(NoPayload):
-    pass
+# I want to be able to comment on a song on that song's page
+endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=CommentResponse)
+
+# I want to be able to update a comment that I left on a song's page
+endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=CommentResponse)
 
 
 class UserComment(Comment, IdAndTimestamps):
     user_id: int
 
 
-# I want to view all comments of a song
-@endpoint("GET", "/api/songs/:song_id/comments")
+# I want to be able to delete a comment that I left on a song's page
+endpoint("DELETE", "/api/comments/:comment_id", req=None, res=Ok[NoBody])
+
+
 class GetComments(TypedDict):
     comments: list[UserComment]
+
+
+# I want to view all comments of a song
+endpoint("GET", "/api/songs/:song_id/comments", res=GetComments)
 
 
 # * Artists
@@ -190,19 +196,21 @@ class BaseArtist(TypedDict, total=False):
     homepage: str
 
 
-# I want a link to see an artist's details (from a song page or the homepage)
-@endpoint("GET", "/api/artists/:artist_id")
 class Artist(BaseArtist):
     id: int
     # Do not have username field, backend only shows stage name with username as fallback
     stage_name: str
 
 
-# if a user posts a song, they can have an artists page
+# I want a link to see an artist's details (from a song page or the homepage)
+endpoint("GET", "/api/artists/:artist_id", res=Artist)
+
+
 class PostArtist(BaseArtist, RequiresAuth):
     stage_name: NotRequired[str]
 
 
+# if a user posts a song, they can have an artists page
 endpoint("POST", "/api/artists", req=PostArtist)
 
 
@@ -227,9 +235,12 @@ class Signup(Login):
     username: str
 
 
+# I want to restore my session
 endpoint("GET", "/api/auth", req=None, res=User)
 
+# I want to login/signup
 endpoint("POST", "/api/auth/login", req=Login, res=User)
 endpoint("POST", "/api/auth/signup", req=Signup, res=User)
 
+# I want to log out
 endpoint("GET", "/api/auth/logout", req=None, res=None)

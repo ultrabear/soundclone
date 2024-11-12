@@ -24,16 +24,11 @@ from typing import List
 
 app = Flask(__name__)
 
-app.config.update(
-    {
-        "SQLALCHEMY_DATABASE_URI": os.environ.get("DATABASE_URL"),
-        "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-        "SQLALCHEMY_ECHO": True,
-        "SERVER_NAME": None,
-        "APPLICATION_ROOT": "/",
-        "PREFERRED_URL_SCHEME": "http",
-    }
-)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+app.config["SQLALCHEMY_ECHO"] = True
+app.config["SERVER_NAME"] = None
+app.config["APPLICATION_ROOT"] = "/"
+app.config["PREFERRED_URL_SCHEME"] = "http"
 
 db.init_app(app)
 

@@ -1,4 +1,4 @@
-from ..models import db, Song, environment, SCHEMA
+from ..models import db, Song, environment
 from sqlalchemy.sql import text
 from ..backend_api import Song as SongType
 from datetime import datetime, timezone
@@ -50,7 +50,7 @@ def seed_songs() -> None:
 
 def undo_songs() -> None:
     if environment == "production":
-        db.session.execute(f"TRUNCATE table {SCHEMA}.songs RESTART IDENTITY CASCADE;")  # pyright: ignore
+        db.session.execute(f"TRUNCATE table songs RESTART IDENTITY CASCADE;")  # pyright: ignore
     else:
         db.session.execute(text("DELETE FROM songs"))
 

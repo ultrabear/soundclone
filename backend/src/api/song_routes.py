@@ -3,7 +3,7 @@ from flask_login import login_required, current_user  # pyright: ignore
 from sqlalchemy import select
 from sqlalchemy.sql.functions import count
 from ..models import Song, likes_join, db
-from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
+from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok
 from ..forms.song_form import SongForm
 from datetime import datetime, timezone
 
@@ -158,7 +158,7 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
 # I want to be able to delete a song that I uploaded
 @song_routes.delete("/<int:song_id>")
 @login_required
-def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
+def delete_song(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
     """
     Delete a song as long as the song exists and the current_user is authorized to do so
     """
@@ -173,4 +173,4 @@ def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
     db.session.delete(song_to_delete)
     db.session.commit()
 
-    return {}
+    return "", 200

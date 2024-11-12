@@ -1,8 +1,7 @@
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
 from sqlalchemy import select
-from sqlalchemy.sql.functions import count
-from ..models import Song, likes_join, db
+from ..models import Song, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok
 from ..forms.song_form import SongForm
 from datetime import datetime, timezone
@@ -56,16 +55,14 @@ def get_all_songs() -> GetSongs:
     if artist_id and artist_id.isdigit():
         id: int = int(artist_id)
 
-        songs = db.session.execute(
-            select(Song, count(likes_join.song_id)).filter(Song.artist_id == id).order_by(Song.created_at.desc())
-        )
+        songs = db.session.execute(select(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc()))
 
-        return {"songs": [db_song_to_api_song(song[0], song[1]) for song in songs]}
+        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
     else:
-        songs = db.session.execute(select(Song, count(likes_join.song_id)).order_by(Song.created_at.desc()))
+        songs = db.session.execute(select(Song).order_by(Song.created_at.desc()))
 
-        return {"songs": [db_song_to_api_song(song[0], song[1]) for song in songs]}
+        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
 
 # # I want to view a song's total likes
@@ -77,12 +74,14 @@ def get_song(
     Query for single song where song_id matches and associate any likes with that song through likes_join table
     """
 
-    song = db.session.execute(select(Song, count(likes_join.song_id)).where(Song.id == song_id)).one_or_none()
+    song = db.session.execute(select(Song).where(Song.id == song_id)).one_or_none()
 
     if not song:
         return song_not_found_error
 
-    song_details: GetSong = db_song_to_api_song(song[0], song[1])
+    s: Song = song[0]
+
+    song_details: GetSong = db_song_to_api_song(s, len(s.liking_users))
 
     return song_details
 

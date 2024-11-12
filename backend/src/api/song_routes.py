@@ -1,5 +1,7 @@
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
+from sqlalchemy import select
+from sqlalchemy.sql.functions import count
 from ..models import Song, likes_join, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
 from ..forms.song_form import SongForm
@@ -21,7 +23,7 @@ not_authorized_error: ApiErrorResponse = (
 )
 
 
-def db_song_to_api_song(song: Song) -> GetSong:
+def db_song_to_api_song(song: Song, likes: int) -> GetSong:
     api_song: GetSong = {
         "id": song.id,
         "name": song.name,
@@ -29,6 +31,7 @@ def db_song_to_api_song(song: Song) -> GetSong:
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
+        "num_likes": likes,
     }
 
     if song.thumb_url is not None:
@@ -52,12 +55,17 @@ def get_all_songs() -> GetSongs:
 
     if artist_id and artist_id.isdigit():
         id: int = int(artist_id)
-        songs = db.session.query(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc())
-        return {"songs": [db_song_to_api_song(song) for song in songs]}
+
+        songs = db.session.execute(
+            select(Song, count(likes_join.song_id)).filter(Song.artist_id == id).order_by(Song.created_at.desc())
+        )
+
+        return {"songs": [db_song_to_api_song(song[0], song[1]) for song in songs]}
 
     else:
-        songs = db.session.query(Song).order_by(Song.created_at.desc()).all()
-        return {"songs": [db_song_to_api_song(song) for song in songs]}
+        songs = db.session.execute(select(Song, count(likes_join.song_id)).order_by(Song.created_at.desc()))
+
+        return {"songs": [db_song_to_api_song(song[0], song[1]) for song in songs]}
 
 
 # # I want to view a song's total likes
@@ -68,15 +76,13 @@ def get_song(
     """
     Query for single song where song_id matches and associate any likes with that song through likes_join table
     """
-    song = db.session.query(Song).outerjoin(likes_join).filter(Song.id == song_id).one_or_none()
+
+    song = db.session.execute(select(Song, count(likes_join.song_id)).where(Song.id == song_id)).one_or_none()
+
     if not song:
         return song_not_found_error
 
-    song_details: GetSong = db_song_to_api_song(song)
-
-    num_likes = len(song.liking_users)
-    if num_likes > 0:
-        song_details["num_likes"] = num_likes
+    song_details: GetSong = db_song_to_api_song(song[0], song[1])
 
     return song_details
 

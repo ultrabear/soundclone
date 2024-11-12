@@ -1,6 +1,6 @@
 from typing import NotRequired, TypedDict
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, Table, Column, Integer
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from datetime import datetime
 from flask_login import UserMixin  # pyright: ignore
@@ -18,19 +18,19 @@ environment = os.environ["FLASK_ENV"]
 
 # ----------------------- Association Tables ------------------------- #
 
-playlists_join = Table(
-    "playlists_join",
-    Base.metadata,
-    Column("playlist_id", Integer, ForeignKey("playlists.id"), primary_key=True),
-    Column("song_id", Integer, ForeignKey("songs.id"), primary_key=True),
-)
 
-likes_join = Table(
-    "likes_join",
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
-    Column("song_id", Integer, ForeignKey("songs.id"), primary_key=True),
-)
+class playlists_join(Base):
+    __tablename__ = "playlists_join"
+
+    playlist_id: Mapped[int] = mapped_column(ForeignKey("playlists.id"), primary_key=True)
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), primary_key=True)
+
+
+class likes_join(Base):
+    __tablename__ = "likes_join"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), primary_key=True)
 
 
 # ------------------------- Model Classes --------------------------- #
@@ -98,7 +98,7 @@ class User(Base, UserMixin):
     playlists: Mapped[list["Playlist"]] = relationship(back_populates="user")
     comments: Mapped[list["Comment"]] = relationship(back_populates="author")
     songs: Mapped[list["Song"]] = relationship(back_populates="artist")
-    liked_songs: Mapped[list["Song"]] = relationship(secondary=likes_join, back_populates="liking_users")
+    liked_songs: Mapped[list["Song"]] = relationship(secondary=likes_join.__table__, back_populates="liking_users")
 
 
 class Song(Base):
@@ -114,9 +114,9 @@ class Song(Base):
     updated_at: Mapped[datetime]
     # Relationships
     artist: Mapped["User"] = relationship(back_populates="songs")
-    playlists: Mapped[list["Playlist"]] = relationship(secondary=playlists_join, back_populates="songs")
+    playlists: Mapped[list["Playlist"]] = relationship(secondary=playlists_join.__table__, back_populates="songs")
     comments: Mapped[list["Comment"]] = relationship(back_populates="song")
-    liking_users: Mapped[list["User"]] = relationship(secondary=likes_join, back_populates="liked_songs")
+    liking_users: Mapped[list["User"]] = relationship(secondary=likes_join.__table__, back_populates="liked_songs")
 
 
 class Playlist(Base):
@@ -130,7 +130,7 @@ class Playlist(Base):
     updated_at: Mapped[datetime]
     # Relationships
     user: Mapped["User"] = relationship(back_populates="playlists")
-    songs: Mapped[list["Song"]] = relationship(secondary=playlists_join, back_populates="playlists")
+    songs: Mapped[list["Song"]] = relationship(secondary=playlists_join.__table__, back_populates="playlists")
 
 
 class Comment(Base):

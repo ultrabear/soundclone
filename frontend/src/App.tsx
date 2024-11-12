@@ -1,4 +1,6 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import ArtistPage from "./components/ArtistPage/ArtistPage";
+import ArtistsSongsPage from "./components/ArtistsSongsPage/ArtistsSongsPage";
 import HomePage from "./components/Home/HomePage";
 import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
@@ -55,6 +57,7 @@ const router = createBrowserRouter([
 				path: "/playlist/:id",
 				element: <PlaylistView />,
 			},
+			// Regular user view for playlists
 			{
 				path: "/user/:userId",
 				element: <UserView />,
@@ -69,15 +72,26 @@ const router = createBrowserRouter([
 					},
 					{
 						path: "likes",
-						element: <div>Likes Content</div>, // Placeholder
-					},
-					{
-						path: "uploads",
-						element: <div>Uploads Content</div>, // Placeholder
+						element: <div>Likes Content</div>,
 					},
 					{
 						path: "profile",
-						element: <div>Profile Content</div>, // Placeholder
+						element: <div>Profile Content</div>,
+					},
+				],
+			},
+			// Artist view (user with songs)
+			{
+				path: "/artist/:userId",
+				element: <ArtistPage />, // Different component for artist profiles
+				children: [
+					{
+						index: true,
+						element: <ArtistsSongsPage />,
+					},
+					{
+						path: "tracks",
+						element: <ArtistsSongsPage />,
 					},
 				],
 			},

@@ -182,7 +182,18 @@ const HomePage: React.FC = () => {
 
 			<ScrollableSection title="Featured artists" containerRef={featuredRef}>
 				{featuredArtists?.map((artist) => (
-					<div key={artist.id} className="artist-card">
+					<div
+						key={artist.id}
+						className="artist-card"
+						onClick={() => navigate(`/artist/${artist.id}`)}
+						role="button"
+						tabIndex={0}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") {
+								navigate(`/artist/${artist.id}`);
+							}
+						}}
+					>
 						<div className="artist-image">
 							{artist.profile_image && (
 								<img src={artist.profile_image} alt={artist.username} />

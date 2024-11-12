@@ -45,8 +45,8 @@ def create_playlist() -> Union[NewPlaylistReturns, Tuple[ApiError, int]]:
 
     response: NewPlaylistReturns = {
         "id": playlist.id,
-        "name": playlist.name,  
-        "thumbnail": playlist.thumbnail, 
+        "name": playlist.name,
+        "thumbnail": playlist.thumbnail,
         "created_at": str(playlist.created_at),
         "updated_at": str(playlist.updated_at),
     }
@@ -54,7 +54,7 @@ def create_playlist() -> Union[NewPlaylistReturns, Tuple[ApiError, int]]:
 
 
 # 2. Update a playlist (name can be changed)
-@playlist_routes.route("/<int:playlist_id>", methods=["PUT"]) 
+@playlist_routes.route("/<int:playlist_id>", methods=["PUT"])
 @login_required
 def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, int]]:
     data: UpdatePlaylist = request.get_json()
@@ -77,7 +77,7 @@ def update_playlist(playlist_id: int) -> Union[UpdatePlaylist, Tuple[ApiError, i
         "created_at": str(playlist.created_at),
         "updated_at": str(playlist.updated_at),
     }
-    return response,200
+    return response, 200
 
 
 # 3.Delete a playlist
@@ -244,5 +244,3 @@ def add_to_favorites_playlist(song: Song) -> None:
         favorites_playlist.songs.append(song)
         favorites_playlist.updated_at = datetime.now(timezone.utc)
         db.session.commit()
-
-        

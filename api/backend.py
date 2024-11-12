@@ -3,14 +3,20 @@ from typing import NotRequired, TypedDict, Callable, Literal
 
 type HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
 
+type NoBody = Literal[""]
+
+type Ok[T] = tuple[T, Literal[200]] | T
+type Created[T] = tuple[T, Literal[201]]
+
 
 def endpoint[F](
     method: HttpMethod | list[HttpMethod],
     route: str,
     *,
-    returns: object | None = None,
+    req: object = None,
+    res: object = None,
 ) -> Callable[[F], F]:
-    _ = method, route, returns
+    _ = method, route, req, res
 
     def inner(fn: F) -> F:
         return fn
@@ -68,7 +74,7 @@ class DeleteSong(NoPayload):
 # Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
 @endpoint("GET", "/api/songs/:song_id")
 class GetSong(Song, IdAndTimestamps):
-    num_likes: NotRequired[int]
+    num_likes: int
 
 
 # I want a landing page of other peoples' songs (showing newest first)
@@ -193,12 +199,13 @@ class Artist(BaseArtist):
 
 
 # if a user posts a song, they can have an artists page
-@endpoint("POST", "/api/artists")
 class PostArtist(BaseArtist, RequiresAuth):
     stage_name: NotRequired[str]
 
 
-@endpoint("GET", "/api/auth")
+endpoint("POST", "/api/artists", req=PostArtist)
+
+
 class User(TypedDict):
     id: int
     username: str
@@ -211,17 +218,18 @@ class User(TypedDict):
     homepage: NotRequired[str]
 
 
-@endpoint("POST", "/api/auth/login", returns=User)
 class Login(TypedDict):
     email: str
     password: str
 
 
-@endpoint("POST", "/api/auth/signup", returns=User)
 class Signup(Login):
     username: str
 
 
-@endpoint("GET", "/api/auth/logout")
-class Logout(NoPayload):
-    pass
+endpoint("GET", "/api/auth", req=None, res=User)
+
+endpoint("POST", "/api/auth/login", req=Login, res=User)
+endpoint("POST", "/api/auth/signup", req=Signup, res=User)
+
+endpoint("GET", "/api/auth/logout", req=None, res=None)

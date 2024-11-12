@@ -57,7 +57,7 @@ def seed_users() -> None:
         biography="Bio here",
         location="Miami",
         homepage=None,
-)
+    )
 
     db.session.add(demo)
     db.session.add(marnie)
@@ -66,7 +66,6 @@ def seed_users() -> None:
     db.session.add(artist2)
     db.session.add(artist3)
     db.session.add(artist4)
-
 
     db.session.commit()
 

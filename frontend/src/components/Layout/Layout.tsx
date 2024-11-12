@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { thunkLogout } from "../../store/session";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
@@ -17,9 +17,15 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
 	const dispatch = useAppDispatch();
 	const { userPlaylists } = useAppSelector((state) => state.playlists);
-
+	const navigate = useNavigate();
 	const { currentSong, isPlaying } = useAppSelector((state) => state.player);
 	const { user } = useAppSelector((state) => state.session);
+
+	const handleUserProfileClick = () => {
+		if (user) {
+			navigate(`/user/${user.id}`);
+		}
+	};
 
 	useEffect(() => {
 		// Only fetch playlists if user is logged in
@@ -68,7 +74,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 							<>
 								<button className="header-button button-primary">Upload</button>
 								<div className="user-menu">
-									<div className="user-avatar">
+									<div
+										className="user-avatar"
+										onClick={handleUserProfileClick}
+										style={{ cursor: "pointer" }}
+									>
 										{user.profile_image && (
 											<img src={user.profile_image} alt={user.username} />
 										)}

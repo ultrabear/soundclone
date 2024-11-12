@@ -2,7 +2,9 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import HomePage from "./components/Home/HomePage";
 import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
+import PlaylistsScreen from "./components/PlaylistsScreen/PlaylistsScreen";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
+import UserView from "./components/UserView/UserView";
 
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -52,6 +54,32 @@ const router = createBrowserRouter([
 			{
 				path: "/playlist/:id",
 				element: <PlaylistView />,
+			},
+			{
+				path: "/user/:userId",
+				element: <UserView />,
+				children: [
+					{
+						index: true,
+						element: <PlaylistsScreen />,
+					},
+					{
+						path: "playlists",
+						element: <PlaylistsScreen />,
+					},
+					{
+						path: "likes",
+						element: <div>Likes Content</div>, // Placeholder
+					},
+					{
+						path: "uploads",
+						element: <div>Uploads Content</div>, // Placeholder
+					},
+					{
+						path: "profile",
+						element: <div>Profile Content</div>, // Placeholder
+					},
+				],
 			},
 		],
 	},

@@ -50,7 +50,7 @@ def seed_songs() -> None:
 
 def undo_songs() -> None:
     if environment == "production":
-        db.session.execute(f"TRUNCATE table songs RESTART IDENTITY CASCADE;")  # pyright: ignore
+        db.session.execute(text("TRUNCATE table songs RESTART IDENTITY CASCADE;"))
     else:
         db.session.execute(text("DELETE FROM songs"))
 

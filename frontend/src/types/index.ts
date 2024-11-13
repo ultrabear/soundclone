@@ -1,6 +1,7 @@
 export interface User {
 	id: number;
 	username: string;
+	email: string;
 	profile_image: string | null;
 	stage_name: string | null;
 	first_release: string | null;
@@ -16,8 +17,8 @@ export interface Song {
 	genre: string | null;
 	thumb_url: string | null;
 	song_ref: string;
-	created_at?: string;
-	updated_at?: string;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface Playlist {
@@ -38,7 +39,9 @@ export interface Comment {
 	updated_at?: string;
 }
 
-export interface SongWithUser extends Song {
+export interface SongWithUser extends Omit<Song, "genre" | "thumb_url"> {
+	genre: string | null;
+	thumb_url: string | null;
 	user: {
 		id: number;
 		username: string;

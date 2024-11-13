@@ -82,7 +82,7 @@ const router = createBrowserRouter([
 			},
 			// Artist view (user with songs)
 			{
-				path: "/artist/:userId",
+				path: "/artists/:userId",
 				element: <ArtistPage />, // Different component for artist profiles
 				children: [
 					{

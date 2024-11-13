@@ -9,6 +9,8 @@ from ..backend_api import (
     ApiError,
 )
 
+
+
 artist_routes = Blueprint("artists", __name__, url_prefix="/api/artists")
 
 
@@ -42,7 +44,6 @@ def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
         result["homepage"] = artist.homepage
 
     return result
-
 
 @artist_routes.post("")
 def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:

@@ -20,7 +20,8 @@ os.environ.update(
 
 from flask import Flask
 from src.models import db, User, Song
-from typing import List
+from src.seeds.users import seed_users, undo_users
+from src.seeds.songs import seed_songs, undo_songs
 
 app = Flask(__name__)
 
@@ -32,15 +33,26 @@ app.config["PREFERRED_URL_SCHEME"] = "http"
 
 db.init_app(app)
 
-
 with app.app_context():
     try:
-        print("\n=== Testing Seeded Data ===\n")
+        print("\n=== Running Seeders ===\n")
+        
+        print("Undoing existing seeds...")
+        undo_users()
+        undo_songs()
+        
+        print("Seeding users...")
+        seed_users()
+        print("Seeding songs...")
+        seed_songs()
+        print("Seeding complete!\n")
+
+        print("=== Testing Seeded Data ===\n")
 
         print("=== User Table Data ===")
         print("Format: User ID | Username | Type | Stage Name (if artist)")
         print("-" * 60)
-        users: List[User] = db.session.query(User).all()
+        users = db.session.query(User).all()
         for user in users:
             user_type = "Artist" if user.stage_name else "Regular User"
             stage_info = f"| Stage Name: {user.stage_name}" if user.stage_name else ""
@@ -52,7 +64,7 @@ with app.app_context():
         print("\n=== Song Table Data ===")
         print("Format: Song Name | Artist ID -> Username (Stage Name)")
         print("-" * 60)
-        songs: List[Song] = db.session.query(Song).all()
+        songs = db.session.query(Song).all()
         for song in songs:
             print(f"'{song.name}' | Artist ID {song.artist_id} -> {song.artist.username} ({song.artist.stage_name})")
 

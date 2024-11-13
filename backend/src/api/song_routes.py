@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
-from sqlalchemy import select, func
-from ..models import Song, likes_join, db
+from sqlalchemy import select
+from ..models import Song, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok
 from ..forms.song_form import SongForm
 from datetime import datetime, timezone
@@ -48,40 +48,41 @@ def get_all_songs() -> GetSongs:
     """Get all songs with their like counts, optionally filtered by artist_id"""
     artist_id: str | None = request.args.get("artist_id")
 
-    # Base query with proper join and grouping
-    base_query = (
-        select(Song, func.count(likes_join.song_id).label("likes"))
-        .outerjoin(likes_join, Song.id == likes_join.song_id)
-        .group_by(Song.id)
-        .order_by(Song.created_at.desc())
-    )
+    if artist_id and artist_id.isdigit():
+        id: int = int(artist_id)
+
+        songs = db.session.execute(select(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc()))
+
+        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
     # Add artist filter if provided
     if artist_id and artist_id.isdigit():
         query = base_query.filter(Song.artist_id == int(artist_id))
     else:
-        query = base_query
 
-    songs = db.session.execute(query)
-    return {"songs": [db_song_to_api_song(song[0], song[1]) for song in songs]}
+        songs = db.session.execute(select(Song).order_by(Song.created_at.desc()))
+
+        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
 
 @song_routes.get("/<int:song_id>")
-def get_song(song_id: int) -> ApiErrorResponse | GetSong:
-    """Get a single song with its like count"""
-    query = (
-        select(Song, func.count(likes_join.song_id).label("likes"))
-        .outerjoin(likes_join, Song.id == likes_join.song_id)
-        .where(Song.id == song_id)
-        .group_by(Song.id)
-    )
+def get_song(
+    song_id: int,
+) -> ApiErrorResponse | GetSong:
+    """
+    Query for single song where song_id matches and associate any likes with that song through likes_join table
+    """
 
-    result = db.session.execute(query).one_or_none()
+    song = db.session.execute(select(Song).where(Song.id == song_id)).one_or_none()
 
-    if not result:
+    if not song:
         return song_not_found_error
 
-    return db_song_to_api_song(result[0], result[1])
+    s: Song = song[0]
+
+    song_details: GetSong = db_song_to_api_song(s, len(s.liking_users))
+
+    return song_details
 
 
 @song_routes.post("")

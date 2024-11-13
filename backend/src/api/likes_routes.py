@@ -60,14 +60,13 @@ def post_like(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
 
     try:
         user.liked_songs.append(song)
+        db.session.commit()
     except Exception as e:
         # do not error on unset
         if os.environ.get("FLASK_ENV") == "development":
             traceback.print_exception(e)
 
         return {"message": "song already liked", "errors": {}}, 403
-
-    db.session.commit()
 
     return ""
 
@@ -84,13 +83,12 @@ def delete_like(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
 
     try:
         user.liked_songs.remove(song)
+        db.session.commit()
     except Exception as e:
         # do not error on unset
         if os.environ.get("FLASK_ENV") == "development":
             traceback.print_exception(e)
 
         return {"message": "song already liked", "errors": {}}, 403
-
-    db.session.commit()
 
     return ""

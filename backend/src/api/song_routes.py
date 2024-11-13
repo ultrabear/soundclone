@@ -163,7 +163,6 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
         song_to_update.thumb_url = form.data["thumb_url"]
-        song_to_update.song_ref = form.data["song_ref"]
         song_to_update.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()

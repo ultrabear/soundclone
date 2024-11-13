@@ -23,14 +23,14 @@ class playlists_join(Base):
     __tablename__ = "playlists_join"
 
     playlist_id: Mapped[int] = mapped_column(ForeignKey("playlists.id"), primary_key=True)
-    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), primary_key=True)
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), primary_key=True, index=True)
 
 
 class likes_join(Base):
     __tablename__ = "likes_join"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), primary_key=True)
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), primary_key=True, index=True)
 
 
 # ------------------------- Model Classes --------------------------- #
@@ -106,7 +106,7 @@ class Song(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
-    artist_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    artist_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     genre: Mapped[str | None]
     thumb_url: Mapped[str | None]
     song_ref: Mapped[str]
@@ -124,7 +124,7 @@ class Playlist(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     thumbnail: Mapped[str | None]
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]
@@ -137,8 +137,8 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), nullable=False)
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), nullable=False, index=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     comment_text: Mapped[str]
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]

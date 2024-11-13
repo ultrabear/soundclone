@@ -1,0 +1,50 @@
+.upload-song-form,
+.upload-form-field,
+.song-upload-button {
+	width: 100%;
+}
+
+.upload-song-form {
+	align-items: center;
+	gap: 20px;
+	margin-top: 20px;
+	padding: 0 25%;
+}
+
+.upload-form-text-label {
+	font-weight: bold;
+}
+
+.upload-form-text-input {
+	outline-color: #30aea8;
+	padding: 8px 3%;
+}
+
+.required-star {
+	color: red;
+}
+
+.choose-file-button,
+.song-upload-button {
+	padding: 10px 30%;
+}
+
+.choose-file-button {
+	background-color: #333;
+	color: #fff;
+}
+
+.label-on-button {
+	cursor: inherit;
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 100%;
+}
+
+.song-upload-button {
+	background: linear-gradient(#0ddc43, #22be83, #30aea8);
+	border-radius: 20px;
+	margin-top: 30px;
+}

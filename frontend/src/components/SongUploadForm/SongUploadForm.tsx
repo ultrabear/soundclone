@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { createSongThunk } from "../../store/slices/songsSlice";
 import { useAppDispatch, useAppSelector } from "../../store";
 import Layout from "../Layout/Layout";
+import "./SongUploadForm.css";
 
 const ALLOWED_SOUND_EXTENSIONS = new Set([
 	"mp3",
@@ -81,40 +82,65 @@ const SongUploadForm: () => JSX.Element = () => {
 
 	return (
 		<Layout>
-			<h1>Upload a Song</h1>
+			<h1>Track info</h1>
 			{errors.server && <p>{errors.server}</p>}
-			<form encType="multipart/form-data" onSubmit={handleSubmit}>
-				<label>
-					Name of Song
+			<form
+				className="upload-song-form  flex-col"
+				encType="multipart/form-data"
+				onSubmit={handleSubmit}
+			>
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="title">
+						Track title<span className="required-star">*</span>
+					</label>
 					<input
+						className="upload-form-text-input"
+						id="title"
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						required
 					/>
-				</label>
-				<label>
-					Genre (opt.)
+				</div>
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="genre">
+						Genre
+					</label>
 					<input
+						className="upload-form-text-input"
+						id="genre"
 						type="text"
 						value={genre}
 						onChange={(e) => setGenre(e.target.value)}
 					/>
-				</label>
-				<label>
-					Song Thumbnail Image (opt.)
+				</div>
+				<div className="upload-form-field flex-col">
+					<button className="choose-file-button" type="button">
+						<label className="label-on-button" htmlFor="song-thumbnail">
+							{thumbUrl ? thumbUrl.name : "Add Track Artwork"}
+						</label>
+					</button>
 					<input
+						hidden
+						id="song-thumbnail"
 						type="file"
 						accept="image/png, image/jpeg, image/webp, image/jpg"
 						onChange={(e) => {
 							if (e.target.files) setThumbUrl(e.target.files[0]);
 						}}
 					/>
-				</label>
-				{errors.thumbUrl && <p>{errors.thumbUrl}</p>}
-				<label>
-					Song File
+					{errors.thumbUrl && <p>{errors.thumbUrl}</p>}
+				</div>
+				<div className="upload-form-field flex-col">
+					<button className="choose-file-button" type="button">
+						<label className="label-on-button" htmlFor="song-file">
+							{songFile ? songFile.name : "Choose Song File"}
+							{!songFile && <span className="required-star">*</span>}
+						</label>
+					</button>
 					<input
+						hidden
+						id="song-file"
 						type="file"
 						accept="audio/mp3, audio/mpeg, audio/aac, audio/mp4, audio/x-m4a, audio/opus, audio/wav, audio/flac, audio/ogg"
 						onChange={(e) => {
@@ -122,9 +148,13 @@ const SongUploadForm: () => JSX.Element = () => {
 						}}
 						required
 					/>
-				</label>
-				{errors.songFile && <p>{errors.songFile}</p>}
-				<button type="submit">Upload Song</button>
+
+					{errors.songFile && <p>{errors.songFile}</p>}
+				</div>
+
+				<button className="song-upload-button" type="submit">
+					Upload
+				</button>
 				{uploading && <p>Uploading...</p>}
 			</form>
 		</Layout>

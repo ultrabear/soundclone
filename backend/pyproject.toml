@@ -39,8 +39,4 @@ strict = ["*"]
 dev-dependencies = [
     "pyright>=1.1.387",
     "ruff>=0.7.2",
-    # Add the type stubs here
-    "types-flask",
-    # "types-flask-login",- No solution found when resolving dependencies for split (python_full_version == '3.12.*')
-    "types-sqlalchemy"
 ]

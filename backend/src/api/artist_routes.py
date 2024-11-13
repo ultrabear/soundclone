@@ -9,6 +9,7 @@ from ..backend_api import (
     ApiError,
 )
 
+
 artist_routes = Blueprint("artists", __name__, url_prefix="/api/artists")
 
 

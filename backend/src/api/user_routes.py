@@ -6,7 +6,7 @@ user_routes = Blueprint("users", __name__)
 
 
 @user_routes.get("")
-@login_required
+@login_required  # Keep this protected - only authenticated users can list all users
 def users():
     """
     Query for all users and returns them in a list of user dictionaries
@@ -16,11 +16,12 @@ def users():
 
 
 @user_routes.get("/<int:id>")
-@login_required
-def user(id: str):
+def user(id: int):  # Remove @login_required here
     """
     Query for a user by id and returns that user in a dictionary
+    Allow public access to user profiles
     """
     user = db.session.query(User).get(int(id))
-    assert user is not None
+    if not user:
+        return {"error": "User not found"}, 404
     return user.to_dict()

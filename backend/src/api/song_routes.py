@@ -23,6 +23,7 @@ not_authorized_error: ApiErrorResponse = (
 
 
 def db_song_to_api_song(song: Song, likes: int) -> GetSong:
+    """Convert database song to API response format"""
     api_song: GetSong = {
         "id": song.id,
         "name": song.name,
@@ -42,8 +43,6 @@ def db_song_to_api_song(song: Song, likes: int) -> GetSong:
     return api_song
 
 
-# # I want a landing page of all songs (showing newest first)
-# # I want to be able to filter these results to show only songs uploaded by a specific artist, including possibly the current_user
 @song_routes.get("")
 def get_all_songs() -> GetSongs:
     """
@@ -65,7 +64,6 @@ def get_all_songs() -> GetSongs:
         return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
 
-# # I want to view a song's total likes
 @song_routes.get("/<int:song_id>")
 def get_song(
     song_id: int,
@@ -89,11 +87,10 @@ def get_song(
 @song_routes.post("")
 @login_required
 def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
-    """
-    Create a new record of a song on the Songs table.  Redirect user to that song's page
-    """
+    """Create a new song"""
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
+
     if form.validate_on_submit():
         new_song = Song(
             name=form.data["name"],
@@ -107,12 +104,11 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
         db.session.add(new_song)
         db.session.commit()
 
-        song_data: IdAndTimestamps = {
+        return {
             "id": new_song.id,
             "created_at": str(new_song.created_at),
             "updated_at": str(new_song.updated_at),
-        }
-        return song_data, 201
+        }, 201
 
     return form.errors, 400
 
@@ -120,9 +116,7 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
 @song_routes.put("/<int:song_id>")
 @login_required
 def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
-    """
-    Change data about a song that exists as long as song exists and current_user is authorized to do so
-    """
+    """Update an existing song"""
     song_to_update = db.session.query(Song).filter(Song.id == song_id).one_or_none()
 
     if not song_to_update:
@@ -132,8 +126,8 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
         return not_authorized_error
 
     form = SongForm()
-
     form["csrf_token"].data = request.cookies["csrf_token"]
+
     if form.validate_on_submit():
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
@@ -143,24 +137,19 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
 
         db.session.commit()
 
-        song_data: IdAndTimestamps = {
+        return {
             "id": song_to_update.id,
             "created_at": str(song_to_update.created_at),
             "updated_at": str(song_to_update.updated_at),
         }
 
-        return song_data
-
     return form.errors, 400
 
 
-# I want to be able to delete a song that I uploaded
 @song_routes.delete("/<int:song_id>")
 @login_required
 def delete_song(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
-    """
-    Delete a song as long as the song exists and the current_user is authorized to do so
-    """
+    """Delete a song"""
     song_to_delete = db.session.query(Song).filter(Song.id == song_id).one_or_none()
 
     if not song_to_delete:

@@ -3,10 +3,24 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import { fetchFeaturedArtists } from "../../store/slices/artistsSlice";
 import { fetchArtistSongs } from "../../store/slices/songsSlice";
+import type { User } from "../../types";
 import Layout from "../Layout/Layout";
 import "./ArtistPage.css";
+import { api } from "../../store/api";
+
+//convert API user data to frontend User type
+const transformUser = (apiUser: any): User => ({
+	id: apiUser.id,
+	username: apiUser.username,
+	email: apiUser.email,
+	profile_image: apiUser.profile_image ?? null,
+	stage_name: apiUser.stage_name ?? null,
+	first_release: apiUser.first_release ?? null,
+	biography: apiUser.biography ?? null,
+	location: apiUser.location ?? null,
+	homepage: apiUser.homepage ?? null,
+});
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();
@@ -14,22 +28,33 @@ const ArtistPage: React.FC = () => {
 	const [showAddToPlaylist, setShowAddToPlaylist] = useState<number | null>(
 		null,
 	);
+	const [artist, setArtist] = useState<User | null>(null);
+	const [loading, setLoading] = useState(true);
 
-	const { featuredArtists, loading: artistLoading } = useAppSelector(
-		(state) => state.artists,
-	);
 	const { artistSongs, loading: songsLoading } = useAppSelector(
 		(state) => state.songs,
 	);
 	const { userPlaylists } = useAppSelector((state) => state.playlists);
 
-	const artist = featuredArtists.find((a) => a.id === Number(userId));
-
 	useEffect(() => {
-		if (userId) {
-			dispatch(fetchFeaturedArtists());
-			dispatch(fetchArtistSongs(Number(userId)));
-		}
+		const loadArtist = async () => {
+			if (userId) {
+				try {
+					setLoading(true);
+					// Fetch and transform artist data
+					const userData = await api.users.getOne(Number.parseInt(userId));
+					setArtist(transformUser(userData));
+					// Fetch artist's songs
+					dispatch(fetchArtistSongs(Number.parseInt(userId)));
+				} catch (error) {
+					console.error("Error loading artist:", error);
+				} finally {
+					setLoading(false);
+				}
+			}
+		};
+
+		loadArtist();
 	}, [dispatch, userId]);
 
 	const handlePlaySong = (index: number) => {
@@ -38,12 +63,7 @@ const ArtistPage: React.FC = () => {
 		}
 	};
 
-	//   const handleAddToPlaylist = (songId: number, targetPlaylistId: number) => {
-	//     dispatch(addSongToPlaylist({ playlistId: targetPlaylistId, songId }));
-	//     setShowAddToPlaylist(null);
-	//   };
-
-	if (artistLoading || songsLoading) {
+	if (loading || songsLoading) {
 		return (
 			<Layout>
 				<div className="loading-container">Loading artist profile...</div>
@@ -94,7 +114,6 @@ const ArtistPage: React.FC = () => {
 						<button className="play-all-button">▶ Play All</button>
 					</div>
 
-					{/* Songs Table */}
 					<div className="songs-table">
 						<div className="songs-header">
 							<div className="song-number">#</div>
@@ -138,13 +157,7 @@ const ArtistPage: React.FC = () => {
 										{showAddToPlaylist === song.id && userPlaylists && (
 											<div className="playlist-dropdown">
 												{userPlaylists.map((playlist) => (
-													<button
-														key={playlist.id}
-														// onClick={() =>
-														//   handleAddToPlaylist(song.id, playlist.id)
-														// }
-														className="playlist-option"
-													>
+													<button key={playlist.id} className="playlist-option">
 														{playlist.name}
 													</button>
 												))}

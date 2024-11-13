@@ -4,6 +4,7 @@ from ..models import User, db
 
 user_routes = Blueprint("users", __name__)
 
+
 @user_routes.get("")
 @login_required  # Keep this protected - only authenticated users can list all users
 def users():
@@ -12,6 +13,7 @@ def users():
     """
     users = db.session.query(User).all()
     return {"users": [user.to_dict() for user in users]}
+
 
 @user_routes.get("/<int:id>")
 def user(id: int):  # Remove @login_required here

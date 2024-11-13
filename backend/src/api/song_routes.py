@@ -49,10 +49,12 @@ def get_all_songs() -> GetSongs:
     artist_id: str | None = request.args.get("artist_id")
 
     # Base query with proper join and grouping
-    base_query = select(Song, func.count(likes_join.song_id).label('likes'))\
-        .outerjoin(likes_join, Song.id == likes_join.song_id)\
-        .group_by(Song.id)\
+    base_query = (
+        select(Song, func.count(likes_join.song_id).label("likes"))
+        .outerjoin(likes_join, Song.id == likes_join.song_id)
+        .group_by(Song.id)
         .order_by(Song.created_at.desc())
+    )
 
     # Add artist filter if provided
     if artist_id and artist_id.isdigit():
@@ -67,10 +69,12 @@ def get_all_songs() -> GetSongs:
 @song_routes.get("/<int:song_id>")
 def get_song(song_id: int) -> ApiErrorResponse | GetSong:
     """Get a single song with its like count"""
-    query = select(Song, func.count(likes_join.song_id).label('likes'))\
-        .outerjoin(likes_join, Song.id == likes_join.song_id)\
-        .where(Song.id == song_id)\
+    query = (
+        select(Song, func.count(likes_join.song_id).label("likes"))
+        .outerjoin(likes_join, Song.id == likes_join.song_id)
+        .where(Song.id == song_id)
         .group_by(Song.id)
+    )
 
     result = db.session.execute(query).one_or_none()
 
@@ -86,7 +90,7 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     """Create a new song"""
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
-    
+
     if form.validate_on_submit():
         new_song = Song(
             name=form.data["name"],
@@ -123,7 +127,7 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
 
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
-    
+
     if form.validate_on_submit():
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
@@ -158,4 +162,3 @@ def delete_song(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
     db.session.commit()
 
     return "", 200
-

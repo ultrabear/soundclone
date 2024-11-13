@@ -17,7 +17,7 @@ song_data: list[SongType] = [
         "artist_id": 4,  # Jazz Master
         "genre": "jazz",
         "thumb_url": "https://i.scdn.co/image/ab67616d0000b2739e4a3c9e73ce2429c4d1fe70",
-        "song_ref": "jubilee.mp3"
+        "song_ref": "jubilee.mp3",
     },
     {
         "name": "Instance",
@@ -52,15 +52,15 @@ song_data: list[SongType] = [
         "artist_id": 7,  # Rap Legend
         "genre": "rap",
         "thumb_url": "https://i.scdn.co/image/ab67616d0000b273e0b51e8c6f626aa06504151c",
-        "song_ref": "move.mp3"
+        "song_ref": "move.mp3",
     },
     {
         "name": "Flow State",
         "artist_id": 7,  # Rap Legend
         "genre": "rap",
         "thumb_url": "https://i.scdn.co/image/ab67616d0000b273c5716278f83f8333ba096e33",
-        "song_ref": "flow-state.mp3"
-    }
+        "song_ref": "flow-state.mp3",
+    },
 ]
 
 

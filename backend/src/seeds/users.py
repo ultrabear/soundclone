@@ -58,7 +58,7 @@ def seed_users() -> None:
         homepage=None,
     )
 
-    #specific order to ensure IDs match
+    # specific order to ensure IDs match
     all_users = [demo, marnie, bobbie, artist4, artist5, artist6, artist7]
     for user in all_users:
         db.session.add(user)

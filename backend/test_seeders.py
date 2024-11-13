@@ -36,11 +36,11 @@ db.init_app(app)
 with app.app_context():
     try:
         print("\n=== Running Seeders ===\n")
-        
+
         print("Undoing existing seeds...")
         undo_users()
         undo_songs()
-        
+
         print("Seeding users...")
         seed_users()
         print("Seeding songs...")

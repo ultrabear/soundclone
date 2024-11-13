@@ -6,9 +6,12 @@ from ..forms.song_form import SongForm
 from .aws_integration import (
     get_unique_filename,
     SongFile,
+    ImageFile,
     remove_file_from_s3,
     SOUND_BUCKET_NAME,
     AUDIO_CONTENT_EXT_MAP,
+    IMAGE_CONTENT_EXT_MAP,
+    DEFAULT_THUMBNAIL_IMAGE,
 )
 from datetime import datetime, timezone
 import os
@@ -98,27 +101,30 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
         ## prepare and upload the sound file
-        unique_file_name = get_unique_filename(form.data["song_file"].filename)
-        sound_file_ext: str = os.path.splitext(unique_file_name)[1]
+        unique_sound_file_name = get_unique_filename(form.data["song_file"].filename)
+        sound_file_ext = os.path.splitext(unique_sound_file_name)[1]
         sound_file_content_type = f"audio/{AUDIO_CONTENT_EXT_MAP[sound_file_ext[1:]]}"
-        song_file = SongFile(unique_file_name, sound_file_content_type, form.data["song_file"])
+        song_file = SongFile(unique_sound_file_name, sound_file_content_type, form.data["song_file"])
         song_reference = song_file.upload()
-
-        ## check all fields coming into the db
-
-        print("song name: ", form.data["name"])
-        print("song genre: ", form.data["genre"])
-        print("artist id: ", current_user.id)
-        print("album thumbnail: ", form.data["thumbnail_img"])
+        song_url = song_reference["url"]
 
         ## upload the image file, if there is none, assign the default image thumbnail to thumbnail_url
+        thumbnail_url = DEFAULT_THUMBNAIL_IMAGE
+        if form.data["thumbnail_img"] is not None:
+            unique_image_file_name = get_unique_filename(form.data["thumbnail_img"].filename)
+            image_file_ext = os.path.splitext(unique_image_file_name)[1]
+            image_file_content_type = f"image/{IMAGE_CONTENT_EXT_MAP[image_file_ext[1:]]}"
+            image_file = ImageFile(unique_image_file_name, image_file_content_type, form.data["thumbnail_img"])
+            image_reference = image_file.upload()
+            thumbnail_url = image_reference["url"]
 
+        ## create a song instance on the db
         new_song = Song(
             name=form.data["name"],
             artist_id=current_user.id,
             genre=form.data["genre"],
-            # thumb_url=form.data["thumbnail_img"],
-            song_ref=song_reference["url"],  # store the url in the db as the song_ref
+            thumb_url=thumbnail_url,
+            song_ref=song_url,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )

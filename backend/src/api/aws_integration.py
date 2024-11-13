@@ -5,8 +5,8 @@ import uuid
 
 SOUND_BUCKET_NAME = os.environ["S3_SOUND_BUCKET"]
 IMAGE_BUCKET_NAME = os.environ["S3_IMAGE_BUCKET"]
-S3_SOUND_LOCATION = f"http://{SOUND_BUCKET_NAME}.s3.amazonaws.com/"
-S3_IMAGE_LOCATION = f"http://{IMAGE_BUCKET_NAME}.s3.amazonaws.com/"
+S3_SOUND_LOCATION = f"https://{SOUND_BUCKET_NAME}.s3.us-east-1.amazonaws.com/"
+S3_IMAGE_LOCATION = f"https://{IMAGE_BUCKET_NAME}.s3.us-east-1.amazonaws.com/"
 ALLOWED_SOUND_EXTENSIONS = {"mp3", "aac", "m4a", "opus", "wav", "flac", "ogg"}
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 AUDIO_CONTENT_EXT_MAP = {
@@ -18,6 +18,14 @@ AUDIO_CONTENT_EXT_MAP = {
     "wav": "wav",
     "mp3": "mpeg",
 }
+IMAGE_CONTENT_EXT_MAP = {
+    "jpg": "jpeg",
+    "jpeg": "jpeg",
+    "png": "png",
+    "webp": "webp",
+}
+
+DEFAULT_THUMBNAIL_IMAGE = S3_IMAGE_LOCATION + "generic-album-art.png"
 
 s3_session = boto3.Session(aws_access_key_id=os.environ["S3_KEY"], aws_secret_access_key=os.environ["S3_SECRET"])
 

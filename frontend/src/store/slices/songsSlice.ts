@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { Song, SongWithUser } from "../../types";
 import { mockArtists } from "./artistsSlice";
+import { GetSongs } from "../api";
 
 // Mock data
 export const mockSongs: SongWithUser[] = [
@@ -126,14 +127,14 @@ export const fetchNewReleases = createAsyncThunk(
 );
 
 export const createSongThunk = createAsyncThunk(
-	"songs",
+	"songs/createSong",
 	async (songData: FormData) => {
 		try {
 			const response = await fetch("/api/songs", {
 				method: "POST",
 				body: songData,
 			});
-			const parsedResponse = await response.json();
+			const parsedResponse: GetSongs = await response.json();
 			return parsedResponse;
 		} catch (serverError: any) {
 			const parsedError = await serverError.json();

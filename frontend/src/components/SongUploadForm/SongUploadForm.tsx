@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { createSongThunk } from "../../store/slices/songsSlice";
 import { useAppDispatch, useAppSelector } from "../../store";
+import Layout from "../Layout/Layout";
+
 const ALLOWED_SOUND_EXTENSIONS = new Set([
 	"mp3",
 	"aac",
@@ -74,11 +76,11 @@ const SongUploadForm: () => JSX.Element = () => {
 		setUploading(true);
 		const serverResponse = await dispatch(createSongThunk(formData));
 
-		console.log(serverResponse);
+		console.log("server response: ", serverResponse);
 	};
 
 	return (
-		<>
+		<Layout>
 			<h1>Upload a Song</h1>
 			{errors.server && <p>{errors.server}</p>}
 			<form encType="multipart/form-data" onSubmit={handleSubmit}>
@@ -114,7 +116,7 @@ const SongUploadForm: () => JSX.Element = () => {
 					Song File
 					<input
 						type="file"
-						accept="audio/mp3, audio/aac, audio/mp4, audio/x-m4a, audio/opus, audio/wav, audio/flac, audio/ogg"
+						accept="audio/mp3, audio/mpeg, audio/aac, audio/mp4, audio/x-m4a, audio/opus, audio/wav, audio/flac, audio/ogg"
 						onChange={(e) => {
 							if (e.target.files) setSongFile(e.target.files[0]);
 						}}
@@ -125,7 +127,7 @@ const SongUploadForm: () => JSX.Element = () => {
 				<button type="submit">Upload Song</button>
 				{uploading && <p>Uploading...</p>}
 			</form>
-		</>
+		</Layout>
 	);
 };
 

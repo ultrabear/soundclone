@@ -166,7 +166,7 @@ const songsSlice = createSlice({
 			})
 			.addCase(createSongThunk.fulfilled, (state, action) => {
 				state.loading = false;
-				const newSong = action.payload.data;
+				const newSong = action.payload;
 				state.songs = { ...state.songs, [newSong.id]: newSong };
 			})
 			.addCase(createSongThunk.rejected, (state, action) => {

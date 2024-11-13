@@ -97,12 +97,21 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
-        unique_file_name = get_unique_filename(str(form.data["song_file"]))
-        file_ext: str = os.path.splitext(unique_file_name)[1]
-        song_file = SongFile(
-            unique_file_name, f"audio/{AUDIO_CONTENT_EXT_MAP[file_ext[1:]]}", form.data["song_file"]
-        )  # instantiate an AWS_File object; not sure if the 3rd argument is correct
-        song_reference = song_file.upload()  # upload the file and return a dictionary with a url key of type str
+        ## prepare and upload the sound file
+        unique_file_name = get_unique_filename(form.data["song_file"].filename)
+        sound_file_ext: str = os.path.splitext(unique_file_name)[1]
+        sound_file_content_type = f"audio/{AUDIO_CONTENT_EXT_MAP[sound_file_ext[1:]]}"
+        song_file = SongFile(unique_file_name, sound_file_content_type, form.data["song_file"])
+        song_reference = song_file.upload()
+
+        ## check all fields coming into the db
+
+        print("song name: ", form.data["name"])
+        print("song genre: ", form.data["genre"])
+        print("artist id: ", current_user.id)
+        print("album thumbnail: ", form.data["thumbnail_img"])
+
+        ## upload the image file, if there is none, assign the default image thumbnail to thumbnail_url
 
         new_song = Song(
             name=form.data["name"],
@@ -121,6 +130,7 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
             "created_at": str(new_song.created_at),
             "updated_at": str(new_song.updated_at),
         }
+
         return song_data, 201
 
     return form.errors, 400

@@ -63,8 +63,6 @@ def remove_file_from_s3(filename: str, bucket: str):
 
 
 def get_unique_filename(filename: str) -> str:
-    # This won't work if the song itself has space characters in it
-    filename = filename.split(" ")[1].strip("'\"")
     ext = filename.rsplit(".", 1)[1].lower()
     unique_filename = uuid.uuid4().hex
     return f"{unique_filename}.{ext}"

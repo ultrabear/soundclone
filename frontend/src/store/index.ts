@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import playerReducer from "./playerSlice";
 import sessionReducer from "./session";
 import artistsReducer from "./slices/artistsSlice";
-import playlistsReducer from "./slices/playlistsSlice";
-import songsReducer from "./slices/songsSlice";
 import commentsReducer from "./slices/commentsSlice";
 import likesReducer from "./slices/likesSlice";
+import playlistsReducer from "./slices/playlistsSlice";
+import songsReducer from "./slices/songsSlice";
 
 export const store = configureStore({
 	reducer: {

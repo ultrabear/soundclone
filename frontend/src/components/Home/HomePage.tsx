@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
 import { mockPlaylistData } from "../../store/slices/playlistsSlice";
@@ -137,43 +137,43 @@ const HomePage: React.FC = () => {
 					</div>
 				</div>
 				<div className="hero-section">
-          <div className="hero-artwork">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg"
-              alt="Playlist artwork"
-            />
-            <button className="hero-play-button">▶</button>
-          </div>
-          <div className="hero-content">
-            <div className="hero-songs">
-              {mockPlaylistData?.songs?.map((song) => (
-                <div key={song.id} className="hero-song-item">
-                  <Link 
-                    to={`/songs/${song.id}`} 
-                    className="song-info"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <span className="song-title">{song.name}</span>
-                    <span className="song-divider">—</span>
-                    <span className="song-artist">
-                      {song.user.stage_name || song.user.username}
-                    </span>
-                  </Link>
-                  <button
-                    className="song-play-button"
-                    onClick={(e) => {
-                      e.preventDefault(); // Prevent navigation when clicking play
-                      handlePlaySong(song);
-                    }}
-                    aria-label="Play song"
-                  >
-                    ▶
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+					<div className="hero-artwork">
+						<img
+							src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg"
+							alt="Playlist artwork"
+						/>
+						<button className="hero-play-button">▶</button>
+					</div>
+					<div className="hero-content">
+						<div className="hero-songs">
+							{mockPlaylistData?.songs?.map((song) => (
+								<div key={song.id} className="hero-song-item">
+									<Link
+										to={`/songs/${song.id}`}
+										className="song-info"
+										style={{ textDecoration: "none", color: "inherit" }}
+									>
+										<span className="song-title">{song.name}</span>
+										<span className="song-divider">—</span>
+										<span className="song-artist">
+											{song.user.stage_name || song.user.username}
+										</span>
+									</Link>
+									<button
+										className="song-play-button"
+										onClick={(e) => {
+											e.preventDefault(); // Prevent navigation when clicking play
+											handlePlaySong(song);
+										}}
+										aria-label="Play song"
+									>
+										▶
+									</button>
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
 				<div className="hero-footer">
 					<button
 						className="view-playlist-button"
@@ -216,25 +216,25 @@ const HomePage: React.FC = () => {
 					))}
 			</ScrollableSection>
 
-		    <ScrollableSection title="New releases" containerRef={releasesRef}>
-        {newReleases?.map((song) => (
-          <Link 
-            key={song.id} 
-            to={`/songs/${song.id}`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            <div className="track-card">
-              <div className="track-artwork">
-                {song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
-              </div>
-              <h3 className="track-title">{song.name}</h3>
-              {song.genre && <p className="track-artist">{song.genre}</p>}
-            </div>
-          </Link>
-        ))}
-      </ScrollableSection>
-    </Layout>
-  );
+			<ScrollableSection title="New releases" containerRef={releasesRef}>
+				{newReleases?.map((song) => (
+					<Link
+						key={song.id}
+						to={`/songs/${song.id}`}
+						style={{ textDecoration: "none", color: "inherit" }}
+					>
+						<div className="track-card">
+							<div className="track-artwork">
+								{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
+							</div>
+							<h3 className="track-title">{song.name}</h3>
+							{song.genre && <p className="track-artist">{song.genre}</p>}
+						</div>
+					</Link>
+				))}
+			</ScrollableSection>
+		</Layout>
+	);
 };
 
 export default HomePage;

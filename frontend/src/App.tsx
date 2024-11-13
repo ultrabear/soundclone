@@ -61,7 +61,7 @@ const router = createBrowserRouter([
 			{
 				path: "/songs/:songId",
 				element: <SongDetailsPage />,
-			  },
+			},
 			// Regular user view for playlists
 			{
 				path: "/user/:userId",

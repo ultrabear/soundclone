@@ -159,19 +159,20 @@ const songsSlice = createSlice({
 			.addCase(fetchNewReleases.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.error.message ?? "Failed to fetch releases";
+			})
+			.addCase(createSongThunk.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(createSongThunk.fulfilled, (state, action) => {
+				state.loading = false;
+				const newSong = action.payload.data;
+				state.songs = { ...state.songs, [newSong.id]: newSong };
+			})
+			.addCase(createSongThunk.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.error.message ?? "Failed to create new song";
 			});
-		// .addCase(createSongThunk.pending, (state) => {
-		//   state.loading = true;
-		//   state.error = null;
-		// })
-		// .addCase(createSongThunk.fulfilled, (state) => {
-		//   state.loading = false;
-		//   state.newSong = action.payload.data;
-		// })
-		// .addCase(createSongThunk.rejected, (state) => {
-		//   state.loading = false;
-		//   state.error = action.error.message ?? "Failed to create new song"
-		// });
 	},
 });
 

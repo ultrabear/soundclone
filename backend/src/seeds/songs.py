@@ -9,26 +9,11 @@ song_data: list[SongType] = [
         "name": "West End Blues",
         "artist_id": 4,
         "genre": "jazz",
-        "thumb_url": "thumbnail-image.jpg",
-        # TODO LINK TO LIVE AWS AUDIO FILE
-        "song_ref": "west-end-blues.mp3",
     },
-    {"name": "Jubilee", "artist_id": 4, "genre": "jazz", "thumb_url": "thumbnail-image.jpg", "song_ref": "jubilee.mp3"},
-    {
-        "name": "Instance",
-        "artist_id": 5,
-        "genre": "hip-hop",
-        "thumb_url": "thumbnail-image.jpg",
-        "song_ref": "instance.mp3",
-    },
-    {
-        "name": "String Quartet in F",
-        "artist_id": 6,
-        "genre": "classical",
-        "thumb_url": "thumbnail-image.jpg",
-        "song_ref": "string-qtet-in-F.mp3",
-    },
-    {"name": "Move", "artist_id": 7, "genre": "rap", "thumb_url": "thumbnail-image.jpg", "song_ref": "move.mp3"},
+    {"name": "Jubilee", "artist_id": 4, "genre": "jazz"},
+    {"name": "Instance", "artist_id": 5, "genre": "hip-hop"},
+    {"name": "String Quartet in F", "artist_id": 6, "genre": "classical"},
+    {"name": "Move", "artist_id": 7, "genre": "rap"},
 ]
 
 
@@ -38,8 +23,6 @@ def seed_songs() -> None:
             name=song["name"],
             artist_id=song["artist_id"],
             genre=song["genre"],  # pyright: ignore
-            thumb_url=song["thumb_url"],  # pyright: ignore
-            song_ref=song["song_ref"],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )

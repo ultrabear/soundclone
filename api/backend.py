@@ -55,8 +55,6 @@ class Song(TypedDict):
     name: str
     artist_id: int
     genre: NotRequired[str]
-    thumb_url: NotRequired[str]
-    song_ref: str
 
 
 @endpoint("DELETE", "/api/songs/:song_id")
@@ -69,6 +67,8 @@ class DeleteSong(NoPayload):
 @endpoint("GET", "/api/songs/:song_id")
 class GetSong(Song, IdAndTimestamps):
     num_likes: NotRequired[int]
+    song_ref: str
+    thumb_url: NotRequired[str]
 
 
 # I want a landing page of other peoples' songs (showing newest first)

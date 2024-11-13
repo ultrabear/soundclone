@@ -125,6 +125,23 @@ export const fetchNewReleases = createAsyncThunk(
 	},
 );
 
+export const createSongThunk = createAsyncThunk(
+	"songs",
+	async (songData: FormData) => {
+		try {
+			const response = await fetch("/api/songs", {
+				method: "POST",
+				body: songData,
+			});
+			const parsedResponse = await response.json();
+			return parsedResponse;
+		} catch (serverError: any) {
+			const parsedError = await serverError.json();
+			return parsedError;
+		}
+	},
+);
+
 const songsSlice = createSlice({
 	name: "songs",
 	initialState,
@@ -143,6 +160,18 @@ const songsSlice = createSlice({
 				state.loading = false;
 				state.error = action.error.message ?? "Failed to fetch releases";
 			});
+		// .addCase(createSongThunk.pending, (state) => {
+		//   state.loading = true;
+		//   state.error = null;
+		// })
+		// .addCase(createSongThunk.fulfilled, (state) => {
+		//   state.loading = false;
+		//   state.newSong = action.payload.data;
+		// })
+		// .addCase(createSongThunk.rejected, (state) => {
+		//   state.loading = false;
+		//   state.error = action.error.message ?? "Failed to create new song"
+		// });
 	},
 });
 

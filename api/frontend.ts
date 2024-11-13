@@ -14,6 +14,11 @@ export type Id = { id: number };
 export type SongId = number;
 export type Timestamps = { created_at: string; updated_at: string };
 
+export type ApiError = {
+	message: string;
+	errors: Record<string, string>;
+};
+
 export type Song = {
 	name: string;
 	artist_id: string;
@@ -132,10 +137,18 @@ endpoint<void, void>("GET", "/api/auth/logout");
 // API Implementation
 const BASE_URL = "/api";
 
+type FPromise<T = null> = Promise<T | null>;
+
+declare global {
+	export interface Error {
+		api?: ApiError;
+	}
+}
+
 async function fetchWithError<T>(
 	url: string,
 	options: RequestInit = {},
-): Promise<T | null> {
+): FPromise<T> {
 	const response = await fetch(`${BASE_URL}${url}`, {
 		...options,
 		headers: {
@@ -146,96 +159,97 @@ async function fetchWithError<T>(
 	});
 
 	if (!response.ok) {
-		throw new Error(`API Error: ${response.status}`);
+		const e = new Error("API Error");
+		e.api = await response.json();
+		throw e;
 	}
 
-	const contentType = response.headers.get("content-type");
-	if (contentType?.includes("application/json")) {
-		return response.json();
+	try {
+		return await response.json();
+	} catch (_) {
+		return null;
 	}
-
-	return null;
 }
 
 //API Methods
 export const api = {
 	songs: {
-		getAll: async (): Promise<GetSongs | null> => {
+		getAll: async (): FPromise<GetSongs> => {
 			return fetchWithError("/songs");
 		},
-		getByArtist: async (artistId: number): Promise<GetSongs | null> => {
+		getByArtist: async (artistId: number): FPromise<GetSongs> => {
 			return fetchWithError(`/songs?artist_id=${artistId}`);
 		},
-		getOne: async (songId: number): Promise<GetSong | null> => {
+		getOne: async (songId: number): FPromise<GetSong> => {
 			return fetchWithError(`/songs/${songId}`);
 		},
-		create: async (song: Song): Promise<(Id & Timestamps) | null> => {
+		create: async (song: Song): FPromise<Id & Timestamps> => {
 			return fetchWithError("/songs", {
 				method: "POST",
 				body: JSON.stringify(song),
 			});
 		},
-		update: async (songId: number, song: Song): Promise<null> => {
+		update: async (songId: number, song: Song): FPromise<null> => {
 			return fetchWithError(`/songs/${songId}`, {
 				method: "PUT",
 				body: JSON.stringify(song),
 			});
 		},
-		delete: async (songId: number): Promise<null> => {
+		delete: async (songId: number): FPromise<null> => {
 			return fetchWithError(`/songs/${songId}`, {
 				method: "DELETE",
 			});
 		},
 	},
 	users: {
-		getOne: async (userId: number): Promise<User | null> => {
+		getOne: async (userId: number): FPromise<User> => {
 			return fetchWithError(`/users/${userId}`);
 		},
 	},
 	artists: {
-		getOne: async (artistId: number): Promise<Artist | null> => {
+		getOne: async (artistId: number): FPromise<Artist> => {
 			return fetchWithError(`/artists/${artistId}`);
 		},
 	},
 	auth: {
-		login: async (credentials: Login): Promise<User | null> => {
+		login: async (credentials: Login): FPromise<User> => {
 			return fetchWithError("/auth/login", {
 				method: "POST",
 				body: JSON.stringify(credentials),
 			});
 		},
-		signup: async (userData: Signup): Promise<User | null> => {
+		signup: async (userData: Signup): FPromise<User> => {
 			return fetchWithError("/auth/signup", {
 				method: "POST",
 				body: JSON.stringify(userData),
 			});
 		},
-		logout: async (): Promise<null> => {
+		logout: async (): FPromise => {
 			return fetchWithError("/auth/logout");
 		},
-		restore: async (): Promise<User | null> => {
+		restore: async (): FPromise<User> => {
 			return fetchWithError("/auth");
 		},
 	},
 	likes: {
-		getAll: async (): Promise<GetSongs | null> => {
+		getAll: async (): FPromise<GetSongs> => {
 			return fetchWithError("/likes");
 		},
 		toggleLike: async (
 			songId: number,
 			method: "POST" | "DELETE",
-		): Promise<null> => {
+		): FPromise<null> => {
 			return fetchWithError(`/songs/${songId}/likes`, { method });
 		},
 	},
 	comments: {
-		getForSong: async (songId: number): Promise<GetComments | null> => {
+		getForSong: async (songId: number): FPromise<GetComments> => {
 			return fetchWithError(`/songs/${songId}/comments`);
 		},
 		create: async (
 			songId: number,
 			comment: Comment,
-		): Promise<(Id & Timestamps) | null> => {
+		): FPromise<Id & Timestamps> => {
 			return fetchWithError(`/songs/${songId}/comments`, {
 				method: "POST",
 				body: JSON.stringify(comment),
@@ -244,25 +258,23 @@ export const api = {
 		update: async (
 			commentId: number,
 			comment: Comment,
-		): Promise<(Id & Timestamps) | null> => {
+		): FPromise<Id & Timestamps> => {
 			return fetchWithError(`/comments/${commentId}`, {
 				method: "PUT",
 				body: JSON.stringify(comment),
 			});
 		},
-		delete: async (commentId: number): Promise<null> => {
+		delete: async (commentId: number): FPromise<null> => {
 			return fetchWithError(`/comments/${commentId}`, {
 				method: "DELETE",
 			});
 		},
 	},
 	playlists: {
-		getCurrent: async (): Promise<ListOfPlaylist | null> => {
+		getCurrent: async (): FPromise<ListOfPlaylist> => {
 			return fetchWithError("/playlists/current");
 		},
-		create: async (
-			playlist: BasePlaylist,
-		): Promise<(Id & Timestamps) | null> => {
+		create: async (playlist: BasePlaylist): FPromise<Id & Timestamps> => {
 			return fetchWithError("/playlists", {
 				method: "POST",
 				body: JSON.stringify(playlist),
@@ -271,27 +283,27 @@ export const api = {
 		update: async (
 			playlistId: number,
 			playlist: BasePlaylist,
-		): Promise<null> => {
+		): FPromise<null> => {
 			return fetchWithError(`/playlists/${playlistId}`, {
 				method: "PUT",
 				body: JSON.stringify(playlist),
 			});
 		},
-		delete: async (playlistId: number): Promise<null> => {
+		delete: async (playlistId: number): FPromise<null> => {
 			return fetchWithError(`/playlists/${playlistId}`, {
 				method: "DELETE",
 			});
 		},
-		getSongs: async (playlistId: number): Promise<GetSongs | null> => {
+		getSongs: async (playlistId: number): FPromise<GetSongs> => {
 			return fetchWithError(`/playlists/${playlistId}/songs`);
 		},
-		addSong: async (playlistId: number, songId: number): Promise<null> => {
+		addSong: async (playlistId: number, songId: number): FPromise<null> => {
 			return fetchWithError(`/playlists/${playlistId}/songs`, {
 				method: "POST",
 				body: JSON.stringify({ song_id: songId }),
 			});
 		},
-		removeSong: async (playlistId: number, songId: number): Promise<null> => {
+		removeSong: async (playlistId: number, songId: number): FPromise<null> => {
 			return fetchWithError(`/playlists/${playlistId}/songs`, {
 				method: "DELETE",
 				body: JSON.stringify({ song_id: songId }),

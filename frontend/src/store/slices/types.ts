@@ -2,6 +2,7 @@ export type CommentId = number & { readonly __tag: unique symbol };
 export type SongId = number & { readonly __tag: unique symbol };
 export type UserId = number & { readonly __tag: unique symbol };
 export type PlaylistId = number & { readonly __tag: unique symbol };
+export type Url = string;
 // R stands for redux
 export type RSet<T extends string | number | symbol> = Record<T, null>;
 export type RMap<K extends string | number | symbol, V> = Record<K, V>;
@@ -21,11 +22,11 @@ export interface StoreComment {
 export interface User {
 	id: UserId;
 	display_name: string;
-	profile_image?: URL;
+	profile_image?: Url;
 	first_release?: Date;
 	biography?: string;
 	location?: string;
-	homepage_url?: URL;
+	homepage_url?: Url;
 }
 
 export interface SessionUser {
@@ -40,15 +41,15 @@ export interface Song extends Timestamps {
 	artist_id: UserId;
 	likes: number;
 	genre?: string;
-	thumb_url?: URL;
-	song_url: URL;
+	thumb_url?: Url;
+	song_url: Url;
 }
 
 export interface Playlist extends Timestamps {
 	id: PlaylistId;
 	name: string;
 	user_id: UserId;
-	thumbnail?: URL;
+	thumbnail?: Url;
 	songs: RSet<SongId>;
 }
 

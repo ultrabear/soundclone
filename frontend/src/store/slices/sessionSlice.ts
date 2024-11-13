@@ -1,14 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { AppDispatch } from ".";
-import { api, type User as ApiUser } from "./api";
-import type {
-	SessionSlice,
-	SessionUser,
-	UserId,
-	User,
-	SongId,
-} from "./slice_types";
+import type { AppDispatch } from "..";
+import { api, type User as ApiUser } from "../api";
+import type { SessionSlice, SessionUser, UserId, User, SongId } from "./types";
+import { slice as userSlice } from "./userSlice";
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 	const response = await fetch("/api/auth");
@@ -25,31 +20,41 @@ export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 export const thunkLogin =
 	(credentials: { email: string; password: string }) =>
 	async (dispatch: AppDispatch) => {
-		const response = await api.auth.login(credentials);
+		try {
+			const response = (await api.auth.login(credentials))!;
+
+			const [session, user] = normalizeApiUser(response);
+
+			dispatch(slice.actions.setUser(session));
+			dispatch(userSlice.actions.addUser(user));
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
 	};
 
 export const thunkSignup =
-	(user: { username: string; email: string; password: string }) =>
+	(cred: { username: string; email: string; password: string }) =>
 	async (dispatch: AppDispatch) => {
-		const response = await fetch("/api/auth/signup", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(user),
-		});
+		try {
+			const response = (await api.auth.signup(cred))!;
 
-		if (response.ok) {
-			const data = await response.json();
-			dispatch(slice.actions.setUser(data));
-		} else if (response.status < 500) {
-			const errorMessages = await response.json();
-			return errorMessages;
-		} else {
-			return { server: "Something went wrong. Please try again" };
+			const [session, user] = normalizeApiUser(response);
+
+			dispatch(slice.actions.setUser(session));
+			dispatch(userSlice.actions.addUser(user));
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
 		}
 	};
 
 export const thunkLogout = () => async (dispatch: AppDispatch) => {
-	await fetch("/api/auth/logout");
+	await api.auth.logout();
 	dispatch(slice.actions.removeUser());
 };
 
@@ -82,11 +87,11 @@ function normalizeApiUser(u: ApiUser): [SessionUser, User] {
 	}
 
 	if (typeof profile_image === "string") {
-		user.profile_image = new URL(profile_image);
+		user.profile_image = profile_image;
 	}
 
 	if (typeof homepage === "string") {
-		user.homepage_url = new URL(homepage);
+		user.homepage_url = homepage;
 	}
 
 	return [session, user];

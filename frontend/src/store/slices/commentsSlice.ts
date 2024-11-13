@@ -2,11 +2,10 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { CommentWithUser } from "../../types";
 import { api } from "../api";
 import type { RootState } from "../index";
-import type { CommentsSlice } from "../slice_types";
+import type { CommentsSlice } from "./types";
 
 const initialState: CommentsSlice = {
 	comments: {},
-	songs: {},
 };
 
 //fetch song comments thunk

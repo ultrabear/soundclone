@@ -2,9 +2,6 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import Layout from "../Layout/Layout";
-import "./SongDetailsPage.css";
-import { api } from "../../store/api";
 import { setCurrentSong } from "../../store/playerSlice";
 import { fetchComments, postComment } from "../../store/slices/commentsSlice";
 import {
@@ -13,6 +10,10 @@ import {
 	unlikeSong,
 } from "../../store/slices/likesSlice";
 import type { CommentWithUser, SongWithUser } from "../../types";
+import Layout from "../Layout/Layout";
+import { api } from "../../store/api";
+import styles from "./SongDetailsPage.module.css";
+import { Sidebar } from "../Layout/Layout";
 
 const SongDetailsPage: React.FC = () => {
 	const { songId } = useParams<{ songId: string }>();
@@ -140,11 +141,10 @@ const SongDetailsPage: React.FC = () => {
 	const isLiked = song
 		? likedSongs.some((likedSong) => likedSong.id === song.id)
 		: false;
-
 	if (loading) {
 		return (
 			<Layout>
-				<div className="loading-container">Loading song details...</div>
+				<div className={styles.loading}>Loading song details...</div>
 			</Layout>
 		);
 	}
@@ -152,100 +152,127 @@ const SongDetailsPage: React.FC = () => {
 	if (error || !song) {
 		return (
 			<Layout>
-				<div className="error-container">{error || "Song not found"}</div>
+				<div className={styles.error}>{error || "Song not found"}</div>
 			</Layout>
 		);
 	}
 
 	return (
-		<Layout>
-			{/* Hero Section */}
-			<div className="song-hero-container">
-				{/* Play Button */}
-				<button className="hero-play-button" onClick={handlePlay}>
-					▶
-				</button>
-				{/* Song Details */}
-				<div className="song-details">
-					<h1 className="song-title">{song.name}</h1>
-					<div className="song-meta">
-						<span className="song-artist">
-							{song.user.stage_name || song.user.username}
-						</span>
-						<span className="meta-divider">•</span>
-						<span className="song-created-at">
-							{new Date(song.created_at).toLocaleDateString()}
-						</span>
-						{song.genre && (
-							<>
-								<span className="meta-divider">•</span>
-								<span className="song-genre">{song.genre}</span>
-							</>
-						)}
-					</div>
-				</div>
-				{/* Artist Profile Image */}
-				<div className="artist-profile-image">
-					<img
-						src={song.user.profile_image || "/default-profile.png"}
-						alt={song.user.username}
-					/>
-				</div>
-				{/* Placeholder for Waveform */}
-				<div className="waveform-placeholder">Waveform Player Placeholder</div>
-			</div>
+		<Layout hideSidebar>
+			<div className={styles.container}>
+				{/* Content wrapper for consistent width */}
+				<div className={styles.contentWrapper}>
+					{/* Hero section */}
+					<div className={styles.hero}>
+						<div className={styles.heroLeft}>
+							{/* Top section with play button and info */}
+							<div style={{ display: "flex", alignItems: "flex-start" }}>
+								<button
+									className={styles.playButton}
+									onClick={handlePlay}
+									aria-label="Play song"
+								>
+									▶
+								</button>
 
-			{/* Comment Input Section */}
-			<div className="comment-input-container">
-				{/* User Profile Image */}
-				<div className="user-profile-image">
-					<img
-						src={(user && user.profile_image) || "/default-profile.png"}
-						alt="User Profile"
-					/>
-				</div>
-				{/* Comment Form */}
-				<form className="comment-form" onSubmit={handleCommentSubmit}>
-					<input
-						type="text"
-						placeholder="Write a comment..."
-						className="comment-input"
-						value={commentText}
-						onChange={handleCommentChange}
-					/>
-					<button type="submit" className="comment-submit-button">
-						Submit
-					</button>
-					{/* Like Button */}
-					<button type="button" className="like-button" onClick={handleLike}>
-						{isLiked ? "♥" : "♡"}
-					</button>
-				</form>
-				{commentError && <div className="error-message">{commentError}</div>}
-			</div>
-
-			{/* Comments Section */}
-			<div className="comments-container">
-				{comments.length > 0 ? (
-					comments.map((comment: CommentWithUser) => (
-						<div key={comment.id} className="comment">
-							<div className="commenter-profile-image">
-								<img
-									src={comment.user.profile_image || "/default-profile.png"}
-									alt={comment.user.username}
-								/>
+								<div className={styles.songInfo}>
+									<div className={styles.artistName}>
+										{song.user.stage_name || song.user.username}
+									</div>
+									<h1 className={styles.songTitle}>{song.name}</h1>
+									<div className={styles.songMeta}>
+										<div className={styles.songDate}>
+											{new Date(song.created_at).toLocaleDateString()}
+										</div>
+										{song.genre && (
+											<div className={styles.songGenre}>{song.genre}</div>
+										)}
+									</div>
+								</div>
 							</div>
-							<div className="comment-content">
-								<span className="commenter-name">{comment.user.username}</span>
-								<p className="comment-text">{comment.comment_text}</p>
+
+							{/* Waveform at bottom */}
+							<div className={styles.waveform}>Waveform Player Placeholder</div>
+						</div>
+
+						<div className={styles.heroRight}>
+							<img
+								src={song.user.profile_image || "/default-profile.png"}
+								alt={song.user.username}
+							/>
+						</div>
+					</div>
+
+					<div className={styles.content}>
+						<div className={styles.mainContent}>
+							<div className={styles.commentForm}>
+								<div className={styles.userAvatar}>
+									<img
+										src={(user && user.profile_image) || "/default-profile.png"}
+										alt="User Profile"
+									/>
+								</div>
+								<form
+									className={styles.commentInputWrapper}
+									onSubmit={handleCommentSubmit}
+								>
+									<input
+										type="text"
+										placeholder="Write a comment..."
+										value={commentText}
+										onChange={handleCommentChange}
+										className={styles.commentInput}
+									/>
+									<button type="submit" className={styles.submitButton}>
+										Submit
+									</button>
+									<button
+										type="button"
+										className={styles.likeButton}
+										onClick={handleLike}
+									>
+										{isLiked ? "♥" : "♡"}
+									</button>
+								</form>
+							</div>
+
+							{commentError && (
+								<div className={styles.errorMessage}>{commentError}</div>
+							)}
+
+							<div className={styles.commentsList}>
+								{comments.length > 0 ? (
+									comments.map((comment: CommentWithUser) => (
+										<div key={comment.id} className={styles.comment}>
+											<div className={styles.commentAvatar}>
+												<img
+													src={
+														comment.user.profile_image || "/default-profile.png"
+													}
+													alt={comment.user.username}
+												/>
+											</div>
+											<div className={styles.commentContent}>
+												<div className={styles.commenterName}>
+													{comment.user.username}
+												</div>
+												<div className={styles.commentText}>
+													{comment.comment_text}
+												</div>
+											</div>
+										</div>
+									))
+								) : (
+									<div className={styles.noComments}>
+										No comments yet. Be the first to comment!
+									</div>
+								)}
 							</div>
 						</div>
-					))
-				) : (
-					<div className="no-comments">
-						No comments yet. Be the first to comment!
+
+						<Sidebar />
 					</div>
-				)}
+				</div>
 			</div>
 		</Layout>
 	);

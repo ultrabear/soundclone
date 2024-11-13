@@ -10,6 +10,7 @@ import Layout from "../Layout/Layout";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
+import styles from "./HomePage.module.css";
 
 interface ScrollableSectionProps {
 	title: string;
@@ -39,25 +40,25 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 	};
 
 	return (
-		<section className="content-section">
-			<div className="section-header">
-				<h2 className="section-title">{title}</h2>
+		<section className={styles.scrollSection}>
+			<div className={styles.sectionHeader}>
+				<h2 className={styles.sectionTitle}>{title}</h2>
 			</div>
-			<div className="scroll-container">
-				<div className="scroll-content" ref={containerRef}>
+			<div className={styles.scrollContainer}>
+				<div className={styles.scrollContent} ref={containerRef}>
 					{children}
 				</div>
-				<div className="scroll-controls">
+				<div className={styles.scrollControls}>
 					<button
 						onClick={() => scroll("left")}
-						className="scroll-button left"
+						className={styles.scrollButtonLeft}
 						aria-label="Scroll left"
 					>
 						←
 					</button>
 					<button
 						onClick={() => scroll("right")}
-						className="scroll-button right"
+						className={styles.scrollButtonRight}
 						aria-label="Scroll right"
 					>
 						→
@@ -72,7 +73,6 @@ const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
-	//selectors
 	const { loading: songsLoading, error: songsError } = useAppSelector(
 		(state) => state.songs,
 	);
@@ -97,7 +97,7 @@ const HomePage: React.FC = () => {
 	if (loading) {
 		return (
 			<Layout>
-				<div className="loading-container">Loading...</div>
+				<div className={styles.loadingContainer}>Loading...</div>
 			</Layout>
 		);
 	}
@@ -105,7 +105,7 @@ const HomePage: React.FC = () => {
 	if (error) {
 		return (
 			<Layout>
-				<div className="error-container">
+				<div className={styles.errorContainer}>
 					Error loading data. Please try again later.
 				</div>
 			</Layout>
@@ -114,125 +114,123 @@ const HomePage: React.FC = () => {
 
 	return (
 		<Layout>
-			<section className="content-section">
-				<div className="section-header">
-					<div className="header-content">
-						<h2 className="section-title">
-							{user
-								? `Welcome back, ${user.username}!`
-								: "More of what you like"}
-						</h2>
-						{!user && (
-							<div className="auth-buttons">
-								<OpenModalButton
-									buttonText="Log In"
-									modalComponent={<LoginFormModal />}
-								/>
-								<OpenModalButton
-									buttonText="Sign Up"
-									modalComponent={<SignupFormModal />}
-								/>
-							</div>
-						)}
-					</div>
-				</div>
-				<div className="hero-section">
-					<div className="hero-artwork">
-						<img
-							src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg"
-							alt="Playlist artwork"
-						/>
-						<button className="hero-play-button">▶</button>
-					</div>
-					<div className="hero-content">
-						<div className="hero-songs">
-							{mockPlaylistData?.songs?.map((song) => (
-								<div key={song.id} className="hero-song-item">
-									<Link
-										to={`/songs/${song.id}`}
-										className="song-info"
-										style={{ textDecoration: "none", color: "inherit" }}
-									>
-										<span className="song-title">{song.name}</span>
-										<span className="song-divider">—</span>
-										<span className="song-artist">
-											{song.user.stage_name || song.user.username}
-										</span>
-									</Link>
-									<button
-										className="song-play-button"
-										onClick={(e) => {
-											e.preventDefault(); // Prevent navigation when clicking play
-											handlePlaySong(song);
-										}}
-										aria-label="Play song"
-									>
-										▶
-									</button>
+			<div className={styles.container}>
+				<section className={styles.heroWrapper}>
+					<div className={styles.sectionHeader}>
+						<div className={styles.headerContent}>
+							<h2 className={styles.sectionTitle}>
+								{user
+									? `Welcome back, ${user.username}!`
+									: "More of what you like"}
+							</h2>
+							{!user && (
+								<div className={styles.authButtons}>
+									<OpenModalButton
+										buttonText="Log In"
+										modalComponent={<LoginFormModal />}
+									/>
+									<OpenModalButton
+										buttonText="Sign Up"
+										modalComponent={<SignupFormModal />}
+									/>
 								</div>
-							))}
+							)}
 						</div>
 					</div>
-				</div>
-				<div className="hero-footer">
-					<button
-						className="view-playlist-button"
-						onClick={() => navigate(`/playlist/1`)}
-					>
-						Go to playlist
-					</button>
-				</div>
-			</section>
-
-			<ScrollableSection title="Featured artists" containerRef={featuredRef}>
-				{newReleases
-					.filter(
-						(song, index, self) =>
-							index === self.findIndex((s) => s.user.id === song.user.id),
-					)
-					.map((song) => song.user)
-					.map((artist) => (
-						<div
-							key={artist.id}
-							className="artist-card"
-							onClick={() => navigate(`/artists/${artist.id}`)}
-							role="button"
-							tabIndex={0}
-							onKeyDown={(e) => {
-								if (e.key === "Enter" || e.key === " ") {
-									navigate(`/artists/${artist.id}`);
-								}
-							}}
-						>
-							<div className="artist-image">
-								{artist.profile_image && (
-									<img src={artist.profile_image} alt={artist.username} />
-								)}
-							</div>
-							<h3 className="artist-name">
-								{artist.stage_name || artist.username}
-							</h3>
+					<div className={styles.heroSection}>
+						<div className={styles.heroArtwork}>
+							<img
+								src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg"
+								alt="Playlist artwork"
+							/>
+							<button className={styles.heroPlayButton}>▶</button>
 						</div>
-					))}
-			</ScrollableSection>
+						<div className={styles.heroContent}>
+							<div className={styles.heroSongs}>
+								{mockPlaylistData?.songs?.map((song) => (
+									<div key={song.id} className={styles.songItem}>
+										<Link to={`/songs/${song.id}`} className={styles.songInfo}>
+											<span className={styles.songTitle}>{song.name}</span>
+											<span className={styles.songDivider}>—</span>
+											<span className={styles.songArtist}>
+												{song.user.stage_name || song.user.username}
+											</span>
+										</Link>
+										<button
+											className={styles.songPlayButton}
+											onClick={(e) => {
+												e.preventDefault();
+												handlePlaySong(song);
+											}}
+											aria-label="Play song"
+										>
+											▶
+										</button>
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
+					<div className={styles.heroFooter}>
+						<button
+							className={styles.viewPlaylistButton}
+							onClick={() => navigate(`/playlist/1`)}
+						>
+							Go to playlist
+						</button>
+					</div>
+				</section>
 
-			<ScrollableSection title="New releases" containerRef={releasesRef}>
-				{newReleases?.map((song) => (
-					<Link
-						key={song.id}
-						to={`/songs/${song.id}`}
-						style={{ textDecoration: "none", color: "inherit" }}
-					>
-						<div className="track-card">
-							<div className="track-artwork">
+				<ScrollableSection title="Featured artists" containerRef={featuredRef}>
+					{newReleases
+						.filter(
+							(song, index, self) =>
+								index === self.findIndex((s) => s.user.id === song.user.id),
+						)
+						.map((song) => song.user)
+						.map((artist) => (
+							<div
+								key={artist.id}
+								className={styles.artistCard}
+								onClick={() => navigate(`/artists/${artist.id}`)}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										navigate(`/artists/${artist.id}`);
+									}
+								}}
+							>
+								<div className={styles.artistImage}>
+									{artist.profile_image && (
+										<img src={artist.profile_image} alt={artist.username} />
+									)}
+								</div>
+								<h3 className={styles.artistName}>
+									{artist.stage_name || artist.username}
+								</h3>
+							</div>
+						))}
+				</ScrollableSection>
+
+				<ScrollableSection title="New releases" containerRef={releasesRef}>
+					{newReleases?.map((song) => (
+						<Link
+							key={song.id}
+							to={`/songs/${song.id}`}
+							className={styles.trackCard}
+						>
+							<div className={styles.trackArtwork}>
 								{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
 							</div>
-							<h3 className="track-title">{song.name}</h3>
-							{song.genre && <p className="track-artist">{song.genre}</p>}
-						</div>
-					</Link>
-				))}
-			</ScrollableSection>
+							<div className={styles.trackTitle}>{song.name}</div>
+							{song.genre && (
+								<div className={styles.trackArtist}>{song.genre}</div>
+							)}
+						</Link>
+					))}
+				</ScrollableSection>
+			</div>
 		</Layout>
 	);
 };

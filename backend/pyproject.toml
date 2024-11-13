@@ -21,6 +21,8 @@ dependencies = [
     "psycopg2-binary>=2.9.9",
     "boto3>=1.35.59",
     "boto3-stubs>=1.35.59",
+    "pydub>=0.25.1",
+    "pydub-stubs>=0.25.1.4",
 ]
 
 [tool.ruff]

@@ -3,6 +3,7 @@ import HomePage from "./components/Home/HomePage";
 import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
+import SongUploadForm from "./components/SongUploadForm/SongUploadForm";
 
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
 			{
 				path: "/playlist/:id",
 				element: <PlaylistView />,
+			},
+			{
+				path: "/new-song",
+				element: <SongUploadForm />,
 			},
 		],
 	},

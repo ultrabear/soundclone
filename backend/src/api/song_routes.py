@@ -97,14 +97,10 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
-        # upload the song file to aws
-        unique_file_name = get_unique_filename(
-            str(form.data["song_file"])
-        )  # will this give a string version of the file name or a string of the file contents?
-
+        unique_file_name = get_unique_filename(str(form.data["song_file"]))
         file_ext: str = os.path.splitext(unique_file_name)[1]
         song_file = SongFile(
-            unique_file_name, f"audio/{AUDIO_CONTENT_EXT_MAP[file_ext[1:]]}", form.data["song_file"].read_bytes()
+            unique_file_name, f"audio/{AUDIO_CONTENT_EXT_MAP[file_ext[1:]]}", form.data["song_file"]
         )  # instantiate an AWS_File object; not sure if the 3rd argument is correct
         song_reference = song_file.upload()  # upload the file and return a dictionary with a url key of type str
 
@@ -112,7 +108,7 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
             name=form.data["name"],
             artist_id=current_user.id,
             genre=form.data["genre"],
-            thumb_url=form.data["thumb_url"],
+            # thumb_url=form.data["thumbnail_img"],
             song_ref=song_reference["url"],  # store the url in the db as the song_ref
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),

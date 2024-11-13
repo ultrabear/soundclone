@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import boto3
-import tempfile
 import os
 import uuid
 
@@ -14,7 +13,7 @@ AUDIO_CONTENT_EXT_MAP = {
     "ogg": "ogg",
     "aac": "aac",
     "flac": "flac",
-    "m4a": "mp4",
+    "m4a": "x-m4a",
     "opus": "ogg",
     "wav": "wav",
     "mp3": "mpeg",
@@ -32,20 +31,17 @@ class AWS_File:
     content: bytes
 
     def upload_to_s3(self, location: str, bucket: str, acl: str = "public-read"):
-        with tempfile.NamedTemporaryFile() as temp_file:
-            temp_file.write(self.content)
-            temp_file.seek(0)
-            try:
-                s3_client.upload_fileobj(
-                    temp_file,
-                    bucket,
-                    self.filename,
-                    ExtraArgs={"ACL": acl, "ContentType": self.content_type},
-                )
-            except Exception as e:
-                return {"errors": str(e)}
+        try:
+            s3_client.upload_fileobj(
+                self.content,  # pyright: ignore
+                bucket,
+                self.filename,
+                ExtraArgs={"ACL": acl, "ContentType": self.content_type},
+            )
+        except Exception as e:
+            return {"errors": str(e)}
 
-            return {"url": f"{location}{self.filename}"}
+        return {"url": f"{location}{self.filename}"}
 
 
 class SongFile(AWS_File):
@@ -67,6 +63,8 @@ def remove_file_from_s3(filename: str, bucket: str):
 
 
 def get_unique_filename(filename: str) -> str:
+    # This won't work if the song itself has space characters in it
+    filename = filename.split(" ")[1].strip("'\"")
     ext = filename.rsplit(".", 1)[1].lower()
     unique_filename = uuid.uuid4().hex
     return f"{unique_filename}.{ext}"

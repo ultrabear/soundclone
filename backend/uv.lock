@@ -35,6 +35,8 @@ dependencies = [
     { name = "flask-sqlalchemy" },
     { name = "flask-wtf" },
     { name = "psycopg2-binary" },
+    { name = "pydub" },
+    { name = "pydub-stubs" },
     { name = "pyright" },
     { name = "python-dotenv" },
     { name = "sqlalchemy" },
@@ -61,6 +63,8 @@ requires-dist = [
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "psycopg2-binary", specifier = ">=2.9.9" },
+    { name = "pydub", specifier = ">=0.25.1" },
+    { name = "pydub-stubs", specifier = ">=0.25.1.4" },
     { name = "pyright", specifier = ">=1.1.388" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "sqlalchemy", specifier = ">=2.0.36" },
@@ -420,6 +424,27 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ce/ac/5b1ea50fc08a9df82de7e1771537557f07c2632231bbab652c7e22597908/psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:bb89f0a835bcfc1d42ccd5f41f04870c1b936d8507c6df12b7737febc40f0909", size = 2822712 },
     { url = "https://files.pythonhosted.org/packages/c4/fc/504d4503b2abc4570fac3ca56eb8fed5e437bf9c9ef13f36b6621db8ef00/psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:f0c2d907a1e102526dd2986df638343388b94c33860ff3bbe1384130828714b1", size = 2920155 },
     { url = "https://files.pythonhosted.org/packages/b2/d1/323581e9273ad2c0dbd1902f3fb50c441da86e894b6e25a73c3fda32c57e/psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:f8157bed2f51db683f31306aa497311b560f2265998122abe1dce6428bd86567", size = 2959356 },
+]
+
+[[package]]
+name = "pydub"
+version = "0.25.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/9a/e6bca0eed82db26562c73b5076539a4a08d3cffd19c3cc5913a3e61145fd/pydub-0.25.1.tar.gz", hash = "sha256:980a33ce9949cab2a569606b65674d748ecbca4f0796887fd6f46173a7b0d30f", size = 38326 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a6/53/d78dc063216e62fc55f6b2eebb447f6a4b0a59f55c8406376f76bf959b08/pydub-0.25.1-py2.py3-none-any.whl", hash = "sha256:65617e33033874b59d87db603aa1ed450633288aefead953b30bded59cb599a6", size = 32327 },
+]
+
+[[package]]
+name = "pydub-stubs"
+version = "0.25.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/11/27/614a5da39472c932bcfaaf9d456c228bfc75926b0c1afc927c482e0efff3/pydub_stubs-0.25.1.4.tar.gz", hash = "sha256:e36c94bc5d0fafb373b368994f97054fbf299fa74b9e560738ee451bda96698a", size = 8266 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/93/b2/95ae81700a68dea364c6aec6be4c38a21aa955aca00dfd5194b088a405a0/pydub_stubs-0.25.1.4-py3-none-any.whl", hash = "sha256:5d22d13d767396de6a2997ce67fab36e4a7961f717ca6549a9b5bcc8b9f951db", size = 9256 },
 ]
 
 [[package]]

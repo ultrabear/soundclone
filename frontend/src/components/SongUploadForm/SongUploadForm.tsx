@@ -67,16 +67,14 @@ const SongUploadForm: () => JSX.Element = () => {
 
 		const formData = new FormData();
 
-		if (thumbUrl && songFile) {
-			formData.append("name", name);
-			formData.append("genre", genre);
-			formData.append("thumbnail_img", thumbUrl);
-			formData.append("song_file", songFile);
-			setUploading(true);
-			const serverResponse = await dispatch(createSongThunk(formData));
+		formData.append("name", name);
+		formData.append("genre", genre);
+		if (thumbUrl) formData.append("thumbnail_img", thumbUrl);
+		if (songFile) formData.append("song_file", songFile);
+		setUploading(true);
+		const serverResponse = await dispatch(createSongThunk(formData));
 
-			console.log(serverResponse);
-		}
+		console.log(serverResponse);
 	};
 
 	return (
@@ -116,7 +114,7 @@ const SongUploadForm: () => JSX.Element = () => {
 					Song File
 					<input
 						type="file"
-						accept="audio/mp3, audio/aac, audio/m4a, audio/opus, audio/wav, audio/flac, audio/ogg"
+						accept="audio/mp3, audio/aac, audio/mp4, audio/x-m4a, audio/opus, audio/wav, audio/flac, audio/ogg"
 						onChange={(e) => {
 							if (e.target.files) setSongFile(e.target.files[0]);
 						}}

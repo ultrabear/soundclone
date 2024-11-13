@@ -45,7 +45,10 @@ def db_song_to_api_song(song: Song, likes: int) -> GetSong:
 
 @song_routes.get("")
 def get_all_songs() -> GetSongs:
-    """Get all songs with their like counts, optionally filtered by artist_id"""
+    """
+    Check for query params first to see if we need to filter by an artist_id.
+    Query for all songs and return them in a list of song dictionaries.
+    """
     artist_id: str | None = request.args.get("artist_id")
 
     if artist_id and artist_id.isdigit():
@@ -55,11 +58,7 @@ def get_all_songs() -> GetSongs:
 
         return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
-    # Add artist filter if provided
-    if artist_id and artist_id.isdigit():
-        query = base_query.filter(Song.artist_id == int(artist_id))
     else:
-
         songs = db.session.execute(select(Song).order_by(Song.created_at.desc()))
 
         return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}

@@ -1,7 +1,7 @@
 # backend/src/api/playlist_routes.py
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user # pyright: ignore
 from typing import Union, Tuple, Dict, List
 from datetime import datetime, timezone
 from ..models import db, Playlist, Song

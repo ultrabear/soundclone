@@ -1,7 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from ".";
-import type { User as ApiUser } from "./api";
+import { api, type User as ApiUser } from "./api";
+import type {
+	SessionSlice,
+	SessionUser,
+	UserId,
+	User,
+	SongId,
+} from "./slice_types";
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 	const response = await fetch("/api/auth");
@@ -18,21 +25,7 @@ export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 export const thunkLogin =
 	(credentials: { email: string; password: string }) =>
 	async (dispatch: AppDispatch) => {
-		const response = await fetch("/api/auth/login", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(credentials),
-		});
-
-		if (response.ok) {
-			const data = await response.json();
-			dispatch(slice.actions.setUser(data));
-		} else if (response.status < 500) {
-			const errorMessages = await response.json();
-			return errorMessages;
-		} else {
-			return { server: "Something went wrong. Please try again" };
-		}
+		const response = await api.auth.login(credentials);
 	};
 
 export const thunkSignup =
@@ -60,33 +53,44 @@ export const thunkLogout = () => async (dispatch: AppDispatch) => {
 	dispatch(slice.actions.removeUser());
 };
 
-function normalizeApiUser(u: ApiUser): User {
-	const { first_release, ...rest } = u;
+function normalizeApiUser(u: ApiUser): [SessionUser, User] {
+	const {
+		first_release,
+		email,
+		username,
+		stage_name,
+		profile_image,
+		homepage,
+		id,
+		...rest
+	} = u;
 
-	if (first_release !== undefined) {
-		return { ...rest, first_release: new Date(first_release) };
+	const session: SessionUser = {
+		username,
+		email,
+		id: id as UserId,
+	};
+
+	const user: User = {
+		...rest,
+		display_name: stage_name ?? session.username,
+		id: session.id,
+	};
+
+	if (typeof first_release === "string") {
+		user.first_release = new Date(first_release);
 	}
 
-	return rest;
+	if (typeof profile_image === "string") {
+		user.profile_image = new URL(profile_image);
+	}
+
+	if (typeof homepage === "string") {
+		user.homepage_url = new URL(homepage);
+	}
+
+	return [session, user];
 }
-
-type User = {
-	id: number;
-	username: string;
-	email: string;
-	profile_image?: string;
-	stage_name?: string;
-	first_release?: Date;
-	biography?: string;
-	location?: string;
-	homepage?: string;
-};
-
-type SongId = number;
-type SessionSlice = {
-	user: User | null;
-	likes: { [key: SongId]: undefined };
-};
 
 const initialState: SessionSlice = {
 	user: null,
@@ -97,12 +101,20 @@ export const slice = createSlice({
 	name: "session",
 	initialState,
 	reducers: {
-		setUser: (state, action: PayloadAction<ApiUser>) => {
-			state.user = normalizeApiUser(action.payload);
+		setUser: (state, action: PayloadAction<SessionUser>) => {
+			state.user = action.payload;
 		},
 
 		removeUser: (state) => {
 			state.user = null;
+		},
+
+		addLike: (state, action: PayloadAction<SongId>) => {
+			state.likes[action.payload] = null;
+		},
+
+		removeLike: (state, action: PayloadAction<SongId>) => {
+			delete state.likes[action.payload];
 		},
 	},
 });

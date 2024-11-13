@@ -2,22 +2,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { CommentWithUser } from "../../types";
 import { api } from "../api";
 import type { RootState } from "../index";
+import type { CommentsSlice } from "../slice_types";
 
-interface CommentsState {
-	comments: CommentWithUser[];
-	loading: boolean;
-	error: string | null;
-}
-
-interface CommentPayload {
-	songId: number;
-	text: string;
-}
-
-const initialState: CommentsState = {
-	comments: [],
-	loading: false,
-	error: null,
+const initialState: CommentsSlice = {
+	comments: {},
+	songs: {},
 };
 
 //fetch song comments thunk

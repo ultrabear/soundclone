@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
 import { mockPlaylistData } from "../../store/slices/playlistsSlice";
@@ -148,16 +148,23 @@ const HomePage: React.FC = () => {
 						<div className="hero-songs">
 							{mockPlaylistData?.songs?.map((song) => (
 								<div key={song.id} className="hero-song-item">
-									<div className="song-info">
+									<Link
+										to={`/songs/${song.id}`}
+										className="song-info"
+										style={{ textDecoration: "none", color: "inherit" }}
+									>
 										<span className="song-title">{song.name}</span>
 										<span className="song-divider">—</span>
 										<span className="song-artist">
 											{song.user.stage_name || song.user.username}
 										</span>
-									</div>
+									</Link>
 									<button
 										className="song-play-button"
-										onClick={() => handlePlaySong(song)}
+										onClick={(e) => {
+											e.preventDefault(); // Prevent navigation when clicking play
+											handlePlaySong(song);
+										}}
 										aria-label="Play song"
 									>
 										▶
@@ -211,13 +218,19 @@ const HomePage: React.FC = () => {
 
 			<ScrollableSection title="New releases" containerRef={releasesRef}>
 				{newReleases?.map((song) => (
-					<div key={song.id} className="track-card">
-						<div className="track-artwork">
-							{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
+					<Link
+						key={song.id}
+						to={`/songs/${song.id}`}
+						style={{ textDecoration: "none", color: "inherit" }}
+					>
+						<div className="track-card">
+							<div className="track-artwork">
+								{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
+							</div>
+							<h3 className="track-title">{song.name}</h3>
+							{song.genre && <p className="track-artist">{song.genre}</p>}
 						</div>
-						<h3 className="track-title">{song.name}</h3>
-						{song.genre && <p className="track-artist">{song.genre}</p>}
-					</div>
+					</Link>
 				))}
 			</ScrollableSection>
 		</Layout>

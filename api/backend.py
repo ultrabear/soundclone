@@ -118,7 +118,13 @@ class PopulatePlaylist(TypedDict):
 
 
 # I want to be able to add and remove songs to a playlist I created
-endpoint(["DELETE", "POST"], "/api/playlists/:playlistId/songs", req=PopulatePlaylist, res=Ok[NoBody], auth=True)
+endpoint(
+    ["DELETE", "POST"],
+    "/api/playlists/:playlistId/songs",
+    req=PopulatePlaylist,
+    res=Ok[NoBody],
+    auth=True,
+)
 
 
 # I want to see all of the songs in my playlist

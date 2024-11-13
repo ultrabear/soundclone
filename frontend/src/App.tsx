@@ -6,6 +6,7 @@ import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
 import PlaylistsScreen from "./components/PlaylistsScreen/PlaylistsScreen";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
+import SongDetailsPage from "./components/SongDetailsPage/SongDetailsPage";
 import UserView from "./components/UserView/UserView";
 
 import { useEffect, useState } from "react";
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
 				path: "/playlist/:id",
 				element: <PlaylistView />,
 			},
+			{
+				path: "/songs/:songId",
+				element: <SongDetailsPage />,
+			  },
 			// Regular user view for playlists
 			{
 				path: "/user/:userId",

@@ -5,6 +5,8 @@ import sessionReducer from "./session";
 import artistsReducer from "./slices/artistsSlice";
 import playlistsReducer from "./slices/playlistsSlice";
 import songsReducer from "./slices/songsSlice";
+import commentsReducer from "./slices/commentsSlice";
+import likesReducer from "./slices/likesSlice";
 
 export const store = configureStore({
 	reducer: {
@@ -13,6 +15,8 @@ export const store = configureStore({
 		playlists: playlistsReducer,
 		player: playerReducer,
 		session: sessionReducer,
+		comments: commentsReducer,
+		likes: likesReducer,
 	},
 });
 

@@ -75,7 +75,8 @@ export const selectNewestSongs = createSelector(
 	[(state: RootState) => state.song.songs],
 	(songs): Song[] =>
 		Object.values(songs).sort(
-			(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			(a, b) =>
+				new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
 		),
 );
 
@@ -87,7 +88,10 @@ export const selectSongsByArtist = createSelector(
 	(songs, artistId): Song[] =>
 		Object.values(songs)
 			.filter((song) => song.artist_id === artistId)
-			.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+			.sort(
+				(a, b) =>
+					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			),
 );
 
 export const fetchArtistSongs = createAsyncThunk(

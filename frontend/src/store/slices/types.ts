@@ -17,7 +17,7 @@ export interface WeakTimestamps {
 }
 
 export const upgradeTimeStamps = <T extends WeakTimestamps>(obj: T): T => {
-    return obj
+	return obj;
 };
 
 export interface StoreComment extends WeakTimestamps {

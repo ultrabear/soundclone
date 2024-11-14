@@ -16,8 +16,6 @@ import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import styles from "./HomePage.module.css";
 
-
-
 const selectSongsWithUsers = createSelector(
 	[
 		(state: RootState) => state.song.songs,
@@ -148,52 +146,54 @@ const HomePage: React.FC = () => {
 
 	useEffect(() => {
 		const fetchData = async () => {
-		  try {
-			// First fetch songs
-			const response = await fetch('/api/songs');
-			const data = await response.json();
-			console.log("Songs response:", data);
-	  
-			// Then fetch artists
-			const uniqueArtistIds = [...new Set(data.songs.map((song: any) => song.artist_id))];
-			const artistPromises = uniqueArtistIds.map(id => 
-			  fetch(`/api/artists/${id}`).then(res => res.json())
-			);
-			const artists = await Promise.all(artistPromises);
-			console.log("Artists response:", artists);
-	  
-			// Dispatch artists to store
-			const formattedArtists = artists.map(artist => ({
-			  id: artist.id,
-			  display_name: artist.stage_name,
-			  profile_image: artist.profile_image,
-			  first_release: artist.first_release,
-			  biography: artist.biography,
-			  location: artist.location,
-			  homepage_url: artist.homepage,
-			}));
-			dispatch(userSlice.actions.addUsers(formattedArtists));
-	  
-			// Dispatch songs to store
-			const formattedSongs = data.songs.map((song: any) => ({
-			  id: song.id,
-			  name: song.name,
-			  artist_id: song.artist_id,
-			  likes: song.num_likes,
-			  genre: song.genre,
-			  thumb_url: song.thumb_url,
-			  song_url: song.song_ref,
-			  created_at: song.created_at,
-			  updated_at: song.updated_at,
-			}));
-			dispatch(addSongs(formattedSongs));
-		  } catch (error) {
-			console.error("Error fetching data:", error);
-		  }
+			try {
+				// First fetch songs
+				const response = await fetch("/api/songs");
+				const data = await response.json();
+				console.log("Songs response:", data);
+
+				// Then fetch artists
+				const uniqueArtistIds = [
+					...new Set(data.songs.map((song: any) => song.artist_id)),
+				];
+				const artistPromises = uniqueArtistIds.map((id) =>
+					fetch(`/api/artists/${id}`).then((res) => res.json()),
+				);
+				const artists = await Promise.all(artistPromises);
+				console.log("Artists response:", artists);
+
+				// Dispatch artists to store
+				const formattedArtists = artists.map((artist) => ({
+					id: artist.id,
+					display_name: artist.stage_name,
+					profile_image: artist.profile_image,
+					first_release: artist.first_release,
+					biography: artist.biography,
+					location: artist.location,
+					homepage_url: artist.homepage,
+				}));
+				dispatch(userSlice.actions.addUsers(formattedArtists));
+
+				// Dispatch songs to store
+				const formattedSongs = data.songs.map((song: any) => ({
+					id: song.id,
+					name: song.name,
+					artist_id: song.artist_id,
+					likes: song.num_likes,
+					genre: song.genre,
+					thumb_url: song.thumb_url,
+					song_url: song.song_ref,
+					created_at: song.created_at,
+					updated_at: song.updated_at,
+				}));
+				dispatch(addSongs(formattedSongs));
+			} catch (error) {
+				console.error("Error fetching data:", error);
+			}
 		};
-	  
+
 		fetchData();
-	  }, [dispatch]);
+	}, [dispatch]);
 
 	return (
 		<Layout>

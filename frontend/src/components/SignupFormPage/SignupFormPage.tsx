@@ -41,7 +41,7 @@ function SignupFormPage() {
 			}),
 		);
 
-			if (serverResponse) {
+		if (serverResponse) {
 			setErrors({
 				email: serverResponse.errors?.email,
 				password: serverResponse.errors?.password,
@@ -51,8 +51,6 @@ function SignupFormPage() {
 			navigate("/");
 		}
 	};
-
-
 
 	return (
 		<>

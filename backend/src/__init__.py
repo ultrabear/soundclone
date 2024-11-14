@@ -109,4 +109,3 @@ def react_root(path: str):  # pyright: ignore
 @app.errorhandler(404)
 def not_found(_e: object):
     return app.send_static_file("index.html")
-

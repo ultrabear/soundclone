@@ -85,8 +85,8 @@ const selectCurrentPlaylistWithUser = createSelector(
 			user_id: playlist.user_id,
 			thumbnail: playlist.thumbnail ?? undefined,
 			songs: playlist.songs ?? {},
-      created_at: playlist.created_at,
-      updated_at: playlist.updated_at,
+			created_at: playlist.created_at,
+			updated_at: playlist.updated_at,
 			user: {
 				id: user.id,
 				username: user.display_name,

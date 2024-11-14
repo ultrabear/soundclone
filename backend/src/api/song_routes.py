@@ -1,7 +1,8 @@
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
-from ..models import Song, likes_join, db
-from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, DeleteSong
+from sqlalchemy import select
+from ..models import Song, db
+from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok, Created
 from ..forms.song_form import SongForm
 from .aws_integration import (
     get_unique_filename,
@@ -59,7 +60,8 @@ def delete_resource_from_aws(db_record, file_type: str):  # pyright: ignore
     remove_file_from_s3(resource_name, bucket_name)  # pyright: ignore
 
 
-def db_song_to_api_song(song: Song) -> GetSong:
+def db_song_to_api_song(song: Song, likes: int) -> GetSong:
+    """Convert database song to API response format"""
     api_song: GetSong = {
         "id": song.id,
         "name": song.name,
@@ -67,6 +69,7 @@ def db_song_to_api_song(song: Song) -> GetSong:
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
+        "num_likes": likes,
     }
 
     if song.thumb_url is not None:
@@ -78,8 +81,6 @@ def db_song_to_api_song(song: Song) -> GetSong:
     return api_song
 
 
-# # I want a landing page of all songs (showing newest first)
-# # I want to be able to filter these results to show only songs uploaded by a specific artist, including possibly the current_user
 @song_routes.get("")
 def get_all_songs() -> GetSongs:
     """
@@ -90,15 +91,17 @@ def get_all_songs() -> GetSongs:
 
     if artist_id and artist_id.isdigit():
         id: int = int(artist_id)
-        songs = db.session.query(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc())
-        return {"songs": [db_song_to_api_song(song) for song in songs]}
+
+        songs = db.session.execute(select(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc()))
+
+        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
     else:
-        songs = db.session.query(Song).order_by(Song.created_at.desc()).all()
-        return {"songs": [db_song_to_api_song(song) for song in songs]}
+        songs = db.session.execute(select(Song).order_by(Song.created_at.desc()))
+
+        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
 
 
-# # I want to view a song's total likes
 @song_routes.get("/<int:song_id>")
 def get_song(
     song_id: int,
@@ -106,27 +109,26 @@ def get_song(
     """
     Query for single song where song_id matches and associate any likes with that song through likes_join table
     """
-    song = db.session.query(Song).outerjoin(likes_join).filter(Song.id == song_id).one_or_none()
+
+    song = db.session.execute(select(Song).where(Song.id == song_id)).one_or_none()
+
     if not song:
         return song_not_found_error
 
-    song_details: GetSong = db_song_to_api_song(song)
+    s: Song = song[0]
 
-    num_likes = len(song.liking_users)
-    if num_likes > 0:
-        song_details["num_likes"] = num_likes
+    song_details: GetSong = db_song_to_api_song(s, len(s.liking_users))
 
     return song_details
 
 
 @song_routes.post("")
 @login_required
-def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
-    """
-    Create a new record of a song on the Songs table.  Redirect user to that song's page
-    """
+def upload_song() -> ApiErrorResponse | Created[IdAndTimestamps]:
+    """Create a new song"""
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
+
     if form.validate_on_submit():
         song_url = create_resource_on_aws(form.data["song_file"], "song")
 
@@ -148,13 +150,11 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
         db.session.add(new_song)
         db.session.commit()
 
-        song_data: IdAndTimestamps = {
+        return {
             "id": new_song.id,
             "created_at": str(new_song.created_at),
             "updated_at": str(new_song.updated_at),
-        }
-
-        return song_data, 201
+        }, 201
 
     return form.errors, 400
 
@@ -162,9 +162,7 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
 @song_routes.put("/<int:song_id>")
 @login_required
 def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
-    """
-    Change data about a song that exists as long as song exists and current_user is authorized to do so
-    """
+    """Update an existing song"""
     song_to_update = db.session.query(Song).filter(Song.id == song_id).one_or_none()
 
     if not song_to_update:
@@ -174,8 +172,8 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
         return not_authorized_error
 
     form = SongForm()
-
     form["csrf_token"].data = request.cookies["csrf_token"]
+
     if form.validate_on_submit():
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
@@ -187,24 +185,19 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
 
         db.session.commit()
 
-        song_data: IdAndTimestamps = {
+        return {
             "id": song_to_update.id,
             "created_at": str(song_to_update.created_at),
             "updated_at": str(song_to_update.updated_at),
         }
 
-        return song_data
-
     return form.errors, 400
 
 
-# I want to be able to delete a song that I uploaded
 @song_routes.delete("/<int:song_id>")
 @login_required
-def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
-    """
-    Delete a song as long as the song exists and the current_user is authorized to do so
-    """
+def delete_song(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
+    """Delete a song"""
     song_to_delete = db.session.query(Song).filter(Song.id == song_id).one_or_none()
 
     if not song_to_delete:
@@ -219,4 +212,4 @@ def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
     db.session.delete(song_to_delete)
     db.session.commit()
 
-    return {}
+    return "", 200

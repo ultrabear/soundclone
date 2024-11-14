@@ -1,9 +1,8 @@
 import type React from "react";
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
-import { fetchFeaturedArtists } from "../../store/slices/artistsSlice";
 import { mockPlaylistData } from "../../store/slices/playlistsSlice";
 import { fetchNewReleases } from "../../store/slices/songsSlice";
 import type { SongWithUser } from "../../types";
@@ -73,16 +72,15 @@ const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
-	// Updated selectors
-	const { featuredArtists } = useAppSelector((state) => state.artists);
+	//selectors
+	const { loading: songsLoading, error: songsError } = useAppSelector(
+		(state) => state.songs,
+	);
 	const { newReleases } = useAppSelector((state) => state.songs);
 	const { user } = useAppSelector((state) => state.session);
-	const loading = useAppSelector(
-		(state) => state.artists.loading || state.songs.loading,
-	);
-	const error = useAppSelector(
-		(state) => state.artists.error || state.songs.error,
-	);
+
+	const loading = songsLoading;
+	const error = songsError;
 
 	const featuredRef = useRef<HTMLDivElement>(null);
 	const releasesRef = useRef<HTMLDivElement>(null);
@@ -93,7 +91,6 @@ const HomePage: React.FC = () => {
 	};
 
 	useEffect(() => {
-		dispatch(fetchFeaturedArtists());
 		dispatch(fetchNewReleases());
 	}, [dispatch]);
 
@@ -151,16 +148,23 @@ const HomePage: React.FC = () => {
 						<div className="hero-songs">
 							{mockPlaylistData?.songs?.map((song) => (
 								<div key={song.id} className="hero-song-item">
-									<div className="song-info">
+									<Link
+										to={`/songs/${song.id}`}
+										className="song-info"
+										style={{ textDecoration: "none", color: "inherit" }}
+									>
 										<span className="song-title">{song.name}</span>
 										<span className="song-divider">—</span>
 										<span className="song-artist">
 											{song.user.stage_name || song.user.username}
 										</span>
-									</div>
+									</Link>
 									<button
 										className="song-play-button"
-										onClick={() => handlePlaySong(song)}
+										onClick={(e) => {
+											e.preventDefault(); // Prevent navigation when clicking play
+											handlePlaySong(song);
+										}}
 										aria-label="Play song"
 									>
 										▶
@@ -181,34 +185,52 @@ const HomePage: React.FC = () => {
 			</section>
 
 			<ScrollableSection title="Featured artists" containerRef={featuredRef}>
-				{featuredArtists?.map((artist) => (
-					<div key={artist.id} className="artist-card">
-						<div className="artist-image">
-							{artist.profile_image && (
-								<img src={artist.profile_image} alt={artist.username} />
-							)}
+				{newReleases
+					.filter(
+						(song, index, self) =>
+							index === self.findIndex((s) => s.user.id === song.user.id),
+					)
+					.map((song) => song.user)
+					.map((artist) => (
+						<div
+							key={artist.id}
+							className="artist-card"
+							onClick={() => navigate(`/artists/${artist.id}`)}
+							role="button"
+							tabIndex={0}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") {
+									navigate(`/artists/${artist.id}`);
+								}
+							}}
+						>
+							<div className="artist-image">
+								{artist.profile_image && (
+									<img src={artist.profile_image} alt={artist.username} />
+								)}
+							</div>
+							<h3 className="artist-name">
+								{artist.stage_name || artist.username}
+							</h3>
 						</div>
-						<h3 className="artist-name">
-							{artist.stage_name || artist.username}
-						</h3>
-						{artist.first_release && (
-							<p className="artist-followers">
-								Since {new Date(artist.first_release).getFullYear()}
-							</p>
-						)}
-					</div>
-				))}
+					))}
 			</ScrollableSection>
 
 			<ScrollableSection title="New releases" containerRef={releasesRef}>
 				{newReleases?.map((song) => (
-					<div key={song.id} className="track-card">
-						<div className="track-artwork">
-							{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
+					<Link
+						key={song.id}
+						to={`/songs/${song.id}`}
+						style={{ textDecoration: "none", color: "inherit" }}
+					>
+						<div className="track-card">
+							<div className="track-artwork">
+								{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
+							</div>
+							<h3 className="track-title">{song.name}</h3>
+							{song.genre && <p className="track-artist">{song.genre}</p>}
 						</div>
-						<h3 className="track-title">{song.name}</h3>
-						{song.genre && <p className="track-artist">{song.genre}</p>}
-					</div>
+					</Link>
 				))}
 			</ScrollableSection>
 		</Layout>

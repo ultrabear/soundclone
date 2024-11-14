@@ -3,14 +3,22 @@ from typing import NotRequired, TypedDict, Callable, Literal
 
 type HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
 
+type NoBody = Literal[""]
+
+type Ok[T] = tuple[T, Literal[200]] | T
+type Created[T] = tuple[T, Literal[201]]
+
 
 def endpoint[F](
     method: HttpMethod | list[HttpMethod],
     route: str,
     *,
-    returns: object | None = None,
+    req: object,
+    res: object,
+    qp: list[str] | None = None,
+    auth: bool = False,
 ) -> Callable[[F], F]:
-    _ = method, route, returns
+    _ = method, route, req, res, qp, auth
 
     def inner(fn: F) -> F:
         return fn
@@ -30,10 +38,6 @@ class IdAndTimestamps(Id):
     updated_at: str
 
 
-class RequiresAuth(TypedDict):
-    pass
-
-
 class NoPayload(TypedDict):
     pass
 
@@ -48,129 +52,132 @@ type ApiErrorResponse = tuple[ApiError, int]
 # * Songs
 
 
-# I want to be able to upload a song, # I want to be able to update a song, # I want to be able to delete a song that I posted
-@endpoint("POST", "/api/songs")
-@endpoint("PUT", "/api/songs/:song_id")
 class Song(TypedDict):
     name: str
     artist_id: int
     genre: NotRequired[str]
 
 
-@endpoint("DELETE", "/api/songs/:song_id")
-class DeleteSong(NoPayload):
-    pass
+# I want to be able to upload a song
+endpoint("POST", "/api/songs", req=Song, res=Created[IdAndTimestamps], auth=True)
+# I want to be able to update a song
+endpoint("PUT", "/api/songs/:song_id", req=Song, res=Ok[NoBody], auth=True)
+# I want to be able to delete a song that I posted
+endpoint("DELETE", "/api/songs/:song_id", req=None, res=Ok[NoBody], auth=True)
 
 
-# I want to view a song's total likes
-# Eagerly load (associate) the likes that go with each song from the likes_join table?  Then display the length of that list as the num_likes?
-@endpoint("GET", "/api/songs/:song_id")
 class GetSong(Song, IdAndTimestamps):
     num_likes: NotRequired[int]
     song_ref: str
     thumb_url: NotRequired[str]
 
 
-# I want a landing page of other peoples' songs (showing newest first)
-# I want to see all of my songs # ! filter by current session's user_id
-# I want to see other songs by the same artist on a song's page - # ! filter by artist_id
-@endpoint("GET", "/api/songs")
+# I want to view a song's total likes
+# I want to get song info
+endpoint("GET", "/api/songs/:song_id", req=None, res=GetSong)
+
+
 class GetSongs(TypedDict):
     songs: list[GetSong]
 
 
+# I want a landing page of other peoples' songs (showing newest first)
+# I want to see all of my songs # ! filter by current session's user_id
+# I want to see other songs by the same artist on a song's page - # ! filter by artist_id
+endpoint("GET", "/api/songs", req=None, res=GetSongs, qp=["artist_id"])
+
 # * Playlists
 
 
-# I want to be able to make a playlist
-@endpoint("POST", "/api/playlists")
 class BasePlaylist(TypedDict):
     name: str
     thumbnail: NotRequired[str]
 
 
-# I want to be able to update a playlist (I guess change its name?)
-@endpoint("PUT", "/api/playlists/:playlistId")
-class UpdatePlaylist(RequiresAuth, BasePlaylist):
-    pass
+# I want to be able to make a playlist
+endpoint("POST", "/api/playlists", req=BasePlaylist, res=Created[IdAndTimestamps], auth=True)
 
-
-class NewPlaylistReturns(IdAndTimestamps):
-    pass
+# I want to be able to update a playlist (change its name/thumbnail)
+endpoint("PUT", "/api/playlists/:playlistId", req=BasePlaylist, res=Ok[NoBody], auth=True)
 
 
 class PlaylistInfo(BasePlaylist, IdAndTimestamps):
     pass
 
 
+# I want to get playlist info
+endpoint("GET", "/api/playlists/:playlistId", req=None, res=PlaylistInfo, auth=True)
+
+
 # I want to delete a playlist
-@endpoint("DELETE", "/api/playlists/:playlistId")
-class DeletePlaylist(NoPayload):
-    pass
+endpoint("DELETE", "/api/playlists/:playlistId", req=None, res=Ok[NoBody], auth=True)
 
 
-# I want to be able to add and remove songs to a playlist I created
-@endpoint(["DELETE", "POST"], "/api/playlists/:playlistId/songs")
-class PopulatePlaylist(RequiresAuth):
+class PopulatePlaylist(TypedDict):
     song_id: int
 
 
+# I want to be able to add and remove songs to a playlist I created
+endpoint(
+    ["DELETE", "POST"],
+    "/api/playlists/:playlistId/songs",
+    req=PopulatePlaylist,
+    res=Ok[NoBody],
+    auth=True,
+)
+
+
 # I want to see all of the songs in my playlist
-@endpoint("GET", "/api/playlists/:playlistId/songs")
-class PlaylistSongs(GetSongs):
-    pass
+endpoint("GET", "/api/playlists/:playlistId/songs", req=None, res=GetSongs, auth=True)
 
 
-# I want to be able to see all of my playlists
-@endpoint("GET", "/api/playlists/current")
 class ListOfPlaylist(TypedDict):
     playlists: list[PlaylistInfo]
 
+
+# I want to be able to see all of my playlists
+endpoint("GET", "/api/playlists/current", req=None, res=ListOfPlaylist, auth=True)
 
 # I want for any songs that I liked to automatically be added to a "My Favorites" playlist
 # ^ Implemented in frontend via /api/likes call
 
 
-@endpoint("GET", "/api/likes")
-class GetLikes(RequiresAuth, GetSongs):
-    pass
+# I want to get all of my likes
+endpoint("GET", "/api/likes", req=None, res=GetSongs, auth=True)
 
 
 # I want to be able to like a song and unlike a song
-@endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes")
-class ChangeLike(NoPayload):
-    pass
+endpoint(["POST", "DELETE"], "/api/songs/:song_id/likes", req=None, res=None, auth=True)
 
 
 # * Comments
 
 
-# I want to be able to comment on a song on that song's page
-@endpoint("POST", "/api/songs/:song_id/comments")
-# I want to be able to update a comment that I left on a song's page
-@endpoint("PUT", "/api/comments/:comment_id")
 class Comment(TypedDict):
     text: str
 
 
-class CommentResponse(IdAndTimestamps):
-    pass
+# I want to be able to comment on a song on that song's page
+endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=IdAndTimestamps, auth=True)
 
-
-# I want to be able to delete a comment that I left on a song's page
-@endpoint("DELETE", "/api/comments/:comment_id")
-class DeleteComment(NoPayload):
-    pass
+# I want to be able to update a comment that I left on a song's page
+endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=IdAndTimestamps, auth=True)
 
 
 class UserComment(Comment, IdAndTimestamps):
     user_id: int
 
 
-# I want to view all comments of a song
-@endpoint("GET", "/api/songs/:song_id/comments")
+# I want to be able to delete a comment that I left on a song's page
+endpoint("DELETE", "/api/comments/:comment_id", req=None, res=Ok[NoBody], auth=True)
+
+
 class GetComments(TypedDict):
     comments: list[UserComment]
+
+
+# I want to view all comments of a song
+endpoint("GET", "/api/songs/:song_id/comments", req=None, res=GetComments)
 
 
 # * Artists
@@ -184,21 +191,24 @@ class BaseArtist(TypedDict, total=False):
     homepage: str
 
 
-# I want a link to see an artist's details (from a song page or the homepage)
-@endpoint("GET", "/api/artists/:artist_id")
 class Artist(BaseArtist):
     id: int
     # Do not have username field, backend only shows stage name with username as fallback
     stage_name: str
 
 
-# if a user posts a song, they can have an artists page
-@endpoint("POST", "/api/artists")
-class PostArtist(BaseArtist, RequiresAuth):
+# I want a link to see an artist's details (from a song page or the homepage)
+endpoint("GET", "/api/artists/:artist_id", req=None, res=Artist)
+
+
+class PostArtist(BaseArtist):
     stage_name: NotRequired[str]
 
 
-@endpoint("GET", "/api/auth")
+# if a user posts a song, they can have an artists page
+endpoint("POST", "/api/artists", req=PostArtist, res=Ok[NoBody], auth=True)
+
+
 class User(TypedDict):
     id: int
     username: str
@@ -211,17 +221,21 @@ class User(TypedDict):
     homepage: NotRequired[str]
 
 
-@endpoint("POST", "/api/auth/login", returns=User)
 class Login(TypedDict):
     email: str
     password: str
 
 
-@endpoint("POST", "/api/auth/signup", returns=User)
 class Signup(Login):
     username: str
 
 
-@endpoint("GET", "/api/auth/logout")
-class Logout(NoPayload):
-    pass
+# I want to restore my session
+endpoint("GET", "/api/auth", req=None, res=User, auth=True)
+
+# I want to login/signup
+endpoint("POST", "/api/auth/login", req=Login, res=User, auth=False)
+endpoint("POST", "/api/auth/signup", req=Signup, res=User, auth=False)
+
+# I want to log out
+endpoint("GET", "/api/auth/logout", req=None, res=None, auth=False)

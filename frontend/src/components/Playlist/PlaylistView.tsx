@@ -13,8 +13,6 @@ import "./PlaylistView.css";
 const PlaylistView: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const dispatch = useAppDispatch();
-
-	// Updated selectors for new store structure
 	const { currentPlaylist, loading, error } = useAppSelector(
 		(state) => state.playlists,
 	);
@@ -67,10 +65,12 @@ const PlaylistView: React.FC = () => {
 	return (
 		<Layout>
 			<div className="playlist-view-wrapper">
-				<div className="playlist-container">
-					<div className="playlist-header">
-						<div className="playlist-info">
-							<div className="playlist-image">
+				{/* Hero Section */}
+				<div className="playlist-hero">
+					<div className="playlist-hero-overlay"></div>
+					<div className="playlist-hero-content">
+						<div className="playlist-hero-info">
+							<div className="playlist-artwork">
 								{currentPlaylist.thumbnail && (
 									<img
 										src={currentPlaylist.thumbnail}
@@ -79,80 +79,88 @@ const PlaylistView: React.FC = () => {
 								)}
 							</div>
 							<div className="playlist-details">
-								<h1 className="playlist-name">{currentPlaylist.name}</h1>
+								<h1 className="playlist-title">{currentPlaylist.name}</h1>
 								<div className="playlist-meta">
-									<span className="playlist-creator">
+									<span>
 										Created by{" "}
 										{currentPlaylist.user.stage_name ||
 											currentPlaylist.user.username}
 									</span>
-									<span className="playlist-songs-count">
-										{currentPlaylist.songs?.length || 0} songs
-									</span>
+									<span className="meta-divider">•</span>
+									<span>{currentPlaylist.songs?.length || 0} songs</span>
 								</div>
-								<button className="play-button">▶ Play All</button>
 							</div>
 						</div>
+					</div>
+				</div>
+
+				{/* Content Section */}
+				<div className="playlist-content">
+					<div className="playlist-actions">
+						<button className="play-all-button">▶ Play All</button>
 						<button className="share-button">Share Playlist</button>
 					</div>
 
-					<div className="songs-list">
+					{/* Songs List */}
+					<div className="songs-table">
 						<div className="songs-header">
 							<div className="song-number">#</div>
-							<div className="song-info">Title</div>
-							<div className="song-artist">Artist</div>
-							<div className="song-genre">Genre</div>
-							<div className="song-actions">Actions</div>
+							<div className="song-title-header">Title</div>
+							<div className="song-artist-header">Artist</div>
+							<div className="song-genre-header">Genre</div>
+							<div className="song-actions-header">Actions</div>
 						</div>
 
-						{currentPlaylist.songs?.map((song, index) => (
-							<div key={song.id} className="song-row">
-								<div className="song-number">{index + 1}</div>
-								<div className="song-info">
-									<div className="song-artwork">
-										{song.thumb_url && (
-											<img src={song.thumb_url} alt={song.name} />
+						<div className="songs-list">
+							{currentPlaylist.songs?.map((song, index) => (
+								<div key={song.id} className="song-row">
+									<div className="song-number">{index + 1}</div>
+									<div className="song-title-cell">
+										<div className="song-thumbnail">
+											{song.thumb_url && (
+												<img src={song.thumb_url} alt={song.name} />
+											)}
+										</div>
+										<span className="song-name">{song.name}</span>
+									</div>
+									<div className="song-artist">
+										{song.user.stage_name || song.user.username}
+									</div>
+									<div className="song-genre">{song.genre}</div>
+									<div className="song-actions">
+										<button
+											className="play-song-button"
+											onClick={() => handlePlaySong(index)}
+											aria-label="Play song"
+										>
+											▶
+										</button>
+										<button
+											className="add-to-playlist-button"
+											onClick={() => setShowAddToPlaylist(song.id)}
+											aria-label="Add to playlist"
+										>
+											+
+										</button>
+										{showAddToPlaylist === song.id && userPlaylists && (
+											<div className="playlist-dropdown">
+												{userPlaylists.map((playlist) => (
+													<button
+														key={playlist.id}
+														onClick={() =>
+															handleAddToPlaylist(song.id, playlist.id)
+														}
+														className="playlist-option"
+													>
+														{playlist.name}
+													</button>
+												))}
+											</div>
 										)}
 									</div>
-									<div className="song-name">{song.name}</div>
 								</div>
-								<div className="song-artist">
-									{song.user.stage_name || song.user.username}
-								</div>
-								<div className="song-genre">{song.genre}</div>
-								<div className="song-actions">
-									<button
-										className="play-song-button"
-										onClick={() => handlePlaySong(index)}
-										aria-label="Play song"
-									>
-										▶
-									</button>
-									<button
-										className="add-to-playlist-button"
-										onClick={() => setShowAddToPlaylist(song.id)}
-										aria-label="Add to playlist"
-									>
-										+
-									</button>
-									{showAddToPlaylist === song.id && userPlaylists && (
-										<div className="playlist-dropdown">
-											{userPlaylists.map((playlist) => (
-												<button
-													key={playlist.id}
-													onClick={() =>
-														handleAddToPlaylist(song.id, playlist.id)
-													}
-													className="playlist-option"
-												>
-													{playlist.name}
-												</button>
-											))}
-										</div>
-									)}
-								</div>
-							</div>
-						))}
+							))}
+						</div>
 					</div>
 				</div>
 			</div>

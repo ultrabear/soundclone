@@ -49,6 +49,7 @@ const ArtistPage = () => {
         try {
           setLoading(true);
           const userData = await api.artists.getOne(parseInt(userId));
+          //convert to calling a thunk when userslice is done
           const storeUser = apiUserToStoreUser(userData);
           dispatch(userSlice.actions.addUser(storeUser));
           dispatch(fetchArtistSongs(parseInt(userId)));

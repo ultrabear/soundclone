@@ -107,6 +107,23 @@ export const editCommentThunk = createAsyncThunk(
 	},
 );
 
+//delete comment
+export const deleteCommentThunk = createAsyncThunk(
+	"comments/deleteComment",
+	async (commentId: number, { dispatch }) => {
+		try {
+			await api.comments.delete(commentId);
+			dispatch(commentsSlice.actions.deleteComment(commentId));
+			return commentId;
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
+);
+
 //comment slice
 const commentsSlice = createSlice({
 	name: "comments",
@@ -124,6 +141,10 @@ const commentsSlice = createSlice({
 		editComment: (state, action) => {
 			const updatedComment = action.payload;
 			state.comments[updatedComment.id] = updatedComment;
+		},
+		deleteComment: (state, action) => {
+			const deletedCommentId = action.payload.id;
+			delete state.comments[deletedCommentId];
 		},
 		clearComments: (state) => {
 			state.comments = {};

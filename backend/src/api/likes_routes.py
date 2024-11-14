@@ -6,6 +6,7 @@ from flask import Blueprint
 from flask_login import current_user, login_required  # pyright: ignore
 from ..backend_api import ApiErrorResponse, GetSongs, GetSong, NoBody, Ok
 from ..models import db, likes_join, User, Song
+from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
 
 bp = Blueprint("likes", __name__)
 
@@ -19,7 +20,7 @@ def db_song_to_api_song(song: Song) -> GetSong:
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
         "num_likes": len(song.liking_users),
-        "thumb_url": song.thumb_url,
+        "thumb_url": song.thumb_url or DEFAULT_THUMBNAIL_IMAGE,
     }
 
     if song.genre is not None:

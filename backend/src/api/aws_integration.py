@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import BinaryIO
 import boto3
 import os
 import uuid
@@ -32,16 +33,21 @@ s3_session = boto3.Session(aws_access_key_id=os.environ["S3_KEY"], aws_secret_ac
 s3_client = s3_session.client("s3")  # pyright: ignore
 
 
+class HasFileName(BinaryIO):
+    @property
+    def filename(self) -> str: ...
+
+
 @dataclass(slots=True)
 class AWS_File:
     filename: str
     content_type: str
-    content: bytes
+    content: BinaryIO
 
     def upload_to_s3(self, location: str, bucket: str, acl: str = "public-read"):
         try:
             s3_client.upload_fileobj(
-                self.content,  # pyright: ignore
+                self.content,
                 bucket,
                 self.filename,
                 ExtraArgs={"ACL": acl, "ContentType": self.content_type},

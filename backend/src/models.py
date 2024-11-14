@@ -108,7 +108,7 @@ class Song(Base):
     name: Mapped[str]
     artist_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     genre: Mapped[str | None]
-    thumb_url: Mapped[str]
+    thumb_url: Mapped[str | None]
     song_ref: Mapped[str]
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]

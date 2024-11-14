@@ -17,6 +17,7 @@ from ..backend_api import (
     NoPayload,
     Created,
 )
+from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
 
 playlist_routes = Blueprint("playlists", __name__, url_prefix="/api/playlists")
 
@@ -30,7 +31,7 @@ def db_song_to_api_song(song: Song) -> GetSong:
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
         "num_likes": len(song.liking_users),
-        "thumb_url": song.thumb_url,
+        "thumb_url": song.thumb_url or DEFAULT_THUMBNAIL_IMAGE,
     }
 
     if song.genre is not None:

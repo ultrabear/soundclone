@@ -16,10 +16,8 @@ function apiCommentToStore(songId: SongId, comment: UserComment): StoreComment {
 
 	return upgradeTimeStamps({
 		...rest,
-		id: comment.id,
 		song_id: songId,
 		author_id: comment.user_id,
-		text: comment.text,
 	});
 }
 
@@ -32,8 +30,36 @@ export const fetchComments = createAsyncThunk(
 			const storeComments = comments.map((comment) => {
 				return apiCommentToStore(songId, comment);
 			});
-			dispatch(commentsSlice.actions.addComments(storeComments));
+			dispatch(commentsSlice.actions.getComments(storeComments));
 			return storeComments; // do we need to return this or just dispatch the necessary action to update store?
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
+);
+
+//post a new comment thunk
+export const postCommentThunk = createAsyncThunk(
+	"comments/postComment",
+	async ({ songId, text }: { songId: SongId; text: string }, { dispatch }) => {
+		try {
+			const response = await api.comments.create(songId, { text });
+			const currentUser = await api.auth.restore();
+
+			const apiComment: UserComment = {
+				id: response.id,
+				text,
+				user_id: currentUser.id,
+				created_at: response.created_at,
+				updated_at: response.updated_at,
+			};
+			const storeComment = apiCommentToStore(songId, apiComment);
+
+			dispatch(commentsSlice.actions.addComment(storeComment));
+			return apiComment; // do we need to return this?
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.api;
@@ -48,10 +74,14 @@ const commentsSlice = createSlice({
 	name: "comments",
 	initialState,
 	reducers: {
-		addComments: (state, action) => {
+		getComments: (state, action) => {
 			action.payload.forEach((comment: StoreComment) => {
 				state.comments[comment.id] = comment;
 			});
+		},
+		addComment: (state, action) => {
+			const newComment = action.payload;
+			state.comments[newComment.id] = newComment;
 		},
 		clearComments: (state) => {
 			state.comments = {};

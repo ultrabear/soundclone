@@ -31,8 +31,8 @@ const selectPlaylistSongs = createSelector(
 					song_ref: song.song_url,
 					genre: song.genre ?? null,
 					thumb_url: song.thumb_url ?? null,
-					created_at: song.created_at.toISOString(),
-					updated_at: song.updated_at.toISOString(),
+					created_at: song.created_at,
+					updated_at: song.updated_at,
 					user: {
 						id: song.artist_id,
 						username: user.display_name,

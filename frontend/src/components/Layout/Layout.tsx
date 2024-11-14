@@ -1,6 +1,8 @@
 import type React from "react";
 import { useEffect } from "react";
+import { createSelector } from "@reduxjs/toolkit";
 import { Link, useNavigate } from "react-router-dom";
+import type { RootState } from "../../store"
 import { useAppDispatch, useAppSelector } from "../../store";
 import { thunkLogout } from "../../store/slices/sessionSlice";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
@@ -108,50 +110,53 @@ const Header: React.FC = () => {
 	);
 };
 
+const selectAllPlaylists = createSelector(
+	[(state: RootState) => state.playlist.playlists],
+	(playlists) => Object.values(playlists)
+  );
+
 export const Sidebar: React.FC = () => {
-	const userPlaylists = useAppSelector((state) =>
-		Object.values(state.playlist.playlists),
-	);
+	const userPlaylists = useAppSelector(selectAllPlaylists);
 	const { user } = useAppSelector((state) => state.session);
-
+  
 	return (
-		<aside className="sidebar">
-			<div className="sidebar-section">
-				<h2 className="sidebar-heading">Your Playlists</h2>
-				{user ? (
-					userPlaylists?.length ? (
-						userPlaylists.map((playlist) => (
-							<Link
-								key={playlist.id}
-								to={`/playlist/${playlist.id}`}
-								className="sidebar-link"
-							>
-								{playlist.name}
-							</Link>
-						))
-					) : (
-						<div className="sidebar-link placeholder">No playlists yet</div>
-					)
-				) : (
-					<div className="sidebar-link placeholder">
-						Log in to see your playlists
-					</div>
-				)}
+	  <aside className="sidebar">
+		<div className="sidebar-section">
+		  <h2 className="sidebar-heading">Your Playlists</h2>
+		  {user ? (
+			userPlaylists?.length ? (
+			  userPlaylists.map((playlist) => (
+				<Link
+				  key={playlist.id}
+				  to={`/playlist/${playlist.id}`}
+				  className="sidebar-link"
+				>
+				  {playlist.name}
+				</Link>
+			  ))
+			) : (
+			  <div className="sidebar-link placeholder">No playlists yet</div>
+			)
+		  ) : (
+			<div className="sidebar-link placeholder">
+			  Log in to see your playlists
 			</div>
-
-			<div className="sidebar-section">
-				<h2 className="sidebar-heading">Liked Songs</h2>
-				{user ? (
-					<div className="sidebar-link placeholder">No liked songs yet</div>
-				) : (
-					<div className="sidebar-link placeholder">
-						Log in to see your liked songs
-					</div>
-				)}
+		  )}
+		</div>
+  
+		<div className="sidebar-section">
+		  <h2 className="sidebar-heading">Liked Songs</h2>
+		  {user ? (
+			<div className="sidebar-link placeholder">No liked songs yet</div>
+		  ) : (
+			<div className="sidebar-link placeholder">
+			  Log in to see your liked songs
 			</div>
-		</aside>
+		  )}
+		</div>
+	  </aside>
 	);
-};
+  };
 
 const Layout: React.FC<LayoutProps> = ({
 	children,

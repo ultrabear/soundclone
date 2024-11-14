@@ -41,12 +41,18 @@ function SignupFormPage() {
 			}),
 		);
 
-		if (serverResponse) {
-			setErrors(serverResponse);
+			if (serverResponse) {
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+				username: serverResponse.errors?.username,
+			});
 		} else {
 			navigate("/");
 		}
 	};
+
+
 
 	return (
 		<>

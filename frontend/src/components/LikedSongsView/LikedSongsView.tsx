@@ -26,8 +26,8 @@ const selectLikedSongs = createSelector(
 					genre: song.genre ?? null,
 					thumb_url: song.thumb_url ?? null,
 					song_ref: song.song_url,
-					created_at: song.created_at.toISOString(),
-					updated_at: song.updated_at.toISOString(),
+					created_at: song.created_at,
+					updated_at: song.updated_at,
 					user: {
 						id: song.artist_id,
 						username: users[song.artist_id]?.display_name ?? "",

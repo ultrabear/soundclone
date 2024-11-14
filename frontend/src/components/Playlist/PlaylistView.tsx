@@ -53,8 +53,8 @@ const selectPlaylistSongs = createSelector(
 					song_ref: song.song_url,
 					genre: song.genre ?? null,
 					thumb_url: song.thumb_url ?? null,
-					created_at: song.created_at.toISOString(),
-					updated_at: song.updated_at.toISOString(),
+					created_at: song.created_at,
+					updated_at: song.updated_at,
 					user: {
 						id: user.id,
 						username: user.display_name,
@@ -85,8 +85,8 @@ const selectCurrentPlaylistWithUser = createSelector(
 			user_id: playlist.user_id,
 			thumbnail: playlist.thumbnail ?? undefined,
 			songs: playlist.songs ?? {},
-			created_at: playlist.created_at,
-			updated_at: playlist.updated_at,
+      created_at: playlist.created_at,
+      updated_at: playlist.updated_at,
 			user: {
 				id: user.id,
 				username: user.display_name,

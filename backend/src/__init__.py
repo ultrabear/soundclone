@@ -8,6 +8,7 @@ from flask_login import LoginManager  # pyright: ignore
 from .models import db, User
 from .api.user_routes import user_routes
 from .api.auth_routes import auth_routes
+from .api.artist_routes import artist_routes
 from .api.playlist_routes import playlist_routes
 from .api.comments_routes import comment_routes
 from .api.song_routes import song_routes
@@ -38,6 +39,7 @@ app.register_blueprint(playlist_routes, url_prefix="/api/playlists")
 app.register_blueprint(comment_routes, url_prefix="/api")
 app.register_blueprint(likes_routes, url_prefix="/api")
 app.register_blueprint(song_routes, url_prefix="/api/songs")
+app.register_blueprint(artist_routes)
 db.init_app(app)
 Migrate(app, db)
 
@@ -107,3 +109,4 @@ def react_root(path: str):  # pyright: ignore
 @app.errorhandler(404)
 def not_found(_e: object):
     return app.send_static_file("index.html")
+

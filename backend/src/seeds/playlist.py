@@ -1,6 +1,6 @@
 from ..models import db, Playlist, environment
 from sqlalchemy.sql import text
-from ..backend_api import BasePlaylist,Song  # Importing typed structures for playlists
+from ..backend_api import BasePlaylist, Song  # Importing typed structures for playlists
 from datetime import datetime, timezone
 from typing import List
 
@@ -24,6 +24,7 @@ playlist_data: List[BasePlaylist] = [
     },
 ]
 
+
 # Seed function for playlists
 def seed_playlists() -> None:
     for index, data in enumerate(playlist_data, start=1):
@@ -34,18 +35,19 @@ def seed_playlists() -> None:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-        
+
         # Adding song associations to playlists
         # Assuming `PopulatePlaylist` defines song associations, we'll use mock song IDs
         song_ids: List[int] = [index * 2 - 1, index * 2]  # Example song IDs; adjust as needed
         for song_id in song_ids:
             song = db.session.get(Song, song_id)
             if song:
-                new_playlist.songs.append(song) # type: ignore
+                new_playlist.songs.append(song)  # type: ignore
 
         db.session.add(new_playlist)
 
     db.session.commit()
+
 
 # Undo function for playlists
 def undo_playlists() -> None:

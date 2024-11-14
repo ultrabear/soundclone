@@ -1,78 +1,99 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import type { Song, SongWithUser } from "../../types";
-import { GetSongs } from "../api";
+import {
+	createAsyncThunk,
+	createSelector,
+	createSlice,
+} from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 import { api } from "../api";
 import type { GetSong } from "../api";
+import {
+	type SongSlice,
+	type Song,
+	type SongId,
+	type UserId,
+	upgradeTimeStamps,
+} from "./types";
+import { apiUserToStore, slice as userSlice } from "./userSlice";
+import type { RootState } from "..";
 
-interface SongsState {
-	newReleases: SongWithUser[];
-	artistSongs: SongWithUser[];
-	songs: Record<number, Song>;
-	loading: boolean;
-	error: string | null;
-}
-
-const initialState: SongsState = {
-	newReleases: [],
-	artistSongs: [],
+const initialState: SongSlice = {
 	songs: {},
-	loading: false,
-	error: null,
+	comments: {},
 };
 
-//transform song data
-const transformSongData = (song: GetSong, user: any): SongWithUser => ({
-	id: song.id,
-	name: song.name,
-	artist_id:
-		typeof song.artist_id === "string"
-			? Number.parseInt(song.artist_id, 10)
-			: song.artist_id,
-	genre: song.genre ?? null,
-	thumb_url: song.thumb_url ?? null,
-	song_ref: song.song_ref,
-	created_at: song.created_at,
-	updated_at: song.updated_at,
-	user: {
-		id: user.id,
-		username: user.username,
-		stage_name: user.stage_name ?? null,
-		profile_image: user.profile_image ?? null,
-	},
-});
+function apiSongToStore(s: GetSong): Song {
+	const { num_likes, song_ref, artist_id, ...rest } = s;
+
+	return upgradeTimeStamps({
+		...rest,
+		id: s.id as SongId,
+		artist_id: artist_id as UserId,
+		likes: num_likes,
+		song_url: song_ref,
+	});
+}
 
 export const fetchNewReleases = createAsyncThunk(
 	"songs/fetchNewReleases",
-	async () => {
-		const { songs } = await api.songs.getAll();
-		const songsWithUsers = await Promise.all(
-			songs.map(async (song) => {
-				const artistId =
-					typeof song.artist_id === "string"
-						? Number.parseInt(song.artist_id, 10)
-						: song.artist_id;
-				const user = await api.users.getOne(artistId);
-				return transformSongData(song, user);
-			}),
+	async (_: null, { dispatch }) => {
+		const { songs } = (await api.songs.getAll())!;
+
+		const users = await Promise.all(
+			songs.map(async (song) => api.artists.getOne(song.artist_id)),
 		);
-		return { data: songsWithUsers };
+
+		const arr = users.filter((v) => v !== null).map(apiUserToStore);
+
+		dispatch(userSlice.actions.addUsers(arr));
+		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
 	},
 );
 
+export const selectNewestSongs = createSelector(
+	[(state: RootState) => state.song.songs],
+	(songs) => {
+		const out: Song[] = [];
+
+		for (const k in songs) {
+			out.push(songs[k]);
+		}
+
+		out.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+
+		return out;
+	},
+);
+
+// TODO(ultrabear/joem): make work with current store
 export const createSongThunk = createAsyncThunk(
 	"songs/createSong",
 	async (songData: FormData) => {
-		try {
+		
+    try {
 			const response = await fetch("/api/songs", {
 				method: "POST",
 				body: songData,
 			});
 			const parsedResponse: GetSongs = await response.json();
 			return parsedResponse;
+      
 		} catch (serverError: any) {
 			const parsedError = await serverError.json();
 			return parsedError;
-		}
+	  }
+    
+});
+    
+export const fetchArtistSongs = createAsyncThunk(
+	"songs/fetchArtistSongs",
+	async (artistId: number, { dispatch }) => {
+		const [{ songs }, user] = await Promise.all([
+			api.songs.getByArtist(artistId),
+			api.artists.getOne(artistId),
+		]);
+
+		dispatch(userSlice.actions.addUser(apiUserToStore(user)));
+		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
 	},
 );
 
@@ -80,46 +101,12 @@ const songsSlice = createSlice({
 	name: "songs",
 	initialState,
 	reducers: {
-		clearSongs: (state) => {
-			state.newReleases = [];
-			state.artistSongs = [];
-			state.songs = {};
-			state.error = null;
+		addSongs: (store, action: PayloadAction<Song[]>) => {
+			for (const s of action.payload) {
+				store.songs[s.id] = s;
+			}
 		},
-	},
-	extraReducers: (builder) => {
-		builder
-			.addCase(fetchNewReleases.pending, (state) => {
-				state.loading = true;
-				state.error = null;
-			})
-			.addCase(fetchNewReleases.fulfilled, (state, action) => {
-				state.loading = false;
-				state.newReleases = action.payload.data;
-				action.payload.data.forEach((song) => {
-					const { user, ...songData } = song;
-					state.songs[song.id] = songData;
-				});
-			})
-			.addCase(fetchNewReleases.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.error.message ?? "Failed to fetch releases";
-			})
-			.addCase(createSongThunk.pending, (state) => {
-				state.loading = true;
-				state.error = null;
-			})
-			.addCase(createSongThunk.fulfilled, (state, action) => {
-				state.loading = false;
-				const newSong = action.payload;
-				state.songs = { ...state.songs, [newSong.id]: newSong };
-			})
-			.addCase(createSongThunk.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.error.message ?? "Failed to create new song";
-			});
 	},
 });
 
-export const { clearSongs } = songsSlice.actions;
 export default songsSlice.reducer;

@@ -4,7 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
 import { mockPlaylistData } from "../../store/slices/playlistsSlice";
-import { fetchNewReleases } from "../../store/slices/songsSlice";
+import {
+	fetchNewReleases,
+	selectNewestSongs,
+} from "../../store/slices/songsSlice";
 import type { SongWithUser } from "../../types";
 import Layout from "../Layout/Layout";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
@@ -76,7 +79,7 @@ const HomePage: React.FC = () => {
 	const { loading: songsLoading, error: songsError } = useAppSelector(
 		(state) => state.songs,
 	);
-	const { newReleases } = useAppSelector((state) => state.songs);
+	const newReleases = useAppSelector(selectNewestSongs);
 	const { user } = useAppSelector((state) => state.session);
 
 	const loading = songsLoading;

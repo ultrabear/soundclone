@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Artist } from "../api";
 import type { UserSlice, User, UserId } from "./types";
+import { api } from "../api";
+import type { AppDispatch } from "..";
 
 const initialState: UserSlice = {
 	users: {},
@@ -22,6 +24,13 @@ export function apiUserToStore(u: Artist): User {
 
 	return user;
 }
+
+export const getUserDetails =
+	(userId: number) => async (dispatch: AppDispatch) => {
+		const user = await api.artists.getOne(userId);
+
+		dispatch(slice.actions.addUser(apiUserToStore(user)));
+	};
 
 export const slice = createSlice({
 	name: "users",

@@ -39,9 +39,7 @@ export const fetchNewReleases = createAsyncThunk(
 		const { songs } = (await api.songs.getAll())!;
 
 		const users = await Promise.all(
-			songs.map(async (song) => {
-				return api.artists.getOne(song.artist_id);
-			}),
+			songs.map(async (song) => api.artists.getOne(song.artist_id)),
 		);
 
 		const arr = users.filter((v) => v !== null).map(apiUserToStore);

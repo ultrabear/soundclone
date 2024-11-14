@@ -1,11 +1,17 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+	createAsyncThunk,
+	createSlice,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
 import {
 	type StoreComment,
 	type CommentsSlice,
 	type SongId,
 	upgradeTimeStamps,
+	type CommentId,
 } from "./types";
 import { api, type UserComment } from "../api";
+import { type RootState } from "..";
 
 const initialState: CommentsSlice = {
 	comments: {},
@@ -25,47 +31,35 @@ function apiCommentToStore(songId: SongId, comment: UserComment): StoreComment {
 export const fetchComments = createAsyncThunk(
 	"comments/fetchComments",
 	async (songId: SongId, { dispatch }) => {
-		try {
-			const { comments } = await api.comments.getForSong(songId);
-			const storeComments = comments.map((comment) => {
-				return apiCommentToStore(songId, comment);
-			});
-			dispatch(commentsSlice.actions.getComments(storeComments));
-			return storeComments; // do we need to return this or just dispatch the necessary action to update store?
-		} catch (e) {
-			if (e instanceof Error) {
-				return e.api;
-			}
-			throw e;
-		}
+		const { comments } = await api.comments.getForSong(songId);
+		const storeComments = comments.map((comment) => {
+			return apiCommentToStore(songId, comment);
+		});
+		dispatch(commentsSlice.actions.getComments(storeComments));
 	},
 );
 
 //post a new comment thunk
 export const postCommentThunk = createAsyncThunk(
 	"comments/postComment",
-	async ({ songId, text }: { songId: SongId; text: string }, { dispatch }) => {
-		try {
-			const response = await api.comments.create(songId, { text });
-			const currentUser = await api.auth.restore();
+	async (
+		{ songId, text }: { songId: SongId; text: string },
+		{ dispatch, getState },
+	) => {
+		const response = await api.comments.create(songId, { text });
+		const currentState = getState() as RootState;
+		const userId = currentState.session.user!.id;
 
-			const apiComment: UserComment = {
-				id: response.id,
-				text,
-				user_id: currentUser.id,
-				created_at: response.created_at,
-				updated_at: response.updated_at,
-			};
-			const storeComment = apiCommentToStore(songId, apiComment);
+		const apiComment: UserComment = {
+			id: response.id,
+			text,
+			user_id: userId,
+			created_at: response.created_at,
+			updated_at: response.updated_at,
+		};
+		const storeComment = apiCommentToStore(songId, apiComment);
 
-			dispatch(commentsSlice.actions.addComment(storeComment));
-			return apiComment; // do we need to return this?
-		} catch (e) {
-			if (e instanceof Error) {
-				return e.api;
-			}
-			throw e;
-		}
+		dispatch(commentsSlice.actions.addComment(storeComment));
 	},
 );
 
@@ -73,37 +67,17 @@ export const postCommentThunk = createAsyncThunk(
 export const editCommentThunk = createAsyncThunk(
 	"comments/editComment",
 	async (
-		{
-			commentId,
-			songId,
-			text,
-		}: { commentId: number; songId: SongId; text: string },
+		{ commentId, text }: { commentId: number; songId: SongId; text: string },
 		{ dispatch },
 	) => {
-		try {
-			const currentUser = await api.auth.restore();
-			const response = await api.comments.update(commentId, { text });
-			const updatedComment = {
+		const response = await api.comments.update(commentId, { text });
+		dispatch(
+			commentsSlice.actions.editComment({
 				id: commentId,
 				text,
-				user_id: currentUser.id,
-				created_at: response.created_at,
-				updated_at: response.updated_at,
-			};
-
-			const { created_at, ...updatedStoreComment } = apiCommentToStore(
-				songId,
-				updatedComment,
-			);
-
-			dispatch(commentsSlice.actions.editComment(updatedStoreComment));
-			return updatedStoreComment; // do we need to return it?
-		} catch (e) {
-			if (e instanceof Error) {
-				return e.api;
-			}
-			throw e;
-		}
+				updatedAt: new Date(response.updated_at),
+			}),
+		);
 	},
 );
 
@@ -111,16 +85,9 @@ export const editCommentThunk = createAsyncThunk(
 export const deleteCommentThunk = createAsyncThunk(
 	"comments/deleteComment",
 	async (commentId: number, { dispatch }) => {
-		try {
-			await api.comments.delete(commentId);
-			dispatch(commentsSlice.actions.deleteComment(commentId));
-			return commentId;
-		} catch (e) {
-			if (e instanceof Error) {
-				return e.api;
-			}
-			throw e;
-		}
+		await api.comments.delete(commentId);
+		dispatch(commentsSlice.actions.deleteComment(commentId));
+		return commentId;
 	},
 );
 
@@ -129,21 +96,25 @@ const commentsSlice = createSlice({
 	name: "comments",
 	initialState,
 	reducers: {
-		getComments: (state, action) => {
-			action.payload.forEach((comment: StoreComment) => {
+		getComments: (state, action: PayloadAction<StoreComment[]>) => {
+			action.payload.forEach((comment) => {
 				state.comments[comment.id] = comment;
 			});
 		},
-		addComment: (state, action) => {
+		addComment: (state, action: PayloadAction<StoreComment>) => {
 			const newComment = action.payload;
 			state.comments[newComment.id] = newComment;
 		},
-		editComment: (state, action) => {
-			const updatedComment = action.payload;
-			state.comments[updatedComment.id] = updatedComment;
+		editComment: (
+			state,
+			action: PayloadAction<{ id: CommentId; updatedAt: Date; text: string }>,
+		) => {
+			const commentToUpdate = state.comments[action.payload.id];
+			commentToUpdate.updated_at = action.payload.updatedAt;
+			commentToUpdate.text = action.payload.text;
 		},
-		deleteComment: (state, action) => {
-			const deletedCommentId = action.payload.id;
+		deleteComment: (state, action: PayloadAction<CommentId>) => {
+			const deletedCommentId = action.payload;
 			delete state.comments[deletedCommentId];
 		},
 		clearComments: (state) => {

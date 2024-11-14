@@ -7,11 +7,11 @@ import "./SongDetailsPage.css";
 import { api } from "../../store/api";
 import { setCurrentSong } from "../../store/playerSlice";
 import { fetchComments, postComment } from "../../store/slices/commentsSlice";
-import {
-	fetchLikedSongs,
-	likeSong,
-	unlikeSong,
-} from "../../store/slices/likesSlice";
+// import {
+// 	fetchLikedSongs,
+// 	likeSong,
+// 	unlikeSong,
+// } from "../../store/slices/sessionSlice";
 import type { CommentWithUser, SongWithUser } from "../../types";
 
 const SongDetailsPage: React.FC = () => {

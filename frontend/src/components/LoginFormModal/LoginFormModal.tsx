@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useModal } from "../../context/useModal";
 import { useAppDispatch } from "../../store";
-import { thunkLogin } from "../../store/session";
+import { thunkLogin } from "../../store/slices/sessionSlice";
 
 function LoginFormModal() {
 	const dispatch = useAppDispatch();

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { thunkLogout } from "../../store/session";
+import { thunkLogout } from "../../store/slices/sessionSlice";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import OpenModalMenuItem from "./OpenModalMenuItem";

@@ -65,31 +65,31 @@ const selectPlaylistSongs = createSelector(
   );
   
   const selectCurrentPlaylistWithUser = createSelector(
-	[(state: RootState) => state.playlist.currentPlaylist,
-	 (state: RootState) => state.user.users],
-	(playlist, users): PlaylistWithUser | null => {
-	  if (!playlist) return null;
-	  const user = users[playlist.user_id];
-	  if (!user) return null;
+    [(state: RootState) => state.playlist.currentPlaylist,
+     (state: RootState) => state.user.users],
+    (playlist, users): PlaylistWithUser | null => {
+      if (!playlist) return null;
+      const user = users[playlist.user_id];
+      if (!user) return null;
   
-	  return {
-		id: playlist.id,
-		name: playlist.name,
-		user_id: playlist.user_id,
-		thumbnail: playlist.thumbnail ?? undefined,
-		songs: playlist.songs ?? {},  
-		created_at: playlist.created_at,
-		updated_at: playlist.updated_at,
-		user: {
-		  id: user.id,
-		  username: user.display_name,
-		  stage_name: user.display_name,
-		  profile_image: user.profile_image ?? null,
-		}
-	  };
-	}
+      return {
+        id: playlist.id,
+        name: playlist.name,
+        user_id: playlist.user_id,
+        thumbnail: playlist.thumbnail ?? undefined,
+        songs: playlist.songs ?? {},  
+        created_at: playlist.created_at,
+        updated_at: playlist.updated_at,
+        user: {
+          id: user.id,
+          username: user.display_name,
+          stage_name: user.display_name,
+          profile_image: user.profile_image ?? null,
+        }
+      };
+    }
   );
-
+  
 const PlaylistView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();

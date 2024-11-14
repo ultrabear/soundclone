@@ -48,7 +48,7 @@ const ArtistPage = () => {
       if (userId) {
         try {
           setLoading(true);
-          const userData = await api.users.getOne(parseInt(userId));
+          const userData = await api.artists.getOne(parseInt(userId));
           const storeUser = apiUserToStoreUser(userData);
           dispatch(userSlice.actions.addUser(storeUser));
           dispatch(fetchArtistSongs(parseInt(userId)));

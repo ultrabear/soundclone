@@ -278,6 +278,9 @@ export const api = {
 		},
 	},
 	playlists: {
+		/**
+		 * Returns the current users playlists
+		 */
 		getCurrent: async (): Promise<ListOfPlaylist> => {
 			return notNull(fetchWithError("/playlists/current"));
 		},

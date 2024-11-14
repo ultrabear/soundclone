@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { Song, SongWithUser } from "../../types";
+import { GetSongs } from "../api";
 import { api } from "../api";
 import type { GetSong } from "../api";
 
@@ -58,16 +59,20 @@ export const fetchNewReleases = createAsyncThunk(
 	},
 );
 
-export const fetchArtistSongs = createAsyncThunk(
-	"songs/fetchArtistSongs",
-	async (artistId: number) => {
-		const [{ songs }, user] = await Promise.all([
-			api.songs.getByArtist(artistId),
-			api.users.getOne(artistId),
-		]);
-
-		const songsWithUser = songs.map((song) => transformSongData(song, user));
-		return { data: songsWithUser };
+export const createSongThunk = createAsyncThunk(
+	"songs/createSong",
+	async (songData: FormData) => {
+		try {
+			const response = await fetch("/api/songs", {
+				method: "POST",
+				body: songData,
+			});
+			const parsedResponse: GetSongs = await response.json();
+			return parsedResponse;
+		} catch (serverError: any) {
+			const parsedError = await serverError.json();
+			return parsedError;
+		}
 	},
 );
 
@@ -100,21 +105,18 @@ const songsSlice = createSlice({
 				state.loading = false;
 				state.error = action.error.message ?? "Failed to fetch releases";
 			})
-			.addCase(fetchArtistSongs.pending, (state) => {
+			.addCase(createSongThunk.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(fetchArtistSongs.fulfilled, (state, action) => {
+			.addCase(createSongThunk.fulfilled, (state, action) => {
 				state.loading = false;
-				state.artistSongs = action.payload.data;
-				action.payload.data.forEach((song) => {
-					const { user, ...songData } = song;
-					state.songs[song.id] = songData;
-				});
+				const newSong = action.payload;
+				state.songs = { ...state.songs, [newSong.id]: newSong };
 			})
-			.addCase(fetchArtistSongs.rejected, (state, action) => {
+			.addCase(createSongThunk.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.error.message ?? "Failed to fetch artist songs";
+				state.error = action.error.message ?? "Failed to create new song";
 			});
 	},
 });

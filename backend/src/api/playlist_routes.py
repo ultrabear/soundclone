@@ -17,11 +17,12 @@ from ..backend_api import (
     NoPayload,
     Created,
 )
+from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
 
 playlist_routes = Blueprint("playlists", __name__, url_prefix="/api/playlists")
 
 
-def db_song_to_api_song(song: Song, likes: int) -> GetSong:
+def db_song_to_api_song(song: Song) -> GetSong:
     api_song: GetSong = {
         "id": song.id,
         "name": song.name,
@@ -29,11 +30,9 @@ def db_song_to_api_song(song: Song, likes: int) -> GetSong:
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
-        "num_likes": likes,
+        "num_likes": len(song.liking_users),
+        "thumb_url": song.thumb_url or DEFAULT_THUMBNAIL_IMAGE,
     }
-
-    if song.thumb_url is not None:
-        api_song["thumb_url"] = song.thumb_url
 
     if song.genre is not None:
         api_song["genre"] = song.genre
@@ -146,7 +145,7 @@ def get_playlist_songs(playlist_id: int) -> Union[GetSongs, Tuple[ApiError, int]
             message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
 
-    songs: GetSongs = {"songs": [db_song_to_api_song(song, len(song.liking_users)) for song in playlist.songs]}
+    songs: GetSongs = {"songs": [db_song_to_api_song(song) for song in playlist.songs]}
 
     return songs
 
@@ -176,7 +175,7 @@ def get_user_playlists() -> Tuple[ListOfPlaylist, int]:
 def get_likes() -> Union[GetSongs, Tuple[ApiError, int]]:
     favorite_songs = current_user.liked_songs
 
-    response: GetSongs = {"songs": [db_song_to_api_song(song, len(song.liking_users)) for song in favorite_songs]}
+    response: GetSongs = {"songs": [db_song_to_api_song(song) for song in favorite_songs]}
     return response
 
 

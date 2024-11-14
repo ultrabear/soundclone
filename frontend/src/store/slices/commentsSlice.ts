@@ -69,6 +69,44 @@ export const postCommentThunk = createAsyncThunk(
 	},
 );
 
+// Async thunk to edit a comment
+export const editCommentThunk = createAsyncThunk(
+	"comments/editComment",
+	async (
+		{
+			commentId,
+			songId,
+			text,
+		}: { commentId: number; songId: SongId; text: string },
+		{ dispatch },
+	) => {
+		try {
+			const currentUser = await api.auth.restore();
+			const response = await api.comments.update(commentId, { text });
+			const updatedComment = {
+				id: commentId,
+				text,
+				user_id: currentUser.id,
+				created_at: response.created_at,
+				updated_at: response.updated_at,
+			};
+
+			const { created_at, ...updatedStoreComment } = apiCommentToStore(
+				songId,
+				updatedComment,
+			);
+
+			dispatch(commentsSlice.actions.editComment(updatedStoreComment));
+			return updatedStoreComment; // do we need to return it?
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
+);
+
 //comment slice
 const commentsSlice = createSlice({
 	name: "comments",
@@ -82,6 +120,10 @@ const commentsSlice = createSlice({
 		addComment: (state, action) => {
 			const newComment = action.payload;
 			state.comments[newComment.id] = newComment;
+		},
+		editComment: (state, action) => {
+			const updatedComment = action.payload;
+			state.comments[updatedComment.id] = updatedComment;
 		},
 		clearComments: (state) => {
 			state.comments = {};

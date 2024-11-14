@@ -30,7 +30,7 @@ export type GetSong = Song &
 	Timestamps & {
 		song_ref: string;
 		thumb_url: string;
-    num_likes: number;
+		num_likes: number;
 	};
 export type GetSongs = { songs: GetSong[] };
 

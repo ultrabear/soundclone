@@ -35,6 +35,8 @@ export type BasePlaylist = {
 	thumbnail?: string;
 };
 
+export type PlaylistInfo = BasePlaylist & Id & Timestamps;
+
 export type PopulatePlaylist = {
 	song_id: number;
 };
@@ -101,6 +103,9 @@ endpoint<BasePlaylist, Id & Timestamps>("POST", "/api/playlists", {
 	RequireAuth,
 });
 endpoint<BasePlaylist, Id & Timestamps>("PUT", "/api/playlists/:playlist_id", {
+	RequireAuth,
+});
+endpoint<void, PlaylistInfo>("GET", "/api/playlists/:playlist_id", {
 	RequireAuth,
 });
 endpoint<void, void>("DELETE", "/api/playlists/:playlist_id", { RequireAuth });
@@ -278,6 +283,9 @@ export const api = {
 		},
 	},
 	playlists: {
+		getOne: async (playlistId: number): Promise<PlaylistInfo> => {
+			return notNull(fetchWithError(`/playlists/${playlistId}`));
+		},
 		/**
 		 * Returns the current users playlists
 		 */

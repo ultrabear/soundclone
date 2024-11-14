@@ -69,7 +69,7 @@ endpoint("DELETE", "/api/songs/:song_id", req=None, res=Ok[NoBody], auth=True)
 class GetSong(Song, IdAndTimestamps):
     num_likes: NotRequired[int]
     song_ref: str
-    thumb_url: NotRequired[str]
+    thumb_url: str
 
 
 # I want to view a song's total likes

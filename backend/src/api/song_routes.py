@@ -60,7 +60,7 @@ def delete_resource_from_aws(db_record, file_type: str):  # pyright: ignore
     remove_file_from_s3(resource_name, bucket_name)  # pyright: ignore
 
 
-def db_song_to_api_song(song: Song, likes: int) -> GetSong:
+def db_song_to_api_song(song: Song) -> GetSong:
     """Convert database song to API response format"""
     api_song: GetSong = {
         "id": song.id,
@@ -69,11 +69,9 @@ def db_song_to_api_song(song: Song, likes: int) -> GetSong:
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
-        "num_likes": likes,
+        "num_likes": len(song.liking_users),
+        "thumb_url": song.thumb_url,
     }
-
-    if song.thumb_url is not None:
-        api_song["thumb_url"] = song.thumb_url
 
     if song.genre is not None:
         api_song["genre"] = song.genre
@@ -94,12 +92,12 @@ def get_all_songs() -> GetSongs:
 
         songs = db.session.execute(select(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc()))
 
-        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
+        return {"songs": [db_song_to_api_song(song) for (song,) in songs]}
 
     else:
         songs = db.session.execute(select(Song).order_by(Song.created_at.desc()))
 
-        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
+        return {"songs": [db_song_to_api_song(song) for (song,) in songs]}
 
 
 @song_routes.get("/<int:song_id>")
@@ -117,7 +115,7 @@ def get_song(
 
     s: Song = song[0]
 
-    song_details: GetSong = db_song_to_api_song(s, len(s.liking_users))
+    song_details: GetSong = db_song_to_api_song(s)
 
     return song_details
 
@@ -151,7 +149,7 @@ def upload_song() -> ApiErrorResponse | Created[IdAndTimestamps]:
         db.session.commit()
 
         return {
-            "id": new_song.id,
+            "id": int(new_song.id),
             "created_at": str(new_song.created_at),
             "updated_at": str(new_song.updated_at),
         }, 201

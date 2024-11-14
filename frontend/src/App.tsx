@@ -62,8 +62,8 @@ const router = createBrowserRouter([
 			{
 				path: "/new-song",
 				element: <SongUploadForm />,
-      },
-      {
+			},
+			{
 				path: "/songs/:songId",
 				element: <SongDetailsPage />,
 			},

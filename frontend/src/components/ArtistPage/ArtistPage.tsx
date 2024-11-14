@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import { fetchArtistSongs } from "../../store/slices/songsSlice";
 import type { User } from "../../types";
 import Layout from "../Layout/Layout";
 import "./ArtistPage.css";
@@ -45,7 +44,7 @@ const ArtistPage: React.FC = () => {
 					const userData = await api.users.getOne(Number.parseInt(userId));
 					setArtist(transformUser(userData));
 					// Fetch artist's songs
-					dispatch(fetchArtistSongs(Number.parseInt(userId)));
+					//   dispatch(fetchArtistSongs(Number.parseInt(userId)));
 				} catch (error) {
 					console.error("Error loading artist:", error);
 				} finally {

@@ -10,7 +10,7 @@ from ..models import db, likes_join, User, Song
 bp = Blueprint("likes", __name__)
 
 
-def db_song_to_api_song(song: Song, likes: int) -> GetSong:
+def db_song_to_api_song(song: Song) -> GetSong:
     api_song: GetSong = {
         "id": song.id,
         "name": song.name,
@@ -18,11 +18,9 @@ def db_song_to_api_song(song: Song, likes: int) -> GetSong:
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
-        "num_likes": likes,
+        "num_likes": len(song.liking_users),
+        "thumb_url": song.thumb_url,
     }
-
-    if song.thumb_url is not None:
-        api_song["thumb_url"] = song.thumb_url
 
     if song.genre is not None:
         api_song["genre"] = song.genre
@@ -43,7 +41,7 @@ def get_likes() -> GetSongs:
     for like in vals:
         song = db.session.query(Song).where(Song.id == like.song_id).one()
 
-        out.append(db_song_to_api_song(song, len(song.liking_users)))
+        out.append(db_song_to_api_song(song))
 
     return {"songs": out}
 

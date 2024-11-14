@@ -1,16 +1,29 @@
-export type CommentId = number & { readonly __tag: unique symbol };
-export type SongId = number & { readonly __tag: unique symbol };
-export type UserId = number & { readonly __tag: unique symbol };
-export type PlaylistId = number & { readonly __tag: unique symbol };
+export type CommentId = number;
+export type SongId = number;
+export type UserId = number;
+export type PlaylistId = number;
 export type Url = string;
 // R stands for redux
 export type RSet<T extends string | number | symbol> = Record<T, null>;
-export type RMap<K extends string | number | symbol, V> = Record<K, V>;
 
 export interface Timestamps {
 	created_at: Date;
 	updated_at: Date;
 }
+export interface WeakTimestamps {
+	created_at: string;
+	updated_at: string;
+}
+
+export const upgradeTimeStamps = <T extends WeakTimestamps>(
+	obj: T,
+): Omit<T, "created_at" | "updated_at"> & Timestamps => {
+	return {
+		...obj,
+		created_at: new Date(obj.created_at),
+		updated_at: new Date(obj.updated_at),
+	};
+};
 
 export interface StoreComment {
 	id: CommentId;
@@ -54,23 +67,27 @@ export interface Playlist extends Timestamps {
 }
 
 export interface UserSlice {
-	users: RMap<UserId, User>;
+	users: Record<UserId, User>;
 }
 
+// imports userSlice
 export interface SessionSlice {
 	user: SessionUser | null;
 	likes: RSet<SongId>;
 }
 
 export interface CommentsSlice {
-	comments: RMap<CommentId, StoreComment>;
+	comments: Record<CommentId, StoreComment>;
 }
 
+// imports commentsSlice
+// imports userSlice
 export interface SongSlice {
-	songs: RMap<SongId, Song>;
-	comments: RMap<SongId, RSet<CommentId>>;
+	songs: Record<SongId, Song>;
+	comments: Record<SongId, RSet<CommentId>>;
 }
 
+// imports songSlice
 export interface PlaylistSlice {
-	playlists: RMap<PlaylistId, Playlist>;
+	playlists: Record<PlaylistId, Playlist>;
 }

@@ -16,10 +16,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
 	const dispatch = useAppDispatch();
-	const { userPlaylists } = useAppSelector((state) => state.playlists);
+	const userPlaylists = useAppSelector((state) => 
+		Object.values(state.playlist.playlists)
+	  );
 	const navigate = useNavigate();
 	const { currentSong, isPlaying } = useAppSelector((state) => state.player);
 	const { user } = useAppSelector((state) => state.session);
+	const userDetails = useAppSelector((state) => 
+  		user ? state.user.users[user.id] : null
+		);
 
 	const handleUserProfileClick = () => {
 		if (user) {
@@ -28,7 +33,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// Only fetch playlists if user is logged in
 		if (user) {
 			dispatch(fetchUserPlaylists());
 		}
@@ -79,9 +83,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 										onClick={handleUserProfileClick}
 										style={{ cursor: "pointer" }}
 									>
-										{user.profile_image && (
-											<img src={user.profile_image} alt={user.username} />
-										)}
+										{userDetails?.profile_image && (
+  											<img 
+    											src={userDetails.profile_image} 
+   												 alt={user.username} // keep username from session user
+  												/>
+)}
 									</div>
 									<button
 										className="header-button button-secondary"

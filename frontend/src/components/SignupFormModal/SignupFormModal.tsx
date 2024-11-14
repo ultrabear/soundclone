@@ -37,9 +37,12 @@ function SignupFormModal() {
 				password,
 			}),
 		);
-
 		if (serverResponse) {
-			setErrors(serverResponse);
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+				username: serverResponse.errors?.username,
+			});
 		} else {
 			closeModal();
 		}

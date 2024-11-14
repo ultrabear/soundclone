@@ -25,7 +25,7 @@ export const upgradeTimeStamps = <T extends WeakTimestamps>(
 	};
 };
 
-export interface StoreComment {
+export interface StoreComment extends Timestamps {
 	id: CommentId;
 	text: string;
 	song_id: SongId;

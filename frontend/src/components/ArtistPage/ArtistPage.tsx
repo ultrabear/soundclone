@@ -9,6 +9,7 @@ import Layout from "../Layout/Layout";
 import "./ArtistPage.css";
 import { api } from "../../store/api";
 
+//commenting for initial commit to track
 //convert API user data to frontend User type
 const transformUser = (apiUser: any): User => ({
 	id: apiUser.id,

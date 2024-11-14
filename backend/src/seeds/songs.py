@@ -9,7 +9,7 @@ song_data: list[SongType] = [
         "name": "West End Blues",
         "artist_id": 4,  # Jazz Master
         "genre": "jazz",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b273c634cd65ba525a56904e94bd",
+        "thumb_url": "https://i.scdn.co/image/ab67616d0000b2739e4a3c9e73ce2429c4d1fe70",
         "song_ref": "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav",
     },
     {

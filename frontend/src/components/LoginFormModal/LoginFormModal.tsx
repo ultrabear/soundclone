@@ -23,7 +23,10 @@ function LoginFormModal() {
 		);
 
 		if (serverResponse) {
-			setErrors(serverResponse);
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+			});
 		} else {
 			closeModal();
 		}

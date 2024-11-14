@@ -1,37 +1,18 @@
 import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
-import type { SongWithUser } from "../types";
+import type { SongId } from "./slices/types";
 
 interface PlayerState {
-	currentSong: SongWithUser | null;
+	currentSong: SongId | null;
 	isPlaying: boolean;
-	queue: SongWithUser[];
-	history: SongWithUser[];
+	queue: SongId[];
+	history: SongId[];
 	volume: number;
 	repeat: "none" | "one" | "all";
 	shuffle: boolean;
 }
 
-export const mockCurrentSong: SongWithUser = {
-	id: 1,
-	name: "Amazing Song",
-	artist_id: 1,
-	genre: "Pop",
-	thumb_url:
-		"https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg",
-	song_ref: "song1.mp3",
-	created_at: "2024-03-01",
-	updated_at: "2024-03-01",
-	user: {
-		id: 1,
-		username: "artist1",
-		stage_name: "Cool Artist",
-		profile_image:
-			"https://media.them.us/photos/663bc34e344e5d57d900f2ee/16:9/w_2560%2Cc_limit/lady-gaga.jpg",
-	},
-};
-
 const initialState: PlayerState = {
-	currentSong: mockCurrentSong,
+	currentSong: null,
 	isPlaying: false,
 	queue: [],
 	history: [],
@@ -44,7 +25,7 @@ const playerSlice = createSlice({
 	name: "player",
 	initialState,
 	reducers: {
-		setCurrentSong: (state, action: PayloadAction<SongWithUser>) => {
+		setCurrentSong: (state, action: PayloadAction<SongId>) => {
 			if (state.currentSong) {
 				state.history.push(state.currentSong);
 			}
@@ -54,7 +35,7 @@ const playerSlice = createSlice({
 		togglePlayPause: (state) => {
 			state.isPlaying = !state.isPlaying;
 		},
-		addToQueue: (state, action: PayloadAction<SongWithUser>) => {
+		addToQueue: (state, action: PayloadAction<SongId>) => {
 			state.queue.push(action.payload);
 		},
 		removeFromQueue: (state, action: PayloadAction<number>) => {

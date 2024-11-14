@@ -9,6 +9,7 @@ from .aws_integration import (
     ImageFile,
     remove_file_from_s3,
     SOUND_BUCKET_NAME,
+    IMAGE_BUCKET_NAME,
     AUDIO_CONTENT_EXT_MAP,
     IMAGE_CONTENT_EXT_MAP,
     DEFAULT_THUMBNAIL_IMAGE,
@@ -29,6 +30,33 @@ not_authorized_error: ApiErrorResponse = (
     },
     401,
 )
+
+
+def create_resource_on_aws(resource, file_type: str):  # pyright: ignore
+    ## prepare and upload the file
+    unique_filename = get_unique_filename(resource.filename)  # pyright: ignore
+    file_ext = os.path.splitext(unique_filename)[1]
+    if file_type == "song":
+        file_content_type = f"audio/{AUDIO_CONTENT_EXT_MAP[file_ext[1:]]}"
+        file = SongFile(unique_filename, file_content_type, resource)  # pyright: ignore
+        file_reference = file.upload()
+        return file_reference["url"]
+    else:
+        file_content_type = f"image/{IMAGE_CONTENT_EXT_MAP[file_ext[1:]]}"
+        file = ImageFile(unique_filename, file_content_type, resource)  # pyright: ignore
+        file_reference = file.upload()
+        return file_reference["url"]
+
+
+def delete_resource_from_aws(db_record, file_type: str):  # pyright: ignore
+    if file_type == "song":
+        resource_name = db_record.song_ref.rsplit("https://soundclone-sound-files.s3.us-east-1.amazonaws.com/", 1)[1]  # pyright: ignore
+        bucket_name = SOUND_BUCKET_NAME
+    else:
+        resource_name = db_record.thumb_url.rsplit("https://soundclone-sound-files.s3.us-east-1.amazonaws.com/", 1)[1]  # pyright: ignore
+        bucket_name = IMAGE_BUCKET_NAME
+
+    remove_file_from_s3(resource_name, bucket_name)  # pyright: ignore
 
 
 def db_song_to_api_song(song: Song) -> GetSong:
@@ -100,23 +128,12 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
-        ## prepare and upload the sound file
-        unique_sound_file_name = get_unique_filename(form.data["song_file"].filename)
-        sound_file_ext = os.path.splitext(unique_sound_file_name)[1]
-        sound_file_content_type = f"audio/{AUDIO_CONTENT_EXT_MAP[sound_file_ext[1:]]}"
-        song_file = SongFile(unique_sound_file_name, sound_file_content_type, form.data["song_file"])
-        song_reference = song_file.upload()
-        song_url = song_reference["url"]
+        song_url = create_resource_on_aws(form.data["song_file"], "song")
 
         ## upload the image file, if there is none, assign the default image thumbnail to thumbnail_url
         thumbnail_url = DEFAULT_THUMBNAIL_IMAGE
         if form.data["thumbnail_img"] is not None:
-            unique_image_file_name = get_unique_filename(form.data["thumbnail_img"].filename)
-            image_file_ext = os.path.splitext(unique_image_file_name)[1]
-            image_file_content_type = f"image/{IMAGE_CONTENT_EXT_MAP[image_file_ext[1:]]}"
-            image_file = ImageFile(unique_image_file_name, image_file_content_type, form.data["thumbnail_img"])
-            image_reference = image_file.upload()
-            thumbnail_url = image_reference["url"]
+            thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
 
         ## create a song instance on the db
         new_song = Song(
@@ -162,8 +179,11 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
     if form.validate_on_submit():
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
-        song_to_update.thumb_url = form.data["thumb_url"]
         song_to_update.updated_at = datetime.now(timezone.utc)
+        if form.data["thumbnail_img"] is not None:
+            delete_resource_from_aws(song_to_update, "image")
+            thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
+            song_to_update.thumb_url = thumbnail_url
 
         db.session.commit()
 
@@ -194,8 +214,7 @@ def delete_song(song_id: int) -> DeleteSong | ApiErrorResponse:
         return not_authorized_error
 
     # delete the resource from AWS s3
-    file_to_remove = song_to_delete.song_ref.rsplit("/", 1)[1]
-    remove_file_from_s3(file_to_remove, SOUND_BUCKET_NAME)
+    delete_resource_from_aws(song_to_delete, "song")
 
     db.session.delete(song_to_delete)
     db.session.commit()

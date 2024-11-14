@@ -18,9 +18,11 @@ dependencies = [
     "flask-cors>=5.0.0",
     "pyright>=1.1.388",
     "email-validator>=2.2.0",
-    "pydantic>=2.9.2",
     "psycopg2-binary>=2.9.9",
-    "gunicorn>=23.0.0",
+    "boto3>=1.35.59",
+    "boto3-stubs[ec2,s3]>=1.35.59",
+    "pydub>=0.25.1",
+    "pydub-stubs>=0.25.1.4",
 ]
 
 [tool.ruff]

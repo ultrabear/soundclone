@@ -72,7 +72,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 					<div className="header-actions">
 						{user ? (
 							<>
-								<button className="header-button button-primary">Upload</button>
+								<Link to="/new-song" className="header-button button-primary">
+									Upload
+								</Link>
 								<div className="user-menu">
 									<div
 										className="user-avatar"

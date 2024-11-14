@@ -23,11 +23,15 @@ export type Song = {
 	name: string;
 	artist_id: number;
 	genre?: string;
-	thumb_url?: string;
-	song_ref: string;
 };
 
-export type GetSong = Song & Id & Timestamps & { num_likes: number };
+export type GetSong = Song &
+	Id &
+	Timestamps & {
+		song_ref: string;
+		thumb_url: string;
+    num_likes: number;
+	};
 export type GetSongs = { songs: GetSong[] };
 
 export type BasePlaylist = {

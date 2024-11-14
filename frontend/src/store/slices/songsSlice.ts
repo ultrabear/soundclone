@@ -64,6 +64,26 @@ export const selectNewestSongs = createSelector(
 	},
 );
 
+// TODO(ultrabear/joem): make work with current store
+export const createSongThunk = createAsyncThunk(
+	"songs/createSong",
+	async (songData: FormData) => {
+		
+    try {
+			const response = await fetch("/api/songs", {
+				method: "POST",
+				body: songData,
+			});
+			const parsedResponse: GetSongs = await response.json();
+			return parsedResponse;
+      
+		} catch (serverError: any) {
+			const parsedError = await serverError.json();
+			return parsedError;
+	  }
+    
+});
+    
 export const fetchArtistSongs = createAsyncThunk(
 	"songs/fetchArtistSongs",
 	async (artistId: number, { dispatch }) => {

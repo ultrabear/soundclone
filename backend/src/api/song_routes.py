@@ -131,17 +131,17 @@ def upload_song() -> ApiErrorResponse | Created[IdAndTimestamps]:
     if form.validate_on_submit():
         song_url = create_resource_on_aws(form.data["song_file"], "song")
 
-        ## upload the image file, if there is none, assign the default image thumbnail to thumbnail_url
-        thumbnail_url = DEFAULT_THUMBNAIL_IMAGE
+        # handle set thumbnail to None or user provided file
+        thumbnail_url_or_none = None
         if form.data["thumbnail_img"] is not None:
-            thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
+            thumbnail_url_or_none = create_resource_on_aws(form.data["thumbnail_img"], "image")
 
         ## create a song instance on the db
         new_song = Song(
             name=form.data["name"],
             artist_id=current_user.id,
             genre=form.data["genre"],
-            thumb_url=thumbnail_url,
+            thumb_url=thumbnail_url_or_none,
             song_ref=song_url,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),

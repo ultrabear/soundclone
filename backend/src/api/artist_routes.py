@@ -8,6 +8,8 @@ from ..backend_api import (
     ApiError,
     ReturnPostArtist,
 )
+from ..forms.artist_form import ArtistForm
+from .song_routes import create_resource_on_aws
 
 
 artist_routes = Blueprint("artists", __name__, url_prefix="/api/artists")
@@ -66,71 +68,63 @@ def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
             403,
         )
 
-    data = request.get_json()
-    if not data:
-        return (ApiError(message="No data provided", errors={"body": "Request body is required"}), 400)
+    form = ArtistForm()
+    form["csrf_token"].data = request.cookies["csrf_token"]
 
-    # Validate inputs
-    if "stage_name" in data and not isinstance(data["stage_name"], str):
-        return (ApiError(message="Invalid stage name", errors={"stage_name": "Stage name must be a string"}), 400)
+    if form.validate_on_submit():
+        # handle name is required
+        if not form.data:
+            return (ApiError(message="No data provided", errors={"body": "Request body is required"}), 400)
 
-    if "biography" in data and not isinstance(data["biography"], str):
-        return (ApiError(message="Invalid biography", errors={"biography": "Biography must be a string"}), 400)
+        try:
+            # Create PostArtist response structure
+            response: ReturnPostArtist = {
+                "created_at": str(user.created_at),
+                "updated_at": str(user.updated_at),
+            }
 
-    if "location" in data and not isinstance(data["location"], str):
-        return (ApiError(message="Invalid location", errors={"location": "Location must be a string"}), 400)
+            if form.data["stage_name"] is not None:
+                user.stage_name = form.data["stage_name"]
+                response["stage_name"] = form.data["stage_name"]
 
-    if "homepage" in data and not isinstance(data["homepage"], str):
-        return (ApiError(message="Invalid homepage", errors={"homepage": "Homepage must be a string"}), 400)
+            # handle thumbnail if user provided
+            if form.data["thumbnail_img"] is not None:
+                thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
+                user.profile_image = thumbnail_url
 
-    try:
-        # Create PostArtist response structure
-        response: ReturnPostArtist = {
-            "created_at": str(user.created_at),
-            "updated_at": str(user.updated_at),
-        }
+            if form.data["first_release"] is not None:
+                try:
+                    user.first_release = datetime.fromisoformat(form.data["first_release"])
+                    response["first_release"] = form.data["first_release"]
+                except ValueError:
+                    return (
+                        ApiError(
+                            message="Invalid date format",
+                            errors={"first_release": "Date must be in ISO format (YYYY-MM-DD)"},
+                        ),
+                        400,
+                    )
 
-        if "stage_name" in data:
-            user.stage_name = data["stage_name"]
-            response["stage_name"] = data["stage_name"]
+            if form.data["biography"] is not None:
+                user.biography = form.data["biography"]
+                response["biography"] = form.data["biography"]
 
-        if "profile_image" in data:
-            # TODO: AWS S3 implementation
-            user.profile_image = data["profile_image"]
-            response["profile_image"] = data["profile_image"]
+            if form.data["location"] is not None:
+                user.location = form.data["location"]
+                response["location"] = form.data["location"]
 
-        if "first_release" in data:
-            try:
-                user.first_release = datetime.fromisoformat(data["first_release"])
-                response["first_release"] = data["first_release"]
-            except ValueError:
-                return (
-                    ApiError(
-                        message="Invalid date format",
-                        errors={"first_release": "Date must be in ISO format (YYYY-MM-DD)"},
-                    ),
-                    400,
-                )
+            if form.data["homepage"] is not None:
+                user.homepage = form.data["homepage"]
+                response["homepage"] = form.data["homepage"]
 
-        if "biography" in data:
-            user.biography = data["biography"]
-            response["biography"] = data["biography"]
+            user.updated_at = datetime.now(timezone.utc)
+            response["updated_at"] = str(user.updated_at)
+            db.session.commit()
 
-        if "location" in data:
-            user.location = data["location"]
-            response["location"] = data["location"]
+            return response
 
-        if "homepage" in data:
-            user.homepage = data["homepage"]
-            response["homepage"] = data["homepage"]
+        except Exception as e:
+            db.session.rollback()
+            return (ApiError(message="Failed to update artist profile", errors={"database": str(e)}), 500)
 
-        user.updated_at = datetime.now(timezone.utc)
-        response["updated_at"] = str(user.updated_at)
-
-        db.session.commit()
-
-        return response
-
-    except Exception as e:
-        db.session.rollback()
-        return (ApiError(message="Failed to update artist profile", errors={"database": str(e)}), 500)
+    return form.errors, 400

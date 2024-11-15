@@ -13,8 +13,31 @@ function LoginFormModal() {
 	);
 	const { closeModal } = useModal();
 
+	const handleClientSideErrors = () => {
+		const errors = {} as {
+			email?: string;
+		};
+
+		const validEmailRe =
+			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+		if (!validEmailRe.test(email)) {
+			errors.email = "Please enter a valid email address";
+		}
+
+		return errors;
+	};
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+
+		const clientSideErrors = handleClientSideErrors();
+
+		if (Object.values(clientSideErrors).length > 0) {
+			return setErrors(clientSideErrors);
+		}
+
+		setErrors({});
 
 		const serverResponse = await dispatch(
 			thunkLogin({
@@ -33,7 +56,7 @@ function LoginFormModal() {
 	return (
 		<>
 			<h1 className="login-header">Log In</h1>
-			<form className="form-container col" onSubmit={handleSubmit}>
+			<form className="form-container flex-col" onSubmit={handleSubmit}>
 				<label>
 					Email
 					<input
@@ -57,8 +80,13 @@ function LoginFormModal() {
 				<button type="submit">Log In</button>
 				<p
 					onClick={() => {
-						thunkLogin({ email: "demo@aa.io", password: "password" });
-						// close modal?
+						dispatch(
+							thunkLogin({
+								email: "demo@aa.io",
+								password: "password",
+							}),
+						);
+						closeModal();
 					}}
 					className="demo-user"
 				>

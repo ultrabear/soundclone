@@ -39,7 +39,7 @@ function SignupFormModal() {
 
 		if (password !== confirmPassword) {
 			errors.confirmPassword =
-				"Confirm Password field must be the same as the Password field";
+				"Confirm Password field must match Password field";
 		}
 
 		return errors;
@@ -48,7 +48,6 @@ function SignupFormModal() {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		// client side validation here
 		const clientSideErrors = handleClientSideErrors();
 
 		if (Object.values(clientSideErrors).length > 0) {
@@ -76,7 +75,7 @@ function SignupFormModal() {
 		<>
 			<h1>Sign Up</h1>
 			{errors.server && <p>{errors.server}</p>}
-			<form className="form-container col" onSubmit={handleSubmit}>
+			<form className="form-container flex-col" onSubmit={handleSubmit}>
 				<label>
 					Email
 					<input

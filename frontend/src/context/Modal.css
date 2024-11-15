@@ -47,7 +47,12 @@
 #modal-content input {
 	background: rgba(0, 128, 128, 0.1);
 	border: 2px solid darkblue;
-	padding: 0.2em;
+	padding: 0.5em 0.2em;
+	margin-top: 4px;
+}
+
+#modal-content .form-container label:not(:nth-of-type(1)) {
+	margin-top: 10px;
 }
 
 #modal-content .form-container button {

@@ -6,6 +6,7 @@ import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { thunkLogout } from "../../store/slices/sessionSlice";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
+import type { SongWithUser } from "../../types";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
@@ -17,6 +18,11 @@ interface LayoutProps {
 	variant?: "default" | "fullWidth";
 	className?: string;
 	hideSidebar?: boolean;
+}
+
+interface PlayerState {
+	currentSong: SongWithUser | null;
+	isPlaying: boolean;
 }
 
 const Header: React.FC = () => {
@@ -166,12 +172,14 @@ const Layout: React.FC<LayoutProps> = ({
 	className = "",
 }) => {
 	const dispatch = useAppDispatch();
-	const { currentSong, isPlaying } = useAppSelector((state) => state.player);
+	const { currentSong, isPlaying } = useAppSelector(
+		(state) => state.player as PlayerState,
+	);
 	const { user } = useAppSelector((state) => state.session);
 
 	useEffect(() => {
 		if (user) {
-			dispatch(fetchUserPlaylists());
+			dispatch(fetchUserPlaylists(user.id));
 		}
 	}, [dispatch, user]);
 

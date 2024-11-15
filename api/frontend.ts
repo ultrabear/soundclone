@@ -137,7 +137,9 @@ endpoint<void, void>(["POST", "DELETE"], "/api/songs/:song_id/likes", {
 	RequireAuth,
 });
 endpoint<void, Artist>("GET", "/api/artists/:artist_id");
-endpoint<PostArtist, void>("POST", "/api/artists", { RequireAuth });
+endpoint<PostArtist, PostArtist & Timestamps>("POST", "/api/artists", {
+	RequireAuth,
+});
 endpoint<void, User>("GET", "/api/auth");
 endpoint<Login, User>("POST", "/api/auth/login");
 endpoint<Signup, User>("POST", "/api/auth/signup");
@@ -242,6 +244,11 @@ export const api = {
 	artists: {
 		getOne: async (artistId: number): Promise<Artist> => {
 			return notNull(fetchWithError(`/artists/${artistId}`));
+		},
+		update: async (p: PostArtist): Promise<PostArtist & Timestamps> => {
+			return notNull(
+				fetchWithError("/artists", { method: "POST", body: JSON.stringify(p) }),
+			);
 		},
 	},
 	auth: {

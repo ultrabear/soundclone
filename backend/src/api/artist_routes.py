@@ -2,11 +2,11 @@ from flask import Blueprint, request
 from flask_login import current_user  # pyright: ignore
 from ..models import User, db
 from typing import cast, Union, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from ..backend_api import (
     Artist,
-    PostArtist,
     ApiError,
+    ReturnPostArtist,
 )
 
 
@@ -46,7 +46,7 @@ def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
 
 
 @artist_routes.post("")
-def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
+def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
     """
     Update artist profile details.
     User must be authenticated and already be an artist (have uploaded at least one song).
@@ -60,7 +60,7 @@ def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
         )
 
     user = cast(User, current_user)
-    if not user.stage_name:
+    if not user.songs:
         return (
             ApiError(message="Not an artist", errors={"artist": "You must upload a song first to become an artist"}),
             403,
@@ -85,7 +85,10 @@ def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
 
     try:
         # Create PostArtist response structure
-        response: PostArtist = {}  # Start with empty dict since all fields are optional
+        response: ReturnPostArtist = {
+            "created_at": str(user.created_at),
+            "updated_at": str(user.updated_at),
+        }
 
         if "stage_name" in data:
             user.stage_name = data["stage_name"]
@@ -120,6 +123,9 @@ def post_artist() -> Union[PostArtist, Tuple[ApiError, int]]:
         if "homepage" in data:
             user.homepage = data["homepage"]
             response["homepage"] = data["homepage"]
+
+        user.updated_at = datetime.now(timezone.utc)
+        response["updated_at"] = str(user.updated_at)
 
         db.session.commit()
 

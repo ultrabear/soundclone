@@ -6,6 +6,12 @@ from flask_login import current_user, login_user, logout_user  # pyright: ignore
 
 auth_routes = Blueprint("auth", __name__)
 
+from datetime import datetime, timezone
+
+
+def dt_now() -> datetime:
+    return datetime.now(timezone.utc)
+
 
 @auth_routes.route("")
 def authenticate():
@@ -52,7 +58,13 @@ def sign_up():
     form = SignUpForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
     if form.validate_on_submit():
-        user = User(username=form.data["username"], email=form.data["email"], password=form.data["password"])
+        user = User(
+            username=form.data["username"],
+            email=form.data["email"],
+            password=form.data["password"],
+            created_at=dt_now(),
+            updated_at=dt_now(),
+        )
         db.session.add(user)
         db.session.commit()
         login_user(user)

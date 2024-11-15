@@ -6,15 +6,17 @@ from typing import Union, Tuple, cast
 from datetime import datetime, timezone
 from ..models import db, Playlist, Song
 from ..backend_api import (
+    ApiErrorResponse,
     IdAndTimestamps,
     BasePlaylist,
+    NoBody,
+    Ok,
     PlaylistInfo,
     GetSongs,
     GetSong,
     ListOfPlaylist,
     PopulatePlaylist,
     ApiError,
-    NoPayload,
     Created,
 )
 from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
@@ -73,7 +75,7 @@ def create_playlist() -> Union[Created[IdAndTimestamps], Tuple[ApiError, int]]:
 # 2. Update a playlist (name can be changed)
 @playlist_routes.route("/<int:playlist_id>", methods=["PUT"])
 @login_required
-def update_playlist(playlist_id: int) -> Union[str, Tuple[ApiError, int]]:
+def update_playlist(playlist_id: int) -> Ok[NoBody] | ApiErrorResponse:
     data = cast(BasePlaylist, request.get_json())
     name = data.get("name")
 
@@ -94,7 +96,7 @@ def update_playlist(playlist_id: int) -> Union[str, Tuple[ApiError, int]]:
 # 3.Delete a playlist
 @playlist_routes.route("/<int:playlist_id>", methods=["DELETE"])
 @login_required
-def delete_playlist(playlist_id: int) -> Union[NoPayload, Tuple[ApiError, int]]:
+def delete_playlist(playlist_id: int) -> Ok[NoBody] | ApiErrorResponse:
     playlist = db.session.query(Playlist).filter_by(id=playlist_id, user_id=current_user.id).first()
     if not playlist:
         return ApiError(
@@ -103,13 +105,24 @@ def delete_playlist(playlist_id: int) -> Union[NoPayload, Tuple[ApiError, int]]:
 
     db.session.delete(playlist)
     db.session.commit()
-    return {}
+    return ""
+
+
+@playlist_routes.get("/<int:playlist_id>")
+@login_required
+def get_playlist(playlist_id: int) -> Ok[PlaylistInfo] | ApiErrorResponse:
+    playlist = db.session.query(Playlist).filter_by(id=playlist_id, user_id=current_user.id).one_or_none()
+
+    if playlist is None:
+        return {"message": "Playlist not found", "errors": {}}, 404
+
+    return db_playlist_to_api(playlist)
 
 
 # 4. Add/Remove songs to a playlist I created
 @playlist_routes.route("/<int:playlist_id>/songs", methods=["POST", "DELETE"])
 @login_required
-def modify_playlist_songs(playlist_id: int) -> Union[PopulatePlaylist, Tuple[ApiError, int]]:
+def modify_playlist_songs(playlist_id: int) -> PopulatePlaylist | ApiErrorResponse:
     data = request.get_json()
     song_id = data.get("song_id")
 
@@ -150,53 +163,26 @@ def get_playlist_songs(playlist_id: int) -> Union[GetSongs, Tuple[ApiError, int]
     return songs
 
 
+def db_playlist_to_api(playlist: Playlist) -> PlaylistInfo:
+    pinfo: PlaylistInfo = {
+        "id": playlist.id,
+        "name": playlist.name,
+        "created_at": str(playlist.created_at),
+        "updated_at": str(playlist.updated_at),
+    }
+
+    if playlist.thumbnail:
+        pinfo["thumbnail"] = playlist.thumbnail
+
+    return pinfo
+
+
 # 6. get all of my playlist of a user
 @playlist_routes.route("/current", methods=["GET"])
 @login_required
 def get_user_playlists() -> Tuple[ListOfPlaylist, int]:
     playlists = db.session.query(Playlist).filter_by(user_id=current_user.id).all()
-    playlist_data: list[PlaylistInfo] = [
-        {
-            "id": playlist.id,
-            "name": playlist.name,
-            "created_at": str(playlist.created_at),
-            "updated_at": str(playlist.updated_at),
-        }
-        for playlist in playlists
-    ]
+    playlist_data: list[PlaylistInfo] = [db_playlist_to_api(playlist) for playlist in playlists]
 
     response: ListOfPlaylist = {"playlists": playlist_data}
     return response, 200
-
-
-# 7. songs that I liked to automatically be added to a "My Favorites" playlist
-@playlist_routes.route("/likes", methods=["GET"])
-@login_required
-def get_likes() -> Union[GetSongs, Tuple[ApiError, int]]:
-    favorite_songs = current_user.liked_songs
-
-    response: GetSongs = {"songs": [db_song_to_api_song(song) for song in favorite_songs]}
-    return response
-
-
-# 8. Add to my favorite
-def add_to_favorites_playlist(song: Song) -> None:
-    # check "My Favorites" for the current user
-    favorites_playlist = db.session.query(Playlist).filter_by(user_id=current_user.id, name="My Favorites").first()
-
-    # if "my favorites" not exists, create one
-    if not favorites_playlist:
-        favorites_playlist = Playlist(
-            name="My Favorites",
-            user_id=current_user.id,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
-        )
-        db.session.add(favorites_playlist)
-        db.session.commit()
-
-    # ensure songs not added to the playlist more than once
-    if song not in favorites_playlist.songs:
-        favorites_playlist.songs.append(song)
-        favorites_playlist.updated_at = datetime.now(timezone.utc)
-        db.session.commit()

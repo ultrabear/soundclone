@@ -29,7 +29,7 @@ const Header: React.FC = () => {
 
 	const handleUserProfileClick = () => {
 		if (user) {
-			navigate(`/user/${user.id}`);
+			navigate("/user");
 		}
 	};
 

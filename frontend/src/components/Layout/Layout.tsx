@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type React from "react";
 import { useEffect } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";

@@ -205,8 +205,13 @@ class PostArtist(BaseArtist):
     stage_name: NotRequired[str]
 
 
+class ReturnPostArtist(PostArtist):
+    created_at: str
+    updated_at: str
+
+
 # if a user posts a song, they can have an artists page
-endpoint("POST", "/api/artists", req=PostArtist, res=Ok[NoBody], auth=True)
+endpoint("POST", "/api/artists", req=PostArtist, res=Ok[ReturnPostArtist], auth=True)
 
 
 class User(TypedDict):

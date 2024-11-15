@@ -21,7 +21,7 @@ export const thunkLogin =
 	(credentials: { email: string; password: string }) =>
 	async (dispatch: AppDispatch) => {
 		try {
-			const response = (await api.auth.login(credentials))!;
+			const response = await api.auth.login(credentials);
 
 			const [session, user] = normalizeApiUser(response);
 
@@ -112,6 +112,12 @@ export const slice = createSlice({
 
 		removeUser: (state) => {
 			state.user = null;
+		},
+
+		addBulkLikes: (state, action: PayloadAction<SongId[]>) => {
+			for (const like of action.payload) {
+				state.likes[like] = null;
+			}
 		},
 
 		addLike: (state, action: PayloadAction<SongId>) => {

@@ -1,19 +1,19 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAppDispatch } from "../../store";
+import { useAppDispatch, useAppSelector } from "../../store";
 import { togglePlayPause } from "../../store/playerSlice";
-import type { SongWithUser } from "../../types";
 import "./NowPlaying.css";
+import type { SongId } from "../../store/slices/types";
 
 interface NowPlayingProps {
-	currentSong: SongWithUser | null;
+	currentSong: SongId | null;
 	isPlaying: boolean;
 	className?: string;
 }
 
 const NowPlaying: React.FC<NowPlayingProps> = ({
-	currentSong,
+	currentSong: songId,
 	isPlaying,
 	className = "",
 }) => {
@@ -22,6 +22,14 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	const [duration, setDuration] = useState(0);
 	const audioRef = useRef<HTMLAudioElement>(null);
 	const progressRef = useRef<HTMLDivElement>(null);
+
+	const currentSong = useAppSelector((state) =>
+		songId ? state.song.songs[songId] : null,
+	);
+
+	const songArtist = useAppSelector((state) =>
+		currentSong ? state.user.users[currentSong.artist_id] : null,
+	);
 
 	useEffect(() => {
 		if (audioRef.current) {
@@ -57,7 +65,7 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	return (
 		<div className={`now-playing ${className}`}>
 			<div className="now-playing-inner">
-				{currentSong ? (
+				{currentSong && songArtist ? (
 					<>
 						<div className="now-playing-left">
 							<div className="now-playing-art">
@@ -70,28 +78,34 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 								<Link to={`/songs/${currentSong.id}`} className="song-name">
 									{currentSong.name}
 								</Link>
-								<Link
-									to={`/users/${currentSong.user.id}`}
-									className="artist-name"
-								>
-									{currentSong.user.stage_name || currentSong.user.username}
+								<Link to={`/users/${songArtist.id}`} className="artist-name">
+									{songArtist.display_name}
 								</Link>
 							</div>
 						</div>
 
 						<div className="now-playing-center">
 							<div className="playback-controls">
-								<button className="control-button" aria-label="Previous">
+								<button
+									type="button"
+									className="control-button"
+									aria-label="Previous"
+								>
 									⏮
 								</button>
 								<button
+									type="button"
 									className="control-button play-button"
 									onClick={handleTogglePlay}
 									aria-label={isPlaying ? "Pause" : "Play"}
 								>
 									{isPlaying ? "⏸" : "▶"}
 								</button>
-								<button className="control-button" aria-label="Next">
+								<button
+									type="button"
+									className="control-button"
+									aria-label="Next"
+								>
 									⏭
 								</button>
 							</div>
@@ -113,7 +127,7 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 
 							<audio
 								ref={audioRef}
-								src={currentSong.song_ref}
+								src={currentSong.song_url}
 								onTimeUpdate={() =>
 									audioRef.current &&
 									setCurrentTime(audioRef.current.currentTime)
@@ -125,11 +139,15 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 						</div>
 
 						<div className="now-playing-right">
-							<button className="action-button" aria-label="Like">
+							<button type="button" className="action-button" aria-label="Like">
 								♡
 							</button>
 							<div className="volume-control">
-								<button className="volume-button" aria-label="Volume">
+								<button
+									type="button"
+									className="volume-button"
+									aria-label="Volume"
+								>
 									🔊
 								</button>
 								<div className="volume-slider" />

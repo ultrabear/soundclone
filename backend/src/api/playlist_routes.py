@@ -20,6 +20,7 @@ from ..backend_api import (
     Created,
 )
 from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
+from .song_routes import delete_resource_from_aws
 
 playlist_routes = Blueprint("playlists", __name__, url_prefix="/api/playlists")
 
@@ -102,6 +103,9 @@ def delete_playlist(playlist_id: int) -> Ok[NoBody] | ApiErrorResponse:
         return ApiError(
             message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
+
+    if playlist.thumbnail is not None:
+        delete_resource_from_aws(playlist.thumbnail, "image")
 
     db.session.delete(playlist)
     db.session.commit()

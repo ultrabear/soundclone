@@ -105,10 +105,6 @@ const PlaylistsScreen: React.FC = () => {
 		})();
 	}
 
-	if (loadstate === "no" || loadstate === "pending") {
-		return <div className="loading-container">Loading playlists...</div>;
-	}
-
 	if (errors) {
 		return <div className="error-container">{errors.message}</div>;
 	}

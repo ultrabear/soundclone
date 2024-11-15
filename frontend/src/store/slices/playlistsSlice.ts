@@ -15,6 +15,7 @@ import type {
 } from "./types";
 import { upgradeTimeStamps } from "./types";
 import { apiSongToStore, songsSlice } from "./songsSlice";
+import { slice as userSlice, apiUserToStore } from "./userSlice";
 
 const initialState: PlaylistSlice = {
 	playlists: {},
@@ -57,6 +58,20 @@ export const fetchUserPlaylists = createAsyncThunk(
 				),
 			),
 		);
+
+		const storeSongs = [
+			...new Map(
+				songs.flatMap(({ s }) => s.songs.map((s) => [s.id, s])),
+			).values(),
+		].map(apiSongToStore);
+
+		dispatch(songsSlice.actions.addSongs(storeSongs));
+
+		const storeArtists = await Promise.all(
+			[...new Set(storeSongs.map((s) => s.artist_id))].map(api.artists.getOne),
+		);
+
+		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
 	},
 );
 
@@ -81,6 +96,12 @@ export const fetchPlaylist = createAsyncThunk(
 			),
 		);
 		dispatch(songsSlice.actions.addSongs(songs.songs.map(apiSongToStore)));
+
+		const storeArtists = await Promise.all(
+			[...new Set(songs.songs.map((s) => s.artist_id))].map(api.artists.getOne),
+		);
+
+		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
 	},
 );
 

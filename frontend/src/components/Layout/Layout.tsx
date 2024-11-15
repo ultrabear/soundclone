@@ -70,8 +70,8 @@ const Header: React.FC = () => {
 					{user ? (
 						<>
 							<Link to="/new-song" className="header-button button-primary">
-									Upload
-								</Link>
+								Upload
+							</Link>
 							<div className="user-menu">
 								<div
 									className="user-avatar"

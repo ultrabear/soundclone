@@ -84,7 +84,7 @@ export const editCommentThunk = createAsyncThunk(
 			commentsSlice.actions.editComment({
 				id: commentId,
 				text,
-				updatedAt: (response.updated_at),
+				updatedAt: response.updated_at,
 			}),
 		);
 	},

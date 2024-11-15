@@ -15,7 +15,8 @@ import {
 	upgradeTimeStamps,
 } from "./types";
 import { slice as userSlice } from "./userSlice";
-import type { RootState } from "..";
+import type { AppDispatch, RootState } from "..";
+import { slice as sessionSlice } from "./sessionSlice";
 
 const initialState: SongSlice = {
 	songs: {},
@@ -33,6 +34,26 @@ function apiSongToStore(s: GetSong): Song {
 		song_url: song_ref,
 	});
 }
+
+export const getLikes = createAsyncThunk(
+	"songs/getLikes",
+	async (_: null, { dispatch }) => {
+		const likes = await api.likes.getAll();
+
+		dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
+		dispatch(sessionSlice.actions.addBulkLikes(likes.songs.map((s) => s.id)));
+	},
+);
+
+export const likeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
+	await api.likes.toggleLike(songId, "POST");
+	dispatch(sessionSlice.actions.addLike(songId));
+};
+
+export const unlikeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
+	await api.likes.toggleLike(songId, "DELETE");
+	dispatch(sessionSlice.actions.removeLike(songId));
+};
 
 export const fetchNewReleases = createAsyncThunk(
 	"songs/fetchNewReleases",
@@ -141,7 +162,7 @@ export const selectSongComments = (
 	songId: SongId,
 ): RSet<number> => state.song.comments[songId] ?? {};
 
-const songsSlice = createSlice({
+export const songsSlice = createSlice({
 	name: "songs",
 	initialState,
 	reducers: {

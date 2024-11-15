@@ -6,6 +6,7 @@ import AudioService from "../../services/AudioService";
 import "./NowPlaying.css";
 import { api } from "../../store/api";
 import { slice as sessionSlice } from "../../store/slices/sessionSlice";
+import { likeSong, unlikeSong } from "../../store/slices/songsSlice";
 
 interface NowPlayingProps {
 	currentSong: number | null;
@@ -137,10 +138,10 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 
 			// Update Redux first
 			if (isLiked) {
-				dispatch(sessionSlice.actions.removeLike(songId));
+				dispatch(unlikeSong(songId));
 				await api.likes.toggleLike(songId, "DELETE");
 			} else {
-				dispatch(sessionSlice.actions.addLike(songId));
+				dispatch(likeSong(songId));
 				await api.likes.toggleLike(songId, "POST");
 			}
 
@@ -164,9 +165,9 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 
 			// Revert Redux state on error
 			if (isLiked) {
-				dispatch(sessionSlice.actions.addLike(songId));
+				dispatch(likeSong(songId));
 			} else {
-				dispatch(sessionSlice.actions.removeLike(songId));
+				dispatch(unlikeSong(songId));
 			}
 			setToastMessage("Error updating like status");
 			setShowToast(true);
@@ -200,6 +201,7 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 								</Link>
 							</div>
 							<button
+								type="button"
 								className={`like-button ${isLiked ? "liked" : ""}`}
 								onClick={handleLikeToggle}
 								aria-label={isLiked ? "Unlike" : "Like"}

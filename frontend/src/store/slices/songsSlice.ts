@@ -47,13 +47,15 @@ export const getLikes = createAsyncThunk(
 );
 
 export const likeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
-	await api.likes.toggleLike(songId, "POST");
 	dispatch(sessionSlice.actions.addLike(songId));
+	dispatch(songsSlice.actions.addLike(songId));
+	await api.likes.toggleLike(songId, "POST");
 };
 
 export const unlikeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
-	await api.likes.toggleLike(songId, "DELETE");
 	dispatch(sessionSlice.actions.removeLike(songId));
+	dispatch(songsSlice.actions.removeLike(songId));
+	await api.likes.toggleLike(songId, "DELETE");
 };
 
 export const fetchNewReleases = createAsyncThunk(
@@ -183,6 +185,20 @@ export const songsSlice = createSlice({
 	name: "songs",
 	initialState,
 	reducers: {
+		addLike: (state, action: PayloadAction<SongId>) => {
+			const song = state.songs[action.payload];
+
+			if (song) {
+				song.likes++;
+			}
+		},
+		removeLike: (state, action: PayloadAction<SongId>) => {
+			const song = state.songs[action.payload];
+
+			if (song) {
+				song.likes--;
+			}
+		},
 		addSongs: (state, action: PayloadAction<Song[]>) => {
 			for (const song of action.payload) {
 				state.songs[song.id] = song;

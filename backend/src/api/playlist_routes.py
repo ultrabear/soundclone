@@ -56,16 +56,16 @@ def create_playlist() -> Union[Created[IdAndTimestamps], Tuple[ApiError, int]]:
         if not form.data["name"]:
             return ApiError(message="Name is required", errors={"name": "Playlist name cannot be empty"}), 400
 
-        # handle thumbnail default or user provided
-        thumbnail_url = DEFAULT_THUMBNAIL_IMAGE
+        # handle set thumbnail to None or user provided file
+        thumbnail_url_or_none = None
         if form.data["thumbnail_img"] is not None:
-            thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
+            thumbnail_url_or_none = create_resource_on_aws(form.data["thumbnail_img"], "image")
 
         # construct the playlist
         new_playlist = Playlist(
             name=form.data["name"],
             user_id=current_user.id,
-            thumbnail=thumbnail_url,
+            thumbnail=thumbnail_url_or_none,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -183,10 +183,8 @@ def db_playlist_to_api(playlist: Playlist) -> PlaylistInfo:
         "name": playlist.name,
         "created_at": str(playlist.created_at),
         "updated_at": str(playlist.updated_at),
+        "thumbnail": playlist.thumbnail or DEFAULT_THUMBNAIL_IMAGE,
     }
-
-    if playlist.thumbnail:
-        pinfo["thumbnail"] = playlist.thumbnail
 
     return pinfo
 

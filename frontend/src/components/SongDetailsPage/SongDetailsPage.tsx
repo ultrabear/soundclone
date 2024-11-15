@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import { fetchComments, postComment } from "../../store/slices/commentsSlice";
+import {
+	fetchComments,
+	postCommentThunk,
+} from "../../store/slices/commentsSlice";
 import type { SongWithUser } from "../../types";
 import Layout from "../Layout/Layout";
 import { api } from "../../store/api";
@@ -11,7 +14,7 @@ import styles from "./SongDetailsPage.module.css";
 import { Sidebar } from "../Layout/Layout";
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
-import type { Song, SongId } from "../../store/slices/types";
+import type { CommentId, UserId } from "../../store/slices/types";
 import { slice as userSlice } from "../../store/slices/userSlice";
 import { slice as sessionSlice } from "../../store/slices/sessionSlice";
 
@@ -37,7 +40,7 @@ const selectCurrentSongWithUser = createSelector(
 	],
 	(songs, users, songId): SongWithUser | null => {
 		if (!songId) return null;
-		const song = songs[parseInt(songId)];
+		const song = songs[Number.parseInt(songId)];
 		if (!song) return null;
 
 		const user = users[song.artist_id];
@@ -48,8 +51,8 @@ const selectCurrentSongWithUser = createSelector(
 			song_ref: song.song_url,
 			genre: song.genre ?? null,
 			thumb_url: song.thumb_url ?? null,
-			created_at: song.created_at.toISOString(),
-			updated_at: song.updated_at.toISOString(),
+			created_at: song.created_at,
+			updated_at: song.updated_at,
 			user: {
 				id: user.id,
 				username: user.display_name,
@@ -70,12 +73,12 @@ const selectSongComments = createSelector(
 	],
 	(songComments, comments, users, songId): DisplayComment[] => {
 		if (!songId) return [];
-		const songId_num = parseInt(songId);
+		const songId_num = Number.parseInt(songId);
 		const commentIds = songComments[songId_num] ?? {};
 
 		return Object.keys(commentIds)
 			.map((id) => {
-				const commentId = parseInt(id);
+				const commentId = Number.parseInt(id);
 				const comment = comments[commentId];
 				if (!comment) return null;
 
@@ -85,8 +88,8 @@ const selectSongComments = createSelector(
 				return {
 					id: comment.id,
 					text: comment.text,
-					created_at: comment.created_at.toISOString(),
-					updated_at: comment.updated_at.toISOString(),
+					created_at: comment.created_at,
+					updated_at: comment.updated_at,
 					user: {
 						id: user.id,
 						username: user.display_name,
@@ -99,6 +102,35 @@ const selectSongComments = createSelector(
 	},
 );
 
+function Comment({ key }: { key: CommentId }): JSX.Element {
+	const comment = useAppSelector((state) => state.comment.comments[key]);
+
+	if (!comment) {
+		return <h1>Loading comment...</h1>;
+	}
+
+	const user = useAppSelector((state) => state.user.users[comment.author_id]);
+
+	if (!user) {
+		return <h1>Loading user...</h1>;
+	}
+
+	return (
+		<div className={styles.comment}>
+			<div className={styles.commentAvatar}>
+				<img
+					src={user.profile_image || "/default-profile.png"}
+					alt={user.display_name}
+				/>
+			</div>
+			<div className={styles.commentContent}>
+				<div className={styles.commenterName}>{user.display_name}</div>
+				<div className={styles.commentText}>{comment.text}</div>
+			</div>
+		</div>
+	);
+}
+
 const SongDetailsPage: React.FC = () => {
 	const { songId } = useParams<{ songId: string }>();
 	const dispatch = useAppDispatch();
@@ -109,12 +141,12 @@ const SongDetailsPage: React.FC = () => {
 		selectCurrentSongWithUser(state, songId),
 	);
 	const comments = useAppSelector((state) => selectSongComments(state, songId));
-	const { user } = useAppSelector((state) => state.session);
-	const userDetails = useAppSelector((state) =>
-		user ? state.user.users[user.id] : null,
+	const session = useAppSelector((state) => state.session.user);
+	const user = useAppSelector(
+		(state) => session && state.user.users[session.id],
 	);
 	const isLiked = useAppSelector((state) =>
-		song ? !!state.session.likes[song.id] : false,
+		song ? song.id in state.session.likes : false,
 	);
 
 	const [commentText, setCommentText] = useState("");
@@ -125,7 +157,7 @@ const SongDetailsPage: React.FC = () => {
 			if (songId) {
 				try {
 					setLoading(true);
-					const songData = await api.songs.getOne(parseInt(songId));
+					const songData = await api.songs.getOne(Number.parseInt(songId));
 					const artistData = await api.artists.getOne(songData.artist_id);
 
 					dispatch(
@@ -142,7 +174,7 @@ const SongDetailsPage: React.FC = () => {
 						}),
 					);
 
-					dispatch(fetchComments(parseInt(songId)));
+					dispatch(fetchComments(Number.parseInt(songId)));
 				} catch (err) {
 					setError("Failed to load song details.");
 				} finally {
@@ -157,7 +189,7 @@ const SongDetailsPage: React.FC = () => {
 
 	const handlePlay = () => {
 		if (song) {
-			dispatch(setCurrentSong(song));
+			dispatch(setCurrentSong(song.id));
 		}
 	};
 
@@ -182,7 +214,10 @@ const SongDetailsPage: React.FC = () => {
 		try {
 			if (songId) {
 				await dispatch(
-					postComment({ songId: parseInt(songId), text: commentText }),
+					postCommentThunk({
+						songId: Number.parseInt(songId),
+						text: commentText,
+					}),
 				).unwrap();
 				setCommentText("");
 			} else {
@@ -198,7 +233,11 @@ const SongDetailsPage: React.FC = () => {
 			alert("You must be logged in to like a song.");
 			return;
 		}
-		dispatch(sessionSlice.actions.toggleLike(song.id));
+		if (isLiked) {
+			dispatch(sessionSlice.actions.removeLike(song.id));
+		} else {
+			dispatch(sessionSlice.actions.addLike(song.id));
+		}
 	};
 
 	if (loading) {
@@ -228,6 +267,7 @@ const SongDetailsPage: React.FC = () => {
 							{/* Top section with play button and info */}
 							<div style={{ display: "flex", alignItems: "flex-start" }}>
 								<button
+									type="button"
 									className={styles.playButton}
 									onClick={handlePlay}
 									aria-label="Play song"
@@ -268,7 +308,7 @@ const SongDetailsPage: React.FC = () => {
 							<div className={styles.commentForm}>
 								<div className={styles.userAvatar}>
 									<img
-										src={(user && user.profile_image) || "/default-profile.png"}
+										src={user?.profile_image || "/default-profile.png"}
 										alt="User Profile"
 									/>
 								</div>
@@ -302,26 +342,7 @@ const SongDetailsPage: React.FC = () => {
 
 							<div className={styles.commentsList}>
 								{comments.length > 0 ? (
-									comments.map((comment: CommentWithUser) => (
-										<div key={comment.id} className={styles.comment}>
-											<div className={styles.commentAvatar}>
-												<img
-													src={
-														comment.user.profile_image || "/default-profile.png"
-													}
-													alt={comment.user.username}
-												/>
-											</div>
-											<div className={styles.commentContent}>
-												<div className={styles.commenterName}>
-													{comment.user.username}
-												</div>
-												<div className={styles.commentText}>
-													{comment.comment_text}
-												</div>
-											</div>
-										</div>
-									))
+									comments.map((comment) => <Comment key={comment.id} />)
 								) : (
 									<div className={styles.noComments}>
 										No comments yet. Be the first to comment!

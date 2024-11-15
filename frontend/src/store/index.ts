@@ -5,6 +5,7 @@ import sessionReducer from "./slices/sessionSlice";
 import userReducer from "./slices/userSlice";
 import playlistReducer from "./slices/playlistsSlice";
 import songReducer from "./slices/songsSlice";
+import commentReducer from "./slices/commentsSlice";
 
 export const store = configureStore({
 	reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
 		user: userReducer,
 		playlist: playlistReducer,
 		song: songReducer,
+		comment: commentReducer,
 	},
 });
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useModal } from "../../context/useModal";
 import { useAppDispatch } from "../../store";
 import { thunkLogin } from "../../store/session";
+import "./LoginFormModal.css";
 
 function LoginFormModal() {
 	const dispatch = useAppDispatch();
@@ -31,8 +32,8 @@ function LoginFormModal() {
 
 	return (
 		<>
-			<h1>Log In</h1>
-			<form onSubmit={handleSubmit}>
+			<h1 className="login-header">Log In</h1>
+			<form className="form-container col" onSubmit={handleSubmit}>
 				<label>
 					Email
 					<input
@@ -42,7 +43,7 @@ function LoginFormModal() {
 						required
 					/>
 				</label>
-				{errors.email && <p>{errors.email}</p>}
+				{errors.email && <p className="error-text">{errors.email}</p>}
 				<label>
 					Password
 					<input
@@ -52,8 +53,17 @@ function LoginFormModal() {
 						required
 					/>
 				</label>
-				{errors.password && <p>{errors.password}</p>}
+				{errors.password && <p className="error-text">{errors.password}</p>}
 				<button type="submit">Log In</button>
+				<p
+					onClick={() => {
+						thunkLogin({ email: "demo@aa.io", password: "password" });
+						// close modal?
+					}}
+					className="demo-user"
+				>
+					Demo User
+				</p>
 			</form>
 		</>
 	);

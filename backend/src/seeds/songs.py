@@ -57,8 +57,8 @@ def seed_songs() -> None:
             song_ref=song["song_ref"],
             genre=song["song_genre"],
             thumb_url=song["thumb_url"],
-            created_at=str(datetime.now(timezone.utc)),
-            updated_at=str(datetime.now(timezone.utc)),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         db.session.add(new_song)
 

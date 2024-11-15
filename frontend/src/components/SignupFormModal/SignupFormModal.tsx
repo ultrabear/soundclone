@@ -20,15 +20,34 @@ function SignupFormModal() {
 	);
 	const { closeModal } = useModal();
 
+	const handleClientSideErrors = () => {
+		const errors = {} as {
+			password?: string;
+			confirmPassword?: string;
+		};
+
+		if (password.length < 5) {
+			errors.password = "Password must be at least 5 characters long";
+		}
+
+		if (password !== confirmPassword) {
+			errors.confirmPassword =
+				"Confirm Password field must match Password field";
+		}
+
+		return errors;
+	};
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		if (password !== confirmPassword) {
-			return setErrors({
-				confirmPassword:
-					"Confirm Password field must be the same as the Password field",
-			});
+		const clientSideErrors = handleClientSideErrors();
+
+		if (Object.values(clientSideErrors).length > 0) {
+			return setErrors(clientSideErrors);
 		}
+
+		setErrors({});
 
 		const serverResponse = await dispatch(
 			thunkSignup({
@@ -52,17 +71,17 @@ function SignupFormModal() {
 		<>
 			<h1>Sign Up</h1>
 			{errors.server && <p>{errors.server}</p>}
-			<form onSubmit={handleSubmit}>
+			<form className="form-container flex-col" onSubmit={handleSubmit}>
 				<label>
 					Email
 					<input
-						type="text"
+						type="email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required
 					/>
 				</label>
-				{errors.email && <p>{errors.email}</p>}
+				{errors.email && <p className="error-text">{errors.email}</p>}
 				<label>
 					Username
 					<input
@@ -72,7 +91,7 @@ function SignupFormModal() {
 						required
 					/>
 				</label>
-				{errors.username && <p>{errors.username}</p>}
+				{errors.username && <p className="error-text">{errors.username}</p>}
 				<label>
 					Password
 					<input
@@ -82,7 +101,7 @@ function SignupFormModal() {
 						required
 					/>
 				</label>
-				{errors.password && <p>{errors.password}</p>}
+				{errors.password && <p className="error-text">{errors.password}</p>}
 				<label>
 					Confirm Password
 					<input
@@ -92,7 +111,9 @@ function SignupFormModal() {
 						required
 					/>
 				</label>
-				{errors.confirmPassword && <p>{errors.confirmPassword}</p>}
+				{errors.confirmPassword && (
+					<p className="error-text">{errors.confirmPassword}</p>
+				)}
 				<button type="submit">Sign Up</button>
 			</form>
 		</>

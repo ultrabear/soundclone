@@ -182,6 +182,28 @@ async function fetchWithError<T>(
 	}
 }
 
+async function fetchWithErrNoJson<T>(
+	url: string,
+	options: RequestInit = {},
+): FPromise<T> {
+	const response = await fetch(`${BASE_URL}${url}`, {
+		...options,
+		credentials: "include",
+	});
+
+	if (!response.ok) {
+		const e = new Error("API Error");
+		e.api = await response.json();
+		throw e;
+	}
+
+	try {
+		return await response.json();
+	} catch (_) {
+		return null;
+	}
+}
+
 function notNull<T>(p: Promise<T | null>): Promise<T> {
 	//@ts-expect-error this is intentional
 	return p;
@@ -201,7 +223,7 @@ export const api = {
 		},
 		create: async (songData: FormData): Promise<Id & Timestamps> => {
 			return notNull(
-				fetchWithError("/songs", {
+				fetchWithErrNoJson("/songs", {
 					method: "POST",
 					body: songData,
 				}),

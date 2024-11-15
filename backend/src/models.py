@@ -1,6 +1,6 @@
 from typing import NotRequired, TypedDict
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from datetime import datetime
 from flask_login import UserMixin  # pyright: ignore
@@ -94,8 +94,8 @@ class User(Base, UserMixin):
     biography: Mapped[str | None]
     location: Mapped[str | None]
     homepage: Mapped[str | None]
-    created_at: Mapped[datetime]
-    updated_at: Mapped[datetime]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now())
     # Relationships
     playlists: Mapped[list["Playlist"]] = relationship(back_populates="user")
     comments: Mapped[list["Comment"]] = relationship(back_populates="author")

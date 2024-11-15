@@ -19,16 +19,16 @@ def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
     Get an artist's details by ID.
     Returns (ApiError, 404) if artist not found or if user exists but isn't an artist.
     """
-    artist = db.session.query(User).get(artist_id)
+    artist = db.session.query(User).filter_by(id=artist_id).one_or_none()
 
     if not artist:
         return (ApiError(message="Artist not found", errors={"artist_id": f"No user found with id {artist_id}"}), 404)
 
-    if not artist.stage_name:
+    if not artist.songs:
         return (ApiError(message="Not an artist", errors={"artist_id": f"User {artist_id} is not an artist"}), 404)
 
     # Build artist response
-    result: Artist = {"id": artist.id, "stage_name": artist.stage_name}
+    result: Artist = {"id": artist.id, "stage_name": artist.stage_name or artist.username}
 
     # Add optional fields if they exist
     if artist.profile_image:

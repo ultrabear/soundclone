@@ -10,22 +10,17 @@ export interface Timestamps {
 	created_at: Date;
 	updated_at: Date;
 }
+
 export interface WeakTimestamps {
 	created_at: string;
 	updated_at: string;
 }
 
-export const upgradeTimeStamps = <T extends WeakTimestamps>(
-	obj: T,
-): Omit<T, "created_at" | "updated_at"> & Timestamps => {
-	return {
-		...obj,
-		created_at: new Date(obj.created_at),
-		updated_at: new Date(obj.updated_at),
-	};
+export const upgradeTimeStamps = <T extends WeakTimestamps>(obj: T): T => {
+	return obj;
 };
 
-export interface StoreComment extends Timestamps {
+export interface StoreComment extends WeakTimestamps {
 	id: CommentId;
 	text: string;
 	song_id: SongId;
@@ -36,7 +31,7 @@ export interface User {
 	id: UserId;
 	display_name: string;
 	profile_image?: Url;
-	first_release?: Date;
+	first_release?: string;
 	biography?: string;
 	location?: string;
 	homepage_url?: Url;
@@ -48,7 +43,7 @@ export interface SessionUser {
 	email: string;
 }
 
-export interface Song extends Timestamps {
+export interface Song extends WeakTimestamps {
 	id: SongId;
 	name: string;
 	artist_id: UserId;
@@ -58,12 +53,12 @@ export interface Song extends Timestamps {
 	song_url: Url;
 }
 
-export interface Playlist extends Timestamps {
+export interface Playlist extends WeakTimestamps {
 	id: PlaylistId;
 	name: string;
 	user_id: UserId;
 	thumbnail?: Url;
-	songs: RSet<SongId>;
+	songs: Record<SongId, null>;
 }
 
 export interface UserSlice {
@@ -73,7 +68,7 @@ export interface UserSlice {
 // imports userSlice
 export interface SessionSlice {
 	user: SessionUser | null;
-	likes: RSet<SongId>;
+	likes: Record<SongId, null>;
 }
 
 export interface CommentsSlice {

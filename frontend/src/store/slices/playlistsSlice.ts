@@ -1,19 +1,19 @@
 import {
+	type PayloadAction,
 	createAsyncThunk,
 	createSlice,
-	type PayloadAction,
 } from "@reduxjs/toolkit";
+import type { RootState } from "..";
+import type { BasePlaylist, Id, Timestamps } from "../api";
+import { api } from "../api";
 import type {
-	PlaylistSlice,
 	Playlist,
 	PlaylistId,
+	PlaylistSlice,
 	SongId,
 	UserId,
 } from "./types";
 import { upgradeTimeStamps } from "./types";
-import type { BasePlaylist, Id, Timestamps } from "../api";
-import { api } from "../api";
-import type { AppDispatch, RootState } from "..";
 
 const initialState: PlaylistSlice = {
 	playlists: {},
@@ -31,8 +31,12 @@ function apiPlaylistToStore(
 	});
 }
 
-export const fetchUserPlaylists =
-	(sessionUser: UserId) => async (dispatch: AppDispatch) => {
+export const fetchUserPlaylists = createAsyncThunk(
+	"playlists/fetchUserPlaylists",
+	async (_: undefined, { dispatch, getState }) => {
+		const state = getState() as RootState;
+		const sessionUser = state.session.user!.id;
+
 		const playlist = await api.playlists.getCurrent();
 
 		const songs = await Promise.all(
@@ -52,7 +56,8 @@ export const fetchUserPlaylists =
 				),
 			),
 		);
-	};
+	},
+);
 
 export const fetchPlaylist = createAsyncThunk(
 	"playlists/fetchPlaylist",

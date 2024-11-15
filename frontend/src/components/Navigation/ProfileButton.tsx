@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { thunkLogout } from "../../store/session";
+import { thunkLogout } from "../../store/slices/sessionSlice";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import OpenModalMenuItem from "./OpenModalMenuItem";
@@ -21,7 +21,7 @@ function ProfileButton() {
 		if (!showMenu) return;
 
 		const closeMenu = (e: MouseEvent) => {
-			if (ulRef.current && !ulRef.current.contains(e.target as any)) {
+			if (ulRef.current && !ulRef.current.contains(e.target as Node | null)) {
 				setShowMenu(false);
 			}
 		};
@@ -41,7 +41,7 @@ function ProfileButton() {
 
 	return (
 		<>
-			<button onClick={toggleMenu}>
+			<button type="button" onClick={toggleMenu}>
 				<FaUserCircle />
 			</button>
 			{showMenu && (
@@ -51,7 +51,9 @@ function ProfileButton() {
 							<li>{user.username}</li>
 							<li>{user.email}</li>
 							<li>
-								<button onClick={logout}>Log Out</button>
+								<button type="button" onClick={logout}>
+									Log Out
+								</button>
 							</li>
 						</>
 					) : (

@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { Artist } from "../api";
-import type { UserSlice, User, UserId } from "./types";
-import { api } from "../api";
 import type { AppDispatch } from "..";
+import type { Artist } from "../api";
+import { api } from "../api";
+import type { User, UserId, UserSlice } from "./types";
 
 const initialState: UserSlice = {
 	users: {},
@@ -19,7 +19,7 @@ export function apiUserToStore(u: Artist): User {
 	};
 
 	if (first_release !== undefined) {
-		user.first_release = new Date(first_release);
+		user.first_release = first_release;
 	}
 
 	return user;

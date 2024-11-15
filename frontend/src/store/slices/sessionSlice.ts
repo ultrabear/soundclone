@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
-import { api, type User as ApiUser } from "../api";
-import type { SessionSlice, SessionUser, UserId, User, SongId } from "./types";
+import { type User as ApiUser, api } from "../api";
+import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { slice as userSlice } from "./userSlice";
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
@@ -21,7 +21,7 @@ export const thunkLogin =
 	(credentials: { email: string; password: string }) =>
 	async (dispatch: AppDispatch) => {
 		try {
-			const response = (await api.auth.login(credentials))!;
+			const response = await api.auth.login(credentials);
 
 			const [session, user] = normalizeApiUser(response);
 
@@ -83,7 +83,7 @@ function normalizeApiUser(u: ApiUser): [SessionUser, User] {
 	};
 
 	if (typeof first_release === "string") {
-		user.first_release = new Date(first_release);
+		user.first_release = first_release;
 	}
 
 	if (typeof profile_image === "string") {
@@ -112,6 +112,12 @@ export const slice = createSlice({
 
 		removeUser: (state) => {
 			state.user = null;
+		},
+
+		addBulkLikes: (state, action: PayloadAction<SongId[]>) => {
+			for (const like of action.payload) {
+				state.likes[like] = null;
+			}
 		},
 
 		addLike: (state, action: PayloadAction<SongId>) => {

@@ -84,7 +84,7 @@ export const editCommentThunk = createAsyncThunk(
 			commentsSlice.actions.editComment({
 				id: commentId,
 				text,
-				updatedAt: new Date(response.updated_at),
+				updatedAt: response.updated_at,
 			}),
 		);
 	},
@@ -116,7 +116,7 @@ const commentsSlice = createSlice({
 		},
 		editComment: (
 			state,
-			action: PayloadAction<{ id: CommentId; updatedAt: Date; text: string }>,
+			action: PayloadAction<{ id: CommentId; updatedAt: string; text: string }>,
 		) => {
 			const commentToUpdate = state.comments[action.payload.id];
 			commentToUpdate.updated_at = action.payload.updatedAt;

@@ -15,7 +15,7 @@ import { Outlet } from "react-router-dom";
 import Navigation from "./components/Navigation/Navigation";
 import { Modal, ModalProvider } from "./context/Modal";
 import { useAppDispatch } from "./store";
-import { thunkAuthenticate } from "./store/session";
+import { thunkAuthenticate } from "./store/slices/sessionSlice";
 
 function Layout() {
 	const dispatch = useAppDispatch();

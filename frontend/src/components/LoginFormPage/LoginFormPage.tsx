@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { thunkLogin } from "../../store/session";
+import { thunkLogin } from "../../store/slices/sessionSlice";
 
 function LoginFormPage() {
 	const navigate = useNavigate();
@@ -26,7 +26,10 @@ function LoginFormPage() {
 		);
 
 		if (serverResponse) {
-			setErrors(serverResponse);
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+			});
 		} else {
 			navigate("/");
 		}

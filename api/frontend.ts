@@ -197,11 +197,11 @@ export const api = {
 		getOne: async (songId: number): Promise<GetSong> => {
 			return notNull(fetchWithError(`/songs/${songId}`));
 		},
-		create: async (song: Song): Promise<Id & Timestamps> => {
+		create: async (songData: FormData): Promise<Id & Timestamps> => {
 			return notNull(
 				fetchWithError("/songs", {
 					method: "POST",
-					body: JSON.stringify(song),
+					body: songData,
 				}),
 			);
 		},

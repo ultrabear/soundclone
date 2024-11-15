@@ -3,48 +3,72 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import type { User } from "../../types";
+import type { PlaylistId } from "../../store/slices/types";
+import type { SongWithUser } from "../../types";
+import { createSelector } from "@reduxjs/toolkit";
+import type { RootState } from "../../store";
 import Layout from "../Layout/Layout";
-import "./ArtistPage.css";
-import { api } from "../../store/api";
+import styles from "./ArtistPage.module.css";
+import { getUserDetails } from "../../store/slices/userSlice";
+import { addSongs } from "../../store/slices/songsSlice";
 
-//convert API user data to frontend User type
-const transformUser = (apiUser: any): User => ({
-	id: apiUser.id,
-	username: apiUser.username,
-	email: apiUser.email,
-	profile_image: apiUser.profile_image ?? null,
-	stage_name: apiUser.stage_name ?? null,
-	first_release: apiUser.first_release ?? null,
-	biography: apiUser.biography ?? null,
-	location: apiUser.location ?? null,
-	homepage: apiUser.homepage ?? null,
-});
+const selectArtistSongs = createSelector(
+	[
+		(state: RootState) => state.song.songs,
+		(state: RootState) => state.user.users,
+		(_: RootState, artistId: string | undefined) => artistId,
+	],
+	(songs, users, artistId): SongWithUser[] => {
+		if (!artistId) return [];
+
+		const parsedId = parseInt(artistId);
+		const artist = users[parsedId];
+		if (!artist) return [];
+
+		return Object.values(songs)
+			.filter((song) => song.artist_id === parsedId)
+			.map((song) => ({
+				...song,
+				song_ref: song.song_url,
+				genre: song.genre ?? null,
+				thumb_url: song.thumb_url ?? null,
+				created_at: song.created_at,
+				updated_at: song.updated_at,
+				user: {
+					id: artist.id,
+					username: artist.display_name,
+					stage_name: artist.display_name,
+					profile_image: artist.profile_image ?? null,
+				},
+			}));
+	},
+);
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();
 	const dispatch = useAppDispatch();
-	const [showAddToPlaylist, setShowAddToPlaylist] = useState<number | null>(
+	const [showAddToPlaylist, setShowAddToPlaylist] = useState<PlaylistId | null>(
 		null,
 	);
-	const [artist, setArtist] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	const { artistSongs, loading: songsLoading } = useAppSelector(
-		(state) => state.songs,
+	const artist = useAppSelector((state) =>
+		userId ? state.user.users[parseInt(userId)] : null,
 	);
-	const { userPlaylists } = useAppSelector((state) => state.playlists);
+	const songs = useAppSelector((state) => selectArtistSongs(state, userId));
+	const userPlaylists = useAppSelector((state) =>
+		Object.values(state.playlist.playlists),
+	);
 
 	useEffect(() => {
 		const loadArtist = async () => {
 			if (userId) {
 				try {
 					setLoading(true);
-					// Fetch and transform artist data
-					const userData = await api.users.getOne(Number.parseInt(userId));
-					setArtist(transformUser(userData));
-					// Fetch artist's songs
-					//   dispatch(fetchArtistSongs(Number.parseInt(userId)));
+					await dispatch(getUserDetails(parseInt(userId)));
+					const response = await fetch(`/api/songs?artist_id=${userId}`);
+					const songsData = await response.json();
+					dispatch(addSongs(songsData.songs));
 				} catch (error) {
 					console.error("Error loading artist:", error);
 				} finally {
@@ -56,16 +80,16 @@ const ArtistPage: React.FC = () => {
 		loadArtist();
 	}, [dispatch, userId]);
 
-	const handlePlaySong = (index: number) => {
-		if (artistSongs[index]) {
-			dispatch(setCurrentSong(artistSongs[index]));
+	const handlePlaySong = (songWithUser: SongWithUser) => {
+		if (artist) {
+			dispatch(setCurrentSong(songWithUser as any));
 		}
 	};
 
-	if (loading || songsLoading) {
+	if (loading) {
 		return (
 			<Layout>
-				<div className="loading-container">Loading artist profile...</div>
+				<div className={styles.loadingContainer}>Loading artist profile...</div>
 			</Layout>
 		);
 	}
@@ -73,34 +97,37 @@ const ArtistPage: React.FC = () => {
 	if (!artist) {
 		return (
 			<Layout>
-				<div className="error-container">Artist not found</div>
+				<div className={styles.errorContainer}>Artist not found</div>
 			</Layout>
 		);
 	}
 
 	return (
 		<Layout>
-			<div className="artist-page">
-				<div className="artist-hero-container">
-					<div className="artist-hero-background">
+			<div className={styles.container}>
+				<div className={styles.heroContainer}>
+					<div className={styles.heroBackground}>
 						<img
 							src={artist.profile_image || ""}
 							alt=""
-							className="hero-background-image"
+							className={styles.backgroundImage}
 						/>
-						<div className="hero-overlay"></div>
+						<div className={styles.overlay}></div>
 					</div>
 
-					<div className="artist-hero-content">
-						<div className="artist-profile">
-							<div className="artist-profile-image">
-								<img src={artist.profile_image || ""} alt={artist.username} />
+					<div className={styles.heroContent}>
+						<div className={styles.profile}>
+							<div className={styles.profileImage}>
+								<img
+									src={artist.profile_image || ""}
+									alt={artist.display_name}
+								/>
 							</div>
-							<div className="artist-info">
-								<h1>{artist.stage_name || artist.username}</h1>
+							<div className={styles.info}>
+								<h1 className={styles.name}>{artist.display_name}</h1>
 								{artist.location && (
-									<div className="artist-meta">
-										<span className="artist-location">{artist.location}</span>
+									<div className={styles.meta}>
+										<span className={styles.location}>{artist.location}</span>
 									</div>
 								)}
 							</div>
@@ -108,55 +135,56 @@ const ArtistPage: React.FC = () => {
 					</div>
 				</div>
 
-				<div className="artist-content">
-					<div className="content-actions">
-						<button className="play-all-button">▶ Play All</button>
+				<div className={styles.content}>
+					<div className={styles.contentActions}>
+						<button className={styles.playAllButton}>▶ Play All</button>
 					</div>
 
-					<div className="songs-table">
-						<div className="songs-header">
-							<div className="song-number">#</div>
-							<div className="song-title-header">Title</div>
-							<div className="song-artist-header">Artist</div>
-							<div className="song-genre-header">Genre</div>
-							<div className="song-actions-header">Actions</div>
+					<div className={styles.songsTable}>
+						<div className={styles.songsHeader}>
+							<div className={styles.songNumber}>#</div>
+							<div>Title</div>
+							<div>Artist</div>
+							<div>Genre</div>
+							<div>Actions</div>
 						</div>
 
-						<div className="songs-list">
-							{artistSongs.map((song, index) => (
-								<div key={song.id} className="song-row">
-									<div className="song-number">{index + 1}</div>
-									<div className="song-title-cell">
-										<div className="song-thumbnail">
+						<div className={styles.songsList}>
+							{songs.map((song, index) => (
+								<div key={song.id} className={styles.songRow}>
+									<div className={styles.songNumber}>{index + 1}</div>
+									<div className={styles.songTitleCell}>
+										<div className={styles.songThumbnail}>
 											{song.thumb_url && (
 												<img src={song.thumb_url} alt={song.name} />
 											)}
 										</div>
-										<span className="song-name">{song.name}</span>
+										<span className={styles.songName}>{song.name}</span>
 									</div>
-									<div className="song-artist">
-										{song.user.stage_name || song.user.username}
-									</div>
-									<div className="song-genre">{song.genre}</div>
-									<div className="song-actions">
+									<div className={styles.songArtist}>{artist.display_name}</div>
+									<div className={styles.songGenre}>{song.genre}</div>
+									<div className={styles.songActions}>
 										<button
-											className="play-song-button"
-											onClick={() => handlePlaySong(index)}
+											className={styles.actionButton}
+											onClick={() => handlePlaySong(song)}
 											aria-label="Play song"
 										>
 											▶
 										</button>
 										<button
-											className="add-to-playlist-button"
+											className={styles.actionButton}
 											onClick={() => setShowAddToPlaylist(song.id)}
 											aria-label="Add to playlist"
 										>
 											+
 										</button>
-										{showAddToPlaylist === song.id && userPlaylists && (
-											<div className="playlist-dropdown">
+										{showAddToPlaylist === song.id && (
+											<div className={styles.playlistDropdown}>
 												{userPlaylists.map((playlist) => (
-													<button key={playlist.id} className="playlist-option">
+													<button
+														key={playlist.id}
+														className={styles.playlistOption}
+													>
 														{playlist.name}
 													</button>
 												))}

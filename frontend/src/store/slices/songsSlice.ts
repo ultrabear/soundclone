@@ -11,10 +11,12 @@ import {
 	type Song,
 	type SongId,
 	type UserId,
+	type RSet,
 	upgradeTimeStamps,
 } from "./types";
-import { apiUserToStore, slice as userSlice } from "./userSlice";
-import type { RootState } from "..";
+import { slice as userSlice } from "./userSlice";
+import type { AppDispatch, RootState } from "..";
+import { slice as sessionSlice } from "./sessionSlice";
 
 const initialState: SongSlice = {
 	songs: {},
@@ -33,78 +35,171 @@ function apiSongToStore(s: GetSong): Song {
 	});
 }
 
+export const getLikes = createAsyncThunk(
+	"songs/getLikes",
+	async (_: null, { dispatch }) => {
+		const likes = await api.likes.getAll();
+
+		dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
+		dispatch(sessionSlice.actions.addBulkLikes(likes.songs.map((s) => s.id)));
+	},
+);
+
+export const likeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
+	await api.likes.toggleLike(songId, "POST");
+	dispatch(sessionSlice.actions.addLike(songId));
+};
+
+export const unlikeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
+	await api.likes.toggleLike(songId, "DELETE");
+	dispatch(sessionSlice.actions.removeLike(songId));
+};
+
 export const fetchNewReleases = createAsyncThunk(
 	"songs/fetchNewReleases",
-	async (_: null, { dispatch }) => {
-		const { songs } = (await api.songs.getAll())!;
+	async (_, { dispatch }) => {
+		const { songs } = await api.songs.getAll();
 
-		const users = await Promise.all(
-			songs.map(async (song) => api.artists.getOne(song.artist_id)),
+		// Fetch all artists in parallel and normalize them
+		const uniqueArtistIds = [...new Set(songs.map((song) => song.artist_id))];
+		const artists = await Promise.all(
+			uniqueArtistIds.map((id) => api.artists.getOne(id)),
 		);
 
-		const arr = users.filter((v) => v !== null).map(apiUserToStore);
+		// Add users to store
+		dispatch(
+			userSlice.actions.addUsers(
+				artists
+					.filter(
+						(artist): artist is NonNullable<typeof artist> => artist !== null,
+					)
+					.map((artist) => ({
+						id: artist.id as UserId,
+						display_name: artist.stage_name,
+						profile_image: artist.profile_image,
+						first_release: artist.first_release
+							? new Date(artist.first_release)
+							: undefined,
+						biography: artist.biography,
+						location: artist.location,
+						homepage_url: artist.homepage,
+					})),
+			),
+		);
 
-		dispatch(userSlice.actions.addUsers(arr));
+		// Add songs to store
 		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
 	},
 );
 
 export const selectNewestSongs = createSelector(
 	[(state: RootState) => state.song.songs],
-	(songs) => {
-		const out: Song[] = [];
-
-		for (const k in songs) {
-			out.push(songs[k]);
-		}
-
-		out.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
-
-		return out;
-	},
+	(songs): Song[] =>
+		Object.values(songs).sort(
+			(a, b) =>
+				new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+		),
 );
 
-// TODO(ultrabear/joem): make work with current store
+export const selectSongsByArtist = createSelector(
+	[
+		(state: RootState) => state.song.songs,
+		(_: RootState, artistId: UserId) => artistId,
+	],
+	(songs, artistId): Song[] =>
+		Object.values(songs)
+			.filter((song) => song.artist_id === artistId)
+			.sort(
+				(a, b) =>
+					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			),
+);
+
 export const createSongThunk = createAsyncThunk(
 	"songs/createSong",
 	async (songData: FormData) => {
-		try {
-			const response = await fetch("/api/songs", {
-				method: "POST",
-				body: songData,
-			});
-			const parsedResponse: GetSongs = await response.json();
-			return parsedResponse;
-		} catch (serverError: any) {
-			const parsedError = await serverError.json();
-			return parsedError;
-		}
+		const response = await api.songs.create(songData);
+		return response.id;
 	},
 );
 
 export const fetchArtistSongs = createAsyncThunk(
 	"songs/fetchArtistSongs",
-	async (artistId: number, { dispatch }) => {
-		const [{ songs }, user] = await Promise.all([
+	async (artistId: UserId, { dispatch }) => {
+		const [{ songs }, artist] = await Promise.all([
 			api.songs.getByArtist(artistId),
 			api.artists.getOne(artistId),
 		]);
 
-		dispatch(userSlice.actions.addUser(apiUserToStore(user)));
+		if (artist) {
+			dispatch(
+				userSlice.actions.addUser({
+					id: artist.id as UserId,
+					display_name: artist.stage_name,
+					profile_image: artist.profile_image,
+					first_release: artist.first_release
+						? new Date(artist.first_release)
+						: undefined,
+					biography: artist.biography,
+					location: artist.location,
+					homepage_url: artist.homepage,
+				}),
+			);
+		}
+
 		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
 	},
 );
 
-const songsSlice = createSlice({
+// Additional selectors for common operations
+export const selectSongById = (
+	state: RootState,
+	songId: SongId,
+): Song | undefined => state.song.songs[songId];
+
+export const selectSongComments = (
+	state: RootState,
+	songId: SongId,
+): RSet<number> => state.song.comments[songId] ?? {};
+
+export const songsSlice = createSlice({
 	name: "songs",
 	initialState,
 	reducers: {
-		addSongs: (store, action: PayloadAction<Song[]>) => {
-			for (const s of action.payload) {
-				store.songs[s.id] = s;
+		addSongs: (state, action: PayloadAction<Song[]>) => {
+			for (const song of action.payload) {
+				state.songs[song.id] = song;
+			}
+		},
+		initializeComments: (state, action: PayloadAction<SongId>) => {
+			if (!state.comments[action.payload]) {
+				state.comments[action.payload] = {};
+			}
+		},
+		addComment: (
+			state,
+			action: PayloadAction<{ songId: SongId; commentId: number }>,
+		) => {
+			const { songId, commentId } = action.payload;
+			if (!state.comments[songId]) {
+				state.comments[songId] = {};
+			}
+			state.comments[songId][commentId] = null;
+		},
+		removeComment: (
+			state,
+			action: PayloadAction<{ songId: SongId; commentId: number }>,
+		) => {
+			const { songId, commentId } = action.payload;
+			if (state.comments[songId]) {
+				delete state.comments[songId][commentId];
 			}
 		},
 	},
 });
 
+export const { addSongs, initializeComments, addComment, removeComment } =
+	songsSlice.actions;
 export default songsSlice.reducer;
+
+//songsslice is finished

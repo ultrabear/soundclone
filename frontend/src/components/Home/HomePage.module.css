@@ -1,0 +1,361 @@
+.container {
+	width: 100%;
+}
+
+/* Section Headers */
+.sectionHeader {
+	margin: 25px 0;
+	padding-bottom: 10px;
+}
+
+/* Hero Section */
+.heroWrapper {
+	width: 100%;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #f2f2f2;
+}
+
+/* Scrollable Sections */
+.scrollSection {
+	margin: 30px 0;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #f2f2f2;
+}
+
+.headerContent {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.sectionTitle {
+	font-size: 24px;
+	font-weight: 700;
+	color: #333;
+}
+
+.heroSection {
+	width: 100%;
+	height: 280px;
+	background: linear-gradient(135deg, #846170, #70929c);
+	border-radius: 4px;
+	display: flex;
+	padding: 20px;
+	position: relative;
+}
+
+.heroArtwork {
+	width: 240px;
+	height: 240px;
+	position: relative;
+	flex-shrink: 0;
+}
+
+.heroArtwork img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 2px;
+}
+
+.heroPlayButton {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	background: #ff5500;
+	border: none;
+	color: white;
+	font-size: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.heroArtwork:hover .heroPlayButton {
+	opacity: 1;
+}
+
+.heroContent {
+	flex: 1;
+	margin-left: 20px;
+	overflow: hidden;
+}
+
+.heroSongs {
+	height: 100%;
+	overflow-y: auto;
+}
+
+.songItem {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.songInfo {
+	flex: 1;
+	text-decoration: none;
+	color: inherit;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	min-width: 0;
+}
+
+.songTitle {
+	font-size: 14px;
+	font-weight: 600;
+	color: white;
+}
+
+.songDivider {
+	color: rgba(255, 255, 255, 0.5);
+}
+
+.songArtist {
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.songPlayButton {
+	background: none;
+	border: none;
+	color: white;
+	font-size: 16px;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0.8;
+	transition: opacity 0.2s ease;
+}
+
+.songPlayButton:hover {
+	opacity: 1;
+}
+
+.heroFooter {
+	margin-top: 12px;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.viewPlaylistButton {
+	padding: 6px 16px;
+	border-radius: 3px;
+	background: #f2f2f2;
+	border: 1px solid #e5e5e5;
+	color: #333;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.viewPlaylistButton:hover {
+	background: #e5e5e5;
+}
+
+/* Scrollable Sections */
+.scrollSection {
+	margin: 30px 0;
+	padding-bottom: 20px;
+}
+
+.scrollContainer {
+	position: relative;
+	width: 100%;
+}
+
+.scrollContent {
+	display: flex;
+	gap: 20px;
+	overflow-x: auto;
+	padding: 10px 0;
+	scrollbar-width: none;
+}
+
+.scrollContent::-webkit-scrollbar {
+	display: none;
+}
+
+.scrollControls {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 100%;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.scrollButton {
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: white;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	pointer-events: auto;
+}
+
+.scrollButtonLeft {
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: white;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	pointer-events: auto;
+	left: -20px;
+}
+
+.scrollButtonRight {
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: white;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	pointer-events: auto;
+	right: -20px;
+}
+
+/* Artist Cards */
+.artistCard {
+	flex: 0 0 200px;
+	min-width: 200px;
+	cursor: pointer;
+	text-align: center;
+}
+
+.artistImage {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	overflow: hidden;
+	margin-bottom: 12px;
+}
+
+.artistImage img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.artistName {
+	font-size: 14px;
+	font-weight: 600;
+	color: #333;
+}
+
+/* Track Cards */
+.trackCard {
+	flex: 0 0 220px;
+	min-width: 220px;
+	text-decoration: none;
+	color: inherit;
+}
+
+.trackArtwork {
+	width: 220px;
+	height: 220px;
+	border-radius: 2px;
+	overflow: hidden;
+	margin-bottom: 10px;
+}
+
+.trackArtwork img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.trackTitle {
+	font-size: 14px;
+	font-weight: 600;
+	color: #333;
+	margin-bottom: 4px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.trackArtist {
+	font-size: 12px;
+	color: #999;
+}
+
+/* Auth Buttons */
+.authButtons {
+	display: flex;
+	gap: 10px;
+}
+
+/* Loading and Error States */
+.loadingContainer,
+.errorContainer {
+	width: 100%;
+	padding: 40px;
+	text-align: center;
+	color: #999;
+}
+
+.errorContainer {
+	color: #ff5500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+	.heroSection {
+		height: auto;
+		flex-direction: column;
+	}
+
+	.heroArtwork {
+		width: 100%;
+		max-width: 240px;
+		margin: 0 auto 20px;
+	}
+}
+
+@media (max-width: 768px) {
+	.trackCard {
+		flex: 0 0 160px;
+		min-width: 160px;
+	}
+
+	.trackArtwork {
+		width: 160px;
+		height: 160px;
+	}
+
+	.scrollButtonLeft,
+	.scrollButtonRight {
+		display: none;
+	}
+}

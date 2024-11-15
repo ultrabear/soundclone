@@ -14,6 +14,7 @@ import type {
 	UserId,
 } from "./types";
 import { upgradeTimeStamps } from "./types";
+import { apiSongToStore, songsSlice } from "./songsSlice";
 
 const initialState: PlaylistSlice = {
 	playlists: {},
@@ -79,6 +80,7 @@ export const fetchPlaylist = createAsyncThunk(
 				),
 			),
 		);
+		dispatch(songsSlice.actions.addSongs(songs.songs.map(apiSongToStore)));
 	},
 );
 

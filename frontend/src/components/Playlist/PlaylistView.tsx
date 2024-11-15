@@ -12,7 +12,7 @@ import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
 
 type SongListItemProps = {
-	key: SongId;
+	id: SongId;
 	showAddToPlaylist: SongId | null;
 	setShowAddToPlaylist: (_: SongId) => void;
 	index: number;
@@ -21,17 +21,23 @@ type SongListItemProps = {
 };
 
 function SongListItem({
-	key,
+	id,
 	index,
 	setShowAddToPlaylist,
 	showAddToPlaylist,
 	addToPlaylist,
 	playSong,
 }: SongListItemProps) {
-	const song = useAppSelector((state) => state.song.songs[key]);
-	const artist = useAppSelector((state) => state.user.users[song.artist_id]);
+	const song = useAppSelector((state) => state.song.songs[id]);
+	const artist = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id]?.display_name : null,
+	);
 
 	const myPlaylists = useAppSelector((state) => state.playlist.playlists);
+
+	if (!song) {
+		return <>Loading song...</>;
+	}
 
 	return (
 		<div className="song-row">
@@ -42,7 +48,7 @@ function SongListItem({
 				</div>
 				<span className="song-name">{song.name}</span>
 			</div>
-			<div className="song-artist">{artist.display_name}</div>
+			<div className="song-artist">{artist}</div>
 			<div className="song-genre">{song.genre}</div>
 			<div className="song-actions">
 				<button
@@ -164,6 +170,7 @@ const PlaylistView: React.FC = () => {
 							{Object.keys(playlist.songs).map((songId, index) => (
 								<SongListItem
 									key={Number(songId)}
+									id={Number(songId)}
 									showAddToPlaylist={showAddToPlaylist}
 									setShowAddToPlaylist={setShowAddToPlaylist}
 									index={index}

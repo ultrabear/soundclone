@@ -15,8 +15,8 @@ import Layout from "../Layout/Layout";
 import { Sidebar } from "../Layout/Layout";
 import styles from "./SongDetailsPage.module.css";
 
-function Comment({ key }: { key: CommentId }): JSX.Element {
-	const comment = useAppSelector((state) => state.comment.comments[key]);
+function Comment({ id }: { id: CommentId }): JSX.Element {
+	const comment = useAppSelector((state) => state.comment.comments[id]);
 
 	const user = useAppSelector((state) =>
 		comment ? state.user.users[comment.author_id] : null,
@@ -246,7 +246,7 @@ const SongDetailsPage: React.FC = () => {
 							<div className={styles.commentsList}>
 								{Object.keys(comments).length > 0 ? (
 									Object.keys(comments).map((comment) => (
-										<Comment key={Number(comment)} />
+										<Comment key={Number(comment)} id={Number(comment)} />
 									))
 								) : (
 									<div className={styles.noComments}>

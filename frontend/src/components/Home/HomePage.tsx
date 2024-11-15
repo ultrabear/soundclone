@@ -75,10 +75,10 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 };
 
 function SongTile({
-	key,
+	id,
 	playSong,
-}: { key: SongId; playSong: (_: SongId) => void }) {
-	const song = useAppSelector((state) => state.song.songs[key]);
+}: { id: SongId; playSong: (_: SongId) => void }) {
+	const song = useAppSelector((state) => state.song.songs[id]);
 	const artist = useAppSelector(
 		(state) => state.user.users[song.artist_id].display_name,
 	);
@@ -178,7 +178,11 @@ const HomePage: React.FC = () => {
 							<div className={styles.heroSongs}>
 								{playlists[0]?.songs &&
 									Object.keys(playlists[0].songs).map((songId) => (
-										<SongTile key={Number(songId)} playSong={handlePlaySong} />
+										<SongTile
+											key={Number(songId)}
+											playSong={handlePlaySong}
+											id={Number(songId)}
+										/>
 									))}
 							</div>
 						</div>

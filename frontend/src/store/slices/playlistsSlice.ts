@@ -1,19 +1,19 @@
 import {
+	type PayloadAction,
 	createAsyncThunk,
 	createSlice,
-	type PayloadAction,
 } from "@reduxjs/toolkit";
+import type { RootState } from "..";
+import type { BasePlaylist, Id, Timestamps } from "../api";
+import { api } from "../api";
 import type {
-	PlaylistSlice,
 	Playlist,
 	PlaylistId,
+	PlaylistSlice,
 	SongId,
 	UserId,
 } from "./types";
 import { upgradeTimeStamps } from "./types";
-import type { BasePlaylist, Id, Timestamps } from "../api";
-import { api } from "../api";
-import type { RootState } from "..";
 
 const initialState: PlaylistSlice = {
 	playlists: {},

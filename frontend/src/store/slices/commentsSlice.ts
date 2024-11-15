@@ -1,18 +1,18 @@
 import {
+	type PayloadAction,
 	createAsyncThunk,
 	createSlice,
-	type PayloadAction,
 } from "@reduxjs/toolkit";
+import type { RootState } from "..";
+import { type UserComment, api } from "../api";
 import {
-	type StoreComment,
+	type CommentId,
 	type CommentsSlice,
 	type SongId,
+	type StoreComment,
 	upgradeTimeStamps,
-	type CommentId,
 } from "./types";
-import { api, type UserComment } from "../api";
 import { apiUserToStore, slice as userSlice } from "./userSlice";
-import type { RootState } from "..";
 
 const initialState: CommentsSlice = {
 	comments: {},

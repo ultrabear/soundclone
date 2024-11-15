@@ -3,17 +3,17 @@ import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
+import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import {
 	fetchNewReleases,
 	selectNewestSongs,
 } from "../../store/slices/songsSlice";
-import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
+import type { SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import styles from "./HomePage.module.css";
-import type { SongId } from "../../store/slices/types";
 
 interface ScrollableSectionProps {
 	title: string;

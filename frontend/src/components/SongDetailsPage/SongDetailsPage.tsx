@@ -4,16 +4,16 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import { postCommentThunk } from "../../store/slices/commentsSlice";
-import Layout from "../Layout/Layout";
-import styles from "./SongDetailsPage.module.css";
-import { Sidebar } from "../Layout/Layout";
-import type { CommentId } from "../../store/slices/types";
 import { slice as sessionSlice } from "../../store/slices/sessionSlice";
 import {
 	fetchSong,
 	selectSongById,
 	selectSongComments,
 } from "../../store/slices/songsSlice";
+import type { CommentId } from "../../store/slices/types";
+import Layout from "../Layout/Layout";
+import { Sidebar } from "../Layout/Layout";
+import styles from "./SongDetailsPage.module.css";
 
 function Comment({ key }: { key: CommentId }): JSX.Element {
 	const comment = useAppSelector((state) => state.comment.comments[key]);

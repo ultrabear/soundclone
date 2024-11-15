@@ -1,11 +1,11 @@
+import { createSelector } from "@reduxjs/toolkit";
 import type React from "react";
 import { useEffect } from "react";
-import { createSelector } from "@reduxjs/toolkit";
 import { Link, useNavigate } from "react-router-dom";
 import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { thunkLogout } from "../../store/slices/sessionSlice";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
+import { thunkLogout } from "../../store/slices/sessionSlice";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";

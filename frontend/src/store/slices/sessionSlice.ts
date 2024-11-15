@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
-import { api, type User as ApiUser } from "../api";
-import type { SessionSlice, SessionUser, UserId, User, SongId } from "./types";
+import { type User as ApiUser, api } from "../api";
+import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { slice as userSlice } from "./userSlice";
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {

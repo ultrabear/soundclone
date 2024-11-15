@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
+import { addSongs, selectSongsByArtist } from "../../store/slices/songsSlice";
 import type { PlaylistId } from "../../store/slices/types";
+import type { SongId } from "../../store/slices/types";
+import { getUserDetails } from "../../store/slices/userSlice";
 import Layout from "../Layout/Layout";
 import styles from "./ArtistPage.module.css";
-import { getUserDetails } from "../../store/slices/userSlice";
-import { addSongs, selectSongsByArtist } from "../../store/slices/songsSlice";
-import type { SongId } from "../../store/slices/types";
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();

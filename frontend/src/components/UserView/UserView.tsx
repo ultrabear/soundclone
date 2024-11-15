@@ -1,6 +1,5 @@
-import type React from "react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../store";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
@@ -8,15 +7,14 @@ import "./UserView.css";
 
 type TabType = "playlists" | "likes" | "uploads" | "profile";
 
-const UserView: React.FC = () => {
-	const { userId } = useParams<{ userId: string }>();
+function UserView({ tab }: { tab: TabType }) {
 	const navigate = useNavigate();
-	const [activeTab, setActiveTab] = useState<TabType>("playlists");
+	const [activeTab, setActiveTab] = useState<TabType>(tab);
 	const { user } = useAppSelector((state) => state.session);
 
 	const handleTabChange = (tab: TabType) => {
 		setActiveTab(tab);
-		navigate(`/user/${userId}/${tab}`);
+		navigate(`/user/${tab}`);
 	};
 
 	const renderContent = () => {
@@ -76,6 +74,6 @@ const UserView: React.FC = () => {
 			</div>
 		</Layout>
 	);
-};
+}
 
 export default UserView;

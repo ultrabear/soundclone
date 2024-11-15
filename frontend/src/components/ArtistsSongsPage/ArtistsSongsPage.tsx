@@ -58,7 +58,7 @@ const ArtistsSongsPage: React.FC = () => {
 
 	useEffect(() => {
 		if (userId) {
-			dispatch(fetchArtistSongs(parseInt(userId)));
+			dispatch(fetchArtistSongs(Number.parseInt(userId)));
 		}
 	}, [dispatch, userId]);
 
@@ -82,7 +82,7 @@ const ArtistsSongsPage: React.FC = () => {
 							</div>
 						</div>
 						<div className="track-waveform">
-							<div className="waveform-placeholder"></div>
+							<div className="waveform-placeholder" />
 						</div>
 					</div>
 

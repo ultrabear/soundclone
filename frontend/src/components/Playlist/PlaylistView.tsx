@@ -137,7 +137,7 @@ const PlaylistView: React.FC = () => {
 		<Layout>
 			<div className="playlist-view-wrapper">
 				<div className="playlist-hero">
-					<div className="playlist-hero-overlay"></div>
+					<div className="playlist-hero-overlay" />
 					<div className="playlist-hero-content">
 						<div className="playlist-hero-info">
 							<div className="playlist-artwork">

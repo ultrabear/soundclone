@@ -22,16 +22,9 @@ function SignupFormModal() {
 
 	const handleClientSideErrors = () => {
 		const errors = {} as {
-			email?: string;
 			password?: string;
 			confirmPassword?: string;
 		};
-		const validEmailRe =
-			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-		if (!validEmailRe.test(email)) {
-			errors.email = "Please enter a valid email address";
-		}
 
 		if (password.length < 5) {
 			errors.password = "Password must be at least 5 characters long";
@@ -82,7 +75,7 @@ function SignupFormModal() {
 				<label>
 					Email
 					<input
-						type="text"
+						type="email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required

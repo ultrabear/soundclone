@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useModal } from "../../context/useModal";
 import { useAppDispatch } from "../../store";
 import { thunkLogin } from "../../store/slices/sessionSlice";
+import "./LoginFormModal.css";
 
 function LoginFormModal() {
 	const dispatch = useAppDispatch();
@@ -12,31 +13,8 @@ function LoginFormModal() {
 	);
 	const { closeModal } = useModal();
 
-	const handleClientSideErrors = () => {
-		const errors = {} as {
-			email?: string;
-		};
-
-		const validEmailRe =
-			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-		if (!validEmailRe.test(email)) {
-			errors.email = "Please enter a valid email address";
-		}
-
-		return errors;
-	};
-
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-
-		const clientSideErrors = handleClientSideErrors();
-
-		if (Object.values(clientSideErrors).length > 0) {
-			return setErrors(clientSideErrors);
-		}
-
-		setErrors({});
 
 		const serverResponse = await dispatch(
 			thunkLogin({
@@ -62,7 +40,7 @@ function LoginFormModal() {
 				<label>
 					Email
 					<input
-						type="text"
+						type="email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required

@@ -5,7 +5,6 @@ import { togglePlayPause } from "../../store/playerSlice";
 import AudioService from "../../services/AudioService";
 import "./NowPlaying.css";
 import { api } from "../../store/api";
-import { slice as sessionSlice } from "../../store/slices/sessionSlice";
 import { likeSong, unlikeSong } from "../../store/slices/songsSlice";
 
 interface NowPlayingProps {

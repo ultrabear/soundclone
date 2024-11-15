@@ -5,11 +5,11 @@ import type { SongId } from "../../store/slices/types";
 import "./LikedSongsView.css";
 
 function SongListElement({
-	key,
+	id,
 	index,
 	playSong,
-}: { key: SongId; index: number; playSong: (_: SongId) => void }) {
-	const song = useAppSelector((state) => state.song.songs[key]);
+}: { id: SongId; index: number; playSong: (_: SongId) => void }) {
+	const song = useAppSelector((state) => state.song.songs[id]);
 	const artist = useAppSelector(
 		(state) => state.user.users[song.artist_id].display_name,
 	);
@@ -69,6 +69,7 @@ const LikedSongsView: React.FC = () => {
 					{Object.keys(likedSongs).map((song, index) => (
 						<SongListElement
 							key={Number(song)}
+							id={Number(song)}
 							index={index}
 							playSong={handlePlaySong}
 						/>

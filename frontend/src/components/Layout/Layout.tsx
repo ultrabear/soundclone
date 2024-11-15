@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type React from "react";
 import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
@@ -51,12 +51,6 @@ const Header: React.FC = () => {
 				<nav className="header-nav">
 					<Link to="/" className="nav-link active">
 						Home
-					</Link>
-					<Link to="/feed" className="nav-link">
-						Feed
-					</Link>
-					<Link to="/library" className="nav-link">
-						Library
 					</Link>
 				</nav>
 				<div className="search-container">

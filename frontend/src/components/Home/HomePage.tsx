@@ -3,8 +3,7 @@ import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
-import { addSongs } from "../../store/slices/songsSlice";
-import { slice as userSlice } from "../../store/slices/userSlice";
+import { fetchNewReleases } from "../../store/slices/songsSlice";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import type { SongWithUser } from "../../types";
 import Layout from "../Layout/Layout";
@@ -97,6 +96,7 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 				</div>
 				<div className={styles.scrollControls}>
 					<button
+						type="button"
 						onClick={() => scroll("left")}
 						className={styles.scrollButtonLeft}
 						aria-label="Scroll left"
@@ -104,6 +104,7 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 						←
 					</button>
 					<button
+						type="button"
 						onClick={() => scroll("right")}
 						className={styles.scrollButtonRight}
 						aria-label="Scroll right"
@@ -129,56 +130,18 @@ const HomePage: React.FC = () => {
 	const releasesRef = useRef<HTMLDivElement>(null);
 
 	const handlePlaySong = (songWithUser: SongWithUser) => {
-		dispatch(setCurrentSong(songWithUser as any));
+		dispatch(setCurrentSong(songWithUser.id));
 		dispatch(togglePlayPause());
 	};
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				// Fetch songs
-				const response = await fetch("/api/songs");
-				const data = await response.json();
-				console.log("Songs response:", data);
-
-				// Fetch artists
-				const uniqueArtistIds = [
-					...new Set(data.songs.map((song: any) => song.artist_id)),
-				];
-				const artistPromises = uniqueArtistIds.map((id) =>
-					fetch(`/api/artists/${id}`).then((res) => res.json()),
-				);
-				const artists = await Promise.all(artistPromises);
-
-				// Dispatch artists
-				const formattedArtists = artists.map((artist) => ({
-					id: artist.id,
-					display_name: artist.stage_name,
-					profile_image: artist.profile_image,
-					first_release: artist.first_release,
-					biography: artist.biography,
-					location: artist.location,
-					homepage_url: artist.homepage,
-				}));
-				dispatch(userSlice.actions.addUsers(formattedArtists));
-
-				// Dispatch songs
-				const formattedSongs = data.songs.map((song: any) => ({
-					id: song.id,
-					name: song.name,
-					artist_id: song.artist_id,
-					likes: song.num_likes,
-					genre: song.genre,
-					thumb_url: song.thumb_url,
-					song_url: song.song_ref,
-					created_at: song.created_at,
-					updated_at: song.updated_at,
-				}));
-				dispatch(addSongs(formattedSongs));
+				dispatch(fetchNewReleases());
 
 				// Fetch playlists if user is logged in
 				if (user) {
-					dispatch(fetchUserPlaylists(user.id));
+					dispatch(fetchUserPlaylists());
 				}
 			} catch (error) {
 				console.error("Error fetching data:", error);
@@ -219,7 +182,9 @@ const HomePage: React.FC = () => {
 								src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg"
 								alt="Playlist artwork"
 							/>
-							<button className={styles.heroPlayButton}>▶</button>
+							<button type="button" className={styles.heroPlayButton}>
+								▶
+							</button>
 						</div>
 						<div className={styles.heroContent}>
 							<div className={styles.heroSongs}>
@@ -243,6 +208,7 @@ const HomePage: React.FC = () => {
 													</span>
 												</Link>
 												<button
+													type="button"
 													className={styles.songPlayButton}
 													onClick={(e) => {
 														e.preventDefault();
@@ -261,6 +227,7 @@ const HomePage: React.FC = () => {
 					<div className={styles.heroFooter}>
 						{playlists[0] && (
 							<button
+								type="button"
 								className={styles.viewPlaylistButton}
 								onClick={() => navigate(`/playlist/${playlists[0].id}`)}
 							>
@@ -277,11 +244,11 @@ const HomePage: React.FC = () => {
 							if (!artist) return null;
 
 							return (
-								<div
+								<button
+									type="button"
 									key={artist.id}
 									className={styles.artistCard}
 									onClick={() => navigate(`/artists/${artist.id}`)}
-									role="button"
 									tabIndex={0}
 									onKeyDown={(e) => {
 										if (e.key === "Enter" || e.key === " ") {
@@ -298,7 +265,7 @@ const HomePage: React.FC = () => {
 										)}
 									</div>
 									<h3 className={styles.artistName}>{artist.display_name}</h3>
-								</div>
+								</button>
 							);
 						},
 					)}

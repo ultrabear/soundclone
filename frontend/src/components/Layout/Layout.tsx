@@ -89,6 +89,7 @@ const Header: React.FC = () => {
 									)}
 								</div>
 								<button
+									type="button"
 									className="header-button button-secondary"
 									onClick={handleLogout}
 								>
@@ -179,7 +180,7 @@ const Layout: React.FC<LayoutProps> = ({
 
 	useEffect(() => {
 		if (user) {
-			dispatch(fetchUserPlaylists(user.id));
+			dispatch(fetchUserPlaylists());
 		}
 	}, [dispatch, user]);
 
@@ -195,7 +196,7 @@ const Layout: React.FC<LayoutProps> = ({
 			</div>
 
 			<NowPlaying
-				currentSong={currentSong}
+				currentSong={currentSong?.id ?? null}
 				isPlaying={isPlaying}
 				className="now-playing-bar"
 			/>

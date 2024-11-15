@@ -105,11 +105,13 @@ const selectSongComments = createSelector(
 function Comment({ key }: { key: CommentId }): JSX.Element {
 	const comment = useAppSelector((state) => state.comment.comments[key]);
 
+	const user = useAppSelector((state) =>
+		comment ? state.user.users[comment.author_id] : null,
+	);
+
 	if (!comment) {
 		return <h1>Loading comment...</h1>;
 	}
-
-	const user = useAppSelector((state) => state.user.users[comment.author_id]);
 
 	if (!user) {
 		return <h1>Loading user...</h1>;

@@ -11,12 +11,13 @@ type LoadState = "no" | "pending" | "yes";
 
 function SongInPlaylist({ key }: { key: SongId }): JSX.Element {
 	const song = useAppSelector((state) => state.song.songs[key]);
+	const user = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id] : null,
+	);
 
 	if (!song) {
 		return <>Loading song...</>;
 	}
-
-	const user = useAppSelector((state) => state.user.users[song.artist_id]);
 
 	if (!user) {
 		return <>Loading user...</>;

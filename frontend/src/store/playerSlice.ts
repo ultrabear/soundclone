@@ -50,7 +50,7 @@ const playerSlice = createSlice({
 		toggleRepeat: (state) => {
 			const modes: ("none" | "one" | "all")[] = ["none", "one", "all"];
 			const currentIndex = modes.indexOf(state.repeat);
-			state.repeat = modes[(currentIndex + 1) % modes.length];
+			state.repeat = modes[(currentIndex + 1) % modes.length]!;
 		},
 		toggleShuffle: (state) => {
 			state.shuffle = !state.shuffle;

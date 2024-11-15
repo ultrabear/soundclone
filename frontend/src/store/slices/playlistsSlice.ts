@@ -122,7 +122,7 @@ const playlistsSlice = createSlice({
 
 			const list = state.playlists[playlist]?.songs;
 
-			if (list !== null) {
+			if (list != null && song in list) {
 				list[song] = null;
 			}
 		},
@@ -136,7 +136,7 @@ const playlistsSlice = createSlice({
 			const list = state.playlists[playlist]?.songs;
 
 			if (list !== null) {
-				delete list[song];
+				delete list?.[song];
 			}
 		},
 	},

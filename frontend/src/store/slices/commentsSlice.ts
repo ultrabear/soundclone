@@ -122,8 +122,11 @@ export const commentsSlice = createSlice({
 			action: PayloadAction<{ id: CommentId; updatedAt: string; text: string }>,
 		) => {
 			const commentToUpdate = state.comments[action.payload.id];
-			commentToUpdate.updated_at = action.payload.updatedAt;
-			commentToUpdate.text = action.payload.text;
+
+			if (commentToUpdate !== undefined) {
+				commentToUpdate.updated_at = action.payload.updatedAt;
+				commentToUpdate.text = action.payload.text;
+			}
 		},
 		deleteComment: (state, action: PayloadAction<CommentId>) => {
 			const deletedCommentId = action.payload;

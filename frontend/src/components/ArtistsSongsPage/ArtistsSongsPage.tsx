@@ -12,12 +12,16 @@ import type { SongId } from "../../store/slices/types";
 function SongListElement({ key, index }: { key: SongId; index: number }) {
 	const song = useAppSelector((state) => state.song.songs[key]);
 
-	const artist = useAppSelector(
-		(state) => state.user.users[song.artist_id].display_name,
+	const artist = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id]?.display_name : null,
 	);
 
+	if (!(song && artist)) {
+		return <div className="track-item">Loading Song/Artist...</div>;
+	}
+
 	return (
-		<div key={song.id} className="track-item">
+		<div className="track-item">
 			<div className="track-main">
 				<div className="track-number">{index + 1}</div>
 				<div className="track-artwork">

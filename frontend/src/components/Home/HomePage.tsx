@@ -79,12 +79,16 @@ function SongTile({
 	playSong,
 }: { id: SongId; playSong: (_: SongId) => void }) {
 	const song = useAppSelector((state) => state.song.songs[id]);
-	const artist = useAppSelector(
-		(state) => state.user.users[song.artist_id].display_name,
+	const artist = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id]?.display_name : null,
 	);
 
+	if (!(song && artist)) {
+		return <div className={styles.songItem}>Loading Song/Artist...</div>;
+	}
+
 	return (
-		<div key={song.id} className={styles.songItem}>
+		<div className={styles.songItem}>
 			<Link to={`/songs/${song.id}`} className={styles.songInfo}>
 				<span className={styles.songTitle}>{song.name}</span>
 				<span className={styles.songDivider}>—</span>
@@ -192,7 +196,7 @@ const HomePage: React.FC = () => {
 							<button
 								type="button"
 								className={styles.viewPlaylistButton}
-								onClick={() => navigate(`/playlist/${playlists[0].id}`)}
+								onClick={() => navigate(`/playlist/${playlists[0]!.id}`)}
 							>
 								Go to playlist
 							</button>

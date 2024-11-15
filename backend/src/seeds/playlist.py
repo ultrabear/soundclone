@@ -1,6 +1,6 @@
-from ..models import db, Playlist, environment
+from ..models import db, Playlist, Song, environment
 from sqlalchemy.sql import text
-from ..backend_api import BasePlaylist, Song  # Importing typed structures for playlists
+from ..backend_api import BasePlaylist  # Importing typed structures for playlists
 from datetime import datetime, timezone
 from typing import List
 

@@ -10,9 +10,13 @@ function SongListElement({
 	playSong,
 }: { id: SongId; index: number; playSong: (_: SongId) => void }) {
 	const song = useAppSelector((state) => state.song.songs[id]);
-	const artist = useAppSelector(
-		(state) => state.user.users[song.artist_id].display_name,
+	const artist = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id]?.display_name : null,
 	);
+
+	if (!(song && artist)) {
+		return <div className="song-row">Loading Song/Artist...</div>;
+	}
 
 	return (
 		<div className="song-row">

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useModal } from "../../context/useModal";
 import { useAppDispatch } from "../../store";
-import { thunkLogin } from "../../store/session";
-import "./LoginFormModal.css";
+import { thunkLogin } from "../../store/slices/sessionSlice";
 
 function LoginFormModal() {
 	const dispatch = useAppDispatch();
@@ -47,7 +46,10 @@ function LoginFormModal() {
 		);
 
 		if (serverResponse) {
-			setErrors(serverResponse);
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+			});
 		} else {
 			closeModal();
 		}

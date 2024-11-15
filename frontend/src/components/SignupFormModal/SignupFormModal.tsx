@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useModal } from "../../context/useModal";
 import { useAppDispatch } from "../../store";
-import { thunkSignup } from "../../store/session";
+import { thunkSignup } from "../../store/slices/sessionSlice";
 
 function SignupFormModal() {
 	const dispatch = useAppDispatch();
@@ -63,9 +63,12 @@ function SignupFormModal() {
 				password,
 			}),
 		);
-
 		if (serverResponse) {
-			setErrors(serverResponse);
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+				username: serverResponse.errors?.username,
+			});
 		} else {
 			closeModal();
 		}

@@ -1,172 +1,137 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import type { CommentWithUser } from "../../types";
-import { api } from "../api";
-import type { RootState } from "../index";
+import {
+	type PayloadAction,
+	createAsyncThunk,
+	createSlice,
+} from "@reduxjs/toolkit";
+import type { RootState } from "..";
+import { type UserComment, api } from "../api";
+import {
+	type CommentId,
+	type CommentsSlice,
+	type SongId,
+	type StoreComment,
+	upgradeTimeStamps,
+} from "./types";
+import { apiUserToStore, slice as userSlice } from "./userSlice";
 
-interface CommentsState {
-	comments: CommentWithUser[];
-	loading: boolean;
-	error: string | null;
-}
-
-interface CommentPayload {
-	songId: number;
-	text: string;
-}
-
-const initialState: CommentsState = {
-	comments: [],
-	loading: false,
-	error: null,
+const initialState: CommentsSlice = {
+	comments: {},
 };
+
+export function apiCommentToStore(
+	songId: SongId,
+	comment: UserComment,
+): StoreComment {
+	const { user_id, ...rest } = comment;
+
+	return upgradeTimeStamps({
+		...rest,
+		song_id: songId,
+		author_id: comment.user_id,
+	});
+}
 
 //fetch song comments thunk
 export const fetchComments = createAsyncThunk(
 	"comments/fetchComments",
-	async (songId: number, { rejectWithValue }) => {
-		try {
-			const { comments } = await api.comments.getForSong(songId);
-			const commentsWithUsers = await Promise.all(
-				comments.map(async (comment) => {
-					const user = await api.users.getOne(comment.user_id);
+	async (songId: SongId, { dispatch }) => {
+		const { comments } = await api.comments.getForSong(songId);
+		const users = await Promise.all(
+			comments.map(async (comment) => {
+				return api.artists.getOne(comment.user_id);
+			}),
+		);
+		const arr = users.filter((v) => v !== null).map(apiUserToStore);
+		dispatch(userSlice.actions.addUsers(arr));
 
-					const commentWithUser: CommentWithUser = {
-						id: comment.id,
-						song_id: songId,
-						author_id: comment.user_id,
-						comment_text: comment.text,
-						created_at: comment.created_at,
-						updated_at: comment.updated_at,
-						user: {
-							id: user.id,
-							username: user.username,
-							profile_image: user.profile_image ?? null,
-						},
-					};
-					return commentWithUser;
-				}),
-			);
-			return commentsWithUsers;
-		} catch (err) {
-			return rejectWithValue("Failed to fetch comments");
-		}
+		const storeComments = comments.map((comment) => {
+			return apiCommentToStore(songId, comment);
+		});
+		dispatch(commentsSlice.actions.getComments(storeComments));
 	},
 );
 
 //post a new comment thunk
-export const postComment = createAsyncThunk(
+export const postCommentThunk = createAsyncThunk(
 	"comments/postComment",
-	async ({ songId, text }: CommentPayload, { getState, rejectWithValue }) => {
-		try {
-			const state = getState() as RootState;
-			const { user } = state.session;
-			if (!user) {
-				return rejectWithValue("User not authenticated");
-			}
-			const response = await api.comments.create(songId, { text });
+	async (
+		{ songId, text }: { songId: SongId; text: string },
+		{ dispatch, getState },
+	) => {
+		const response = await api.comments.create(songId, { text });
+		const currentState = getState() as RootState;
+		const userId = currentState.session.user!.id;
 
-			const newComment: CommentWithUser = {
-				id: response.id,
-				song_id: songId,
-				author_id: user.id,
-				comment_text: text,
-				created_at: response.created_at,
-				updated_at: response.updated_at,
-				user: {
-					id: user.id,
-					username: user.username,
-					profile_image: user.profile_image ?? null,
-				},
-			};
-			return newComment;
-		} catch (err) {
-			return rejectWithValue("Failed to post comment");
-		}
+		const apiComment: UserComment = {
+			id: response.id,
+			text,
+			user_id: userId,
+			created_at: response.created_at,
+			updated_at: response.updated_at,
+		};
+		const storeComment = apiCommentToStore(songId, apiComment);
+
+		dispatch(commentsSlice.actions.addComment(storeComment));
 	},
 );
 
 // Async thunk to edit a comment
-export const editComment = createAsyncThunk(
+export const editCommentThunk = createAsyncThunk(
 	"comments/editComment",
 	async (
-		{ commentId, text }: { commentId: number; text: string },
-		{ getState, rejectWithValue },
+		{ commentId, text }: { commentId: number; songId: SongId; text: string },
+		{ dispatch },
 	) => {
-		try {
-			const state = getState() as RootState;
-			const { user } = state.session;
-			if (!user) {
-				return rejectWithValue("User not authenticated");
-			}
-			const response = await api.comments.update(commentId, { text });
-			return { commentId, comment_text: text, updated_at: response.updated_at };
-		} catch (err) {
-			return rejectWithValue("Failed to edit comment");
-		}
+		const response = await api.comments.update(commentId, { text });
+		dispatch(
+			commentsSlice.actions.editComment({
+				id: commentId,
+				text,
+				updatedAt: response.updated_at,
+			}),
+		);
 	},
 );
 
 //delete comment
-export const deleteComment = createAsyncThunk(
+export const deleteCommentThunk = createAsyncThunk(
 	"comments/deleteComment",
-	async (commentId: number, { rejectWithValue }) => {
-		try {
-			await api.comments.delete(commentId);
-			return commentId;
-		} catch (err) {
-			return rejectWithValue("Failed to delete comment");
-		}
+	async (commentId: number, { dispatch }) => {
+		await api.comments.delete(commentId);
+		dispatch(commentsSlice.actions.deleteComment(commentId));
+		return commentId;
 	},
 );
 
 //comment slice
-const commentsSlice = createSlice({
+export const commentsSlice = createSlice({
 	name: "comments",
 	initialState,
 	reducers: {
-		clearComments: (state) => {
-			state.comments = [];
-			state.error = null;
+		getComments: (state, action: PayloadAction<StoreComment[]>) => {
+			for (const c of action.payload) {
+				state.comments[c.id] = c;
+			}
 		},
-	},
-	extraReducers: (builder) => {
-		builder
-			.addCase(fetchComments.pending, (state) => {
-				state.loading = true;
-				state.error = null;
-			})
-			.addCase(fetchComments.fulfilled, (state, action) => {
-				state.loading = false;
-				state.comments = action.payload;
-			})
-			.addCase(fetchComments.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload as string;
-			})
-			.addCase(postComment.fulfilled, (state, action) => {
-				state.comments.unshift(action.payload);
-			})
-			.addCase(postComment.rejected, (state, action) => {
-				state.error = action.payload as string;
-			})
-			.addCase(editComment.fulfilled, (state, action) => {
-				const { commentId, comment_text, updated_at } = action.payload;
-				const comment = state.comments.find((c) => c.id === commentId);
-				if (comment) {
-					comment.comment_text = comment_text;
-					comment.updated_at = updated_at;
-				}
-			})
-			.addCase(editComment.rejected, (state, action) => {
-				state.error = action.payload as string;
-			})
-			.addCase(deleteComment.fulfilled, (state, action) => {
-				const commentId = action.payload;
-				state.comments = state.comments.filter((c) => c.id !== commentId);
-			})
-			.addCase(deleteComment.rejected, (state, action) => {
-				state.error = action.payload as string;
-			});
+		addComment: (state, action: PayloadAction<StoreComment>) => {
+			const newComment = action.payload;
+			state.comments[newComment.id] = newComment;
+		},
+		editComment: (
+			state,
+			action: PayloadAction<{ id: CommentId; updatedAt: string; text: string }>,
+		) => {
+			const commentToUpdate = state.comments[action.payload.id];
+			commentToUpdate.updated_at = action.payload.updatedAt;
+			commentToUpdate.text = action.payload.text;
+		},
+		deleteComment: (state, action: PayloadAction<CommentId>) => {
+			const deletedCommentId = action.payload;
+			delete state.comments[deletedCommentId];
+		},
+		clearComments: (state) => {
+			state.comments = {};
+		},
 	},
 });
 

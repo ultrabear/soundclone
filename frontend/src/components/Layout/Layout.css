@@ -1,16 +1,15 @@
 :root {
-	--header-height: 60px;
-	--sidebar-width: 420px;
-	--section-width: 70%;
+	--header-height: 46px;
+	--sidebar-width: 300px;
 	--primary-color: #ff5500;
-	--background-color: #ffffff;
+	--background-color: #f2f2f2;
 	--text-primary: #333;
 	--text-secondary: #999;
 	--border-color: #e5e5e5;
 	--header-background: #333;
-	margin-top: -60px;
-	padding-top: 60px;
 	--search-background: #e5e5e5;
+	--max-content-width: 1240px;
+	--content-padding: 30px;
 }
 
 * {
@@ -59,13 +58,9 @@ body {
 	background: var(--background-color);
 }
 
-/* Wrapper for centering the main content and sidebar */
-.centered-content {
-	display: flex;
-	width: 90%;
-	max-width: 1240px;
-	margin: 0 auto;
-	position: relative;
+.app-container.full-width .main-content {
+	max-width: 100%;
+	padding: 0;
 }
 
 /* Header Styles */
@@ -81,24 +76,20 @@ body {
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 100vw;
+	width: 100%;
 	height: var(--header-height);
 	background: var(--header-background);
 	z-index: 1000;
-	display: flex;
-	justify-content: center;
 }
 
-/* Centering the header content within the header */
 .header-content {
-	width: 100%;
-	max-width: 1200px;
+	max-width: var(--max-content-width);
 	height: 100%;
-	padding: 0 16px;
+	margin: 0 auto;
+	padding: 0 var(--content-padding);
 	display: flex;
 	align-items: center;
-	gap: 32px;
-	margin: 0 auto;
+	gap: 20px;
 }
 
 .app-title {
@@ -248,16 +239,6 @@ body {
 	color: var(--primary-color);
 }
 
-/* Main Content Area */
-.main-content {
-	flex: 1;
-	min-width: 0;
-	padding: 20px 40px 30px 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
 /* Content Sections */
 .content-section {
 	width: 100%;
@@ -273,10 +254,30 @@ body {
 }
 
 .content-wrapper {
-	display: flex;
-	width: 100%;
 	padding-top: var(--header-height);
-	margin-top: 0;
+	min-height: calc(100vh - var(--header-height));
+	display: flex;
+	flex-direction: column;
+}
+
+.centered-content {
+	max-width: var(--max-content-width);
+	margin: 0 auto;
+	padding: 0 var(--content-padding);
+	display: flex;
+	gap: 30px;
+	width: 100%;
+	position: relative;
+}
+
+.main-content {
+	flex: 1;
+	min-width: 0;
+	padding: 30px 0;
+}
+
+.main-content.full-width {
+	padding: 0;
 }
 
 .section-header {

@@ -42,24 +42,28 @@ const UserView: React.FC = () => {
 					<nav className="user-nav">
 						<div className="tab-list">
 							<button
+								type="button"
 								className={`tab-button ${activeTab === "playlists" ? "active" : ""}`}
 								onClick={() => handleTabChange("playlists")}
 							>
 								Playlists
 							</button>
 							<button
+								type="button"
 								className={`tab-button ${activeTab === "likes" ? "active" : ""}`}
 								onClick={() => handleTabChange("likes")}
 							>
 								Likes
 							</button>
 							<button
+								type="button"
 								className={`tab-button ${activeTab === "uploads" ? "active" : ""}`}
 								onClick={() => handleTabChange("uploads")}
 							>
 								Uploads
 							</button>
 							<button
+								type="button"
 								className={`tab-button ${activeTab === "profile" ? "active" : ""}`}
 								onClick={() => handleTabChange("profile")}
 							>

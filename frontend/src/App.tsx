@@ -6,8 +6,8 @@ import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
 import PlaylistsScreen from "./components/PlaylistsScreen/PlaylistsScreen";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
-import SongUploadForm from "./components/SongUploadForm/SongUploadForm";
 import SongDetailsPage from "./components/SongDetailsPage/SongDetailsPage";
+import SongUploadForm from "./components/SongUploadForm/SongUploadForm";
 import UserView from "./components/UserView/UserView";
 
 import { useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import { Outlet } from "react-router-dom";
 import Navigation from "./components/Navigation/Navigation";
 import { Modal, ModalProvider } from "./context/Modal";
 import { useAppDispatch } from "./store";
-import { thunkAuthenticate } from "./store/session";
+import { thunkAuthenticate } from "./store/slices/sessionSlice";
 
 function Layout() {
 	const dispatch = useAppDispatch();

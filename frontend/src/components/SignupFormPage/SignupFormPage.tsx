@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { thunkSignup } from "../../store/session";
+import { thunkSignup } from "../../store/slices/sessionSlice";
 
 function SignupFormPage() {
 	const dispatch = useAppDispatch();
@@ -42,7 +42,11 @@ function SignupFormPage() {
 		);
 
 		if (serverResponse) {
-			setErrors(serverResponse);
+			setErrors({
+				email: serverResponse.errors?.email,
+				password: serverResponse.errors?.password,
+				username: serverResponse.errors?.username,
+			});
 		} else {
 			navigate("/");
 		}

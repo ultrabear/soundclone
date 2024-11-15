@@ -23,6 +23,7 @@ dependencies = [
     "boto3-stubs[ec2,s3]>=1.35.59",
     "pydub>=0.25.1",
     "pydub-stubs>=0.25.1.4",
+    "gunicorn>=23.0.0",
 ]
 
 [tool.ruff]

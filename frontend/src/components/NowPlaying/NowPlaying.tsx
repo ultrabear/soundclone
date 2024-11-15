@@ -1,13 +1,14 @@
-import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { togglePlayPause } from "../../store/playerSlice";
+import AudioService from "../../services/AudioService";
 import "./NowPlaying.css";
-import type { SongId } from "../../store/slices/types";
+import { api } from "../../store/api";
+import { slice as sessionSlice } from "../../store/slices/sessionSlice";
 
 interface NowPlayingProps {
-	currentSong: SongId | null;
+	currentSong: number | null;
 	isPlaying: boolean;
 	className?: string;
 }
@@ -18,41 +19,95 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	className = "",
 }) => {
 	const dispatch = useAppDispatch();
-	const [currentTime, setCurrentTime] = useState(0);
-	const [duration, setDuration] = useState(0);
-	const audioRef = useRef<HTMLAudioElement>(null);
-	const progressRef = useRef<HTMLDivElement>(null);
 
-	const currentSong = useAppSelector((state) =>
+	const [currentTime, setCurrentTime] = useState(() =>
+		AudioService.getCurrentTime(),
+	);
+	const [duration, setDuration] = useState(() => AudioService.getDuration());
+	const [volume, setVolume] = useState(() => AudioService.getVolume());
+	const [showToast, setShowToast] = useState(false);
+	const [toastMessage, setToastMessage] = useState("");
+
+	const progressRef = useRef<HTMLDivElement>(null);
+	const volumeRef = useRef<HTMLDivElement>(null);
+
+	const currentSongData = useAppSelector((state) =>
 		songId ? state.song.songs[songId] : null,
 	);
 
 	const songArtist = useAppSelector((state) =>
-		currentSong ? state.user.users[currentSong.artist_id] : null,
+		currentSongData ? state.user.users[currentSongData.artist_id] : null,
+	);
+
+	const { user } = useAppSelector((state) => state.session);
+	const isLiked = useAppSelector((state) =>
+		songId ? songId in state.session.likes : false,
 	);
 
 	useEffect(() => {
-		if (audioRef.current) {
-			if (isPlaying) {
-				audioRef.current.play();
-			} else {
-				audioRef.current.pause();
-			}
+		console.log("NowPlaying component state:", {
+			user,
+			songId,
+			isLiked,
+		});
+	}, [user, songId, isLiked]);
+
+	useEffect(() => {
+		if (currentSongData?.song_url) {
+			console.log("[NowPlaying] Setting song:", currentSongData.name);
+			AudioService.setSource(currentSongData.song_url);
+		}
+	}, [currentSongData]);
+
+	//  play/pause state
+	useEffect(() => {
+		console.log("[NowPlaying] Play state changed:", isPlaying);
+		if (isPlaying) {
+			AudioService.play().catch((e) => console.error("Play error:", e));
+		} else {
+			AudioService.pause();
 		}
 	}, [isPlaying]);
+
+	// time and duration listeners
+	useEffect(() => {
+		// sync with current audio state
+		setCurrentTime(AudioService.getCurrentTime());
+		setDuration(AudioService.getDuration());
+		setVolume(AudioService.getVolume());
+
+		const timeCleanup = AudioService.onTimeUpdate(setCurrentTime);
+		const durationCleanup = AudioService.onDurationChange(setDuration);
+		const volumeCleanup = AudioService.onVolumeChange(setVolume);
+
+		return () => {
+			timeCleanup();
+			durationCleanup();
+			volumeCleanup();
+		};
+	}, []);
 
 	const handleTogglePlay = () => {
 		dispatch(togglePlayPause());
 	};
 
 	const handleProgress = (e: React.MouseEvent<HTMLDivElement>) => {
-		if (progressRef.current && audioRef.current) {
+		if (progressRef.current && duration) {
 			const rect = progressRef.current.getBoundingClientRect();
 			const x = e.clientX - rect.left;
 			const percentage = x / rect.width;
 			const newTime = percentage * duration;
-			audioRef.current.currentTime = newTime;
-			setCurrentTime(newTime);
+			AudioService.setCurrentTime(newTime);
+		}
+	};
+
+	const handleVolumeChange = (e: React.MouseEvent<HTMLDivElement>) => {
+		if (volumeRef.current) {
+			const rect = volumeRef.current.getBoundingClientRect();
+			const x = e.clientX - rect.left;
+			const newVolume = Math.max(0, Math.min(1, x / rect.width));
+			AudioService.setVolume(newVolume);
+			setVolume(newVolume);
 		}
 	};
 
@@ -62,37 +117,99 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 		return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 	};
 
+	const handleLikeToggle = async () => {
+		console.log("Like toggle - Initial state:", {
+			user,
+			songId,
+			isLiked,
+		});
+
+		if (!user || !songId) {
+			setToastMessage("Please log in to like songs");
+			setShowToast(true);
+			setTimeout(() => setShowToast(false), 2000);
+			return;
+		}
+
+		try {
+			const method = isLiked ? "DELETE" : "POST";
+			console.log(`Attempting ${method} request for song ${songId}`);
+
+			// Update Redux first
+			if (isLiked) {
+				dispatch(sessionSlice.actions.removeLike(songId));
+				await api.likes.toggleLike(songId, "DELETE");
+			} else {
+				dispatch(sessionSlice.actions.addLike(songId));
+				await api.likes.toggleLike(songId, "POST");
+			}
+
+			setToastMessage(
+				isLiked ? "Song removed from likes!" : "Song added to likes!",
+			);
+			setShowToast(true);
+		} catch (e) {
+			// Type assertion for error
+			const error = e as {
+				message?: string;
+				api?: { message: string };
+				response?: { status: number };
+			};
+
+			console.error("Like toggle error:", {
+				message: error.message || "Unknown error",
+				apiError: error.api || {},
+				status: error.response?.status,
+			});
+
+			// Revert Redux state on error
+			if (isLiked) {
+				dispatch(sessionSlice.actions.addLike(songId));
+			} else {
+				dispatch(sessionSlice.actions.removeLike(songId));
+			}
+			setToastMessage("Error updating like status");
+			setShowToast(true);
+		} finally {
+			setTimeout(() => setShowToast(false), 2000);
+		}
+	};
+
 	return (
 		<div className={`now-playing ${className}`}>
+			{showToast && <div className="toast-notification">{toastMessage}</div>}
 			<div className="now-playing-inner">
-				{currentSong && songArtist ? (
+				{currentSongData && songArtist ? (
 					<>
 						<div className="now-playing-left">
-							<div className="now-playing-art">
+							<Link
+								to={`/songs/${currentSongData.id}`}
+								className="now-playing-art"
+							>
 								<img
-									src={currentSong.thumb_url || "/default-album-art.png"}
-									alt={currentSong.name}
+									src={currentSongData.thumb_url || "/default-album-art.png"}
+									alt={currentSongData.name}
 								/>
-							</div>
+							</Link>
 							<div className="now-playing-info">
-								<Link to={`/songs/${currentSong.id}`} className="song-name">
-									{currentSong.name}
+								<Link to={`/songs/${currentSongData.id}`} className="song-name">
+									{currentSongData.name}
 								</Link>
-								<Link to={`/users/${songArtist.id}`} className="artist-name">
+								<Link to={`/artists/${songArtist.id}`} className="artist-name">
 									{songArtist.display_name}
 								</Link>
 							</div>
+							<button
+								className={`like-button ${isLiked ? "liked" : ""}`}
+								onClick={handleLikeToggle}
+								aria-label={isLiked ? "Unlike" : "Like"}
+							>
+								{isLiked ? "❤️" : "♡"}
+							</button>
 						</div>
 
 						<div className="now-playing-center">
 							<div className="playback-controls">
-								<button
-									type="button"
-									className="control-button"
-									aria-label="Previous"
-								>
-									⏮
-								</button>
 								<button
 									type="button"
 									className="control-button play-button"
@@ -100,13 +217,6 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 									aria-label={isPlaying ? "Pause" : "Play"}
 								>
 									{isPlaying ? "⏸" : "▶"}
-								</button>
-								<button
-									type="button"
-									className="control-button"
-									aria-label="Next"
-								>
-									⏭
 								</button>
 							</div>
 
@@ -119,29 +229,16 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 								>
 									<div
 										className="progress-bar-fill"
-										style={{ width: `${(currentTime / duration) * 100}%` }}
+										style={{
+											width: `${duration ? (currentTime / duration) * 100 : 0}%`,
+										}}
 									/>
 								</div>
 								<span className="time">{formatTime(duration)}</span>
 							</div>
-
-							<audio
-								ref={audioRef}
-								src={currentSong.song_url}
-								onTimeUpdate={() =>
-									audioRef.current &&
-									setCurrentTime(audioRef.current.currentTime)
-								}
-								onLoadedMetadata={() =>
-									audioRef.current && setDuration(audioRef.current.duration)
-								}
-							/>
 						</div>
 
 						<div className="now-playing-right">
-							<button type="button" className="action-button" aria-label="Like">
-								♡
-							</button>
 							<div className="volume-control">
 								<button
 									type="button"
@@ -150,7 +247,18 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 								>
 									🔊
 								</button>
-								<div className="volume-slider" />
+								<div className="volume-slider-container">
+									<div
+										className="volume-slider"
+										ref={volumeRef}
+										onClick={handleVolumeChange}
+									>
+										<div
+											className="volume-slider-fill"
+											style={{ width: `${volume * 100}%` }}
+										/>
+									</div>
+								</div>
 							</div>
 						</div>
 					</>

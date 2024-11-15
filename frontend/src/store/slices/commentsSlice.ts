@@ -12,13 +12,16 @@ import {
 } from "./types";
 import { api, type UserComment } from "../api";
 import { apiUserToStore, slice as userSlice } from "./userSlice";
-import { type RootState } from "..";
+import type { RootState } from "..";
 
 const initialState: CommentsSlice = {
 	comments: {},
 };
 
-function apiCommentToStore(songId: SongId, comment: UserComment): StoreComment {
+export function apiCommentToStore(
+	songId: SongId,
+	comment: UserComment,
+): StoreComment {
 	const { user_id, ...rest } = comment;
 
 	return upgradeTimeStamps({
@@ -101,14 +104,14 @@ export const deleteCommentThunk = createAsyncThunk(
 );
 
 //comment slice
-const commentsSlice = createSlice({
+export const commentsSlice = createSlice({
 	name: "comments",
 	initialState,
 	reducers: {
 		getComments: (state, action: PayloadAction<StoreComment[]>) => {
-			action.payload.forEach((comment) => {
-				state.comments[comment.id] = comment;
-			});
+			for (const c of action.payload) {
+				state.comments[c.id] = c;
+			}
 		},
 		addComment: (state, action: PayloadAction<StoreComment>) => {
 			const newComment = action.payload;

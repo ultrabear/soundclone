@@ -83,7 +83,7 @@ function normalizeApiUser(u: ApiUser): [SessionUser, User] {
 	};
 
 	if (typeof first_release === "string") {
-		user.first_release = new Date(first_release);
+		user.first_release = first_release;
 	}
 
 	if (typeof profile_image === "string") {

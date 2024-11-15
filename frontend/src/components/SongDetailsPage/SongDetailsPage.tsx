@@ -3,104 +3,17 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import {
-	fetchComments,
-	postCommentThunk,
-} from "../../store/slices/commentsSlice";
-import type { SongWithUser } from "../../types";
+import { postCommentThunk } from "../../store/slices/commentsSlice";
 import Layout from "../Layout/Layout";
-import { api } from "../../store/api";
 import styles from "./SongDetailsPage.module.css";
 import { Sidebar } from "../Layout/Layout";
-import { createSelector } from "@reduxjs/toolkit";
-import type { RootState } from "../../store";
-import type { CommentId, UserId } from "../../store/slices/types";
-import { slice as userSlice } from "../../store/slices/userSlice";
+import type { CommentId } from "../../store/slices/types";
 import { slice as sessionSlice } from "../../store/slices/sessionSlice";
-
-interface DisplayComment {
-	id: CommentId;
-	text: string;
-	created_at: string;
-	updated_at: string;
-	user: {
-		id: UserId;
-		username: string;
-		stage_name: string;
-		profile_image: string | null;
-	};
-}
-
-// Selector for current song with user info
-const selectCurrentSongWithUser = createSelector(
-	[
-		(state: RootState) => state.song.songs,
-		(state: RootState) => state.user.users,
-		(_: RootState, songId: string | undefined) => songId,
-	],
-	(songs, users, songId): SongWithUser | null => {
-		if (!songId) return null;
-		const song = songs[Number.parseInt(songId)];
-		if (!song) return null;
-
-		const user = users[song.artist_id];
-		if (!user) return null;
-
-		return {
-			...song,
-			song_ref: song.song_url,
-			genre: song.genre ?? null,
-			thumb_url: song.thumb_url ?? null,
-			created_at: song.created_at,
-			updated_at: song.updated_at,
-			user: {
-				id: user.id,
-				username: user.display_name,
-				stage_name: user.display_name,
-				profile_image: user.profile_image ?? null,
-			},
-		};
-	},
-);
-
-// Updated comment selector to use store types properly
-const selectSongComments = createSelector(
-	[
-		(state: RootState) => state.song.comments,
-		(state: RootState) => state.comment.comments,
-		(state: RootState) => state.user.users,
-		(_: RootState, songId: string | undefined) => songId,
-	],
-	(songComments, comments, users, songId): DisplayComment[] => {
-		if (!songId) return [];
-		const songId_num = Number.parseInt(songId);
-		const commentIds = songComments[songId_num] ?? {};
-
-		return Object.keys(commentIds)
-			.map((id) => {
-				const commentId = Number.parseInt(id);
-				const comment = comments[commentId];
-				if (!comment) return null;
-
-				const user = users[comment.author_id];
-				if (!user) return null;
-
-				return {
-					id: comment.id,
-					text: comment.text,
-					created_at: comment.created_at,
-					updated_at: comment.updated_at,
-					user: {
-						id: user.id,
-						username: user.display_name,
-						stage_name: user.display_name,
-						profile_image: user.profile_image ?? null,
-					},
-				};
-			})
-			.filter((comment): comment is DisplayComment => comment !== null);
-	},
-);
+import {
+	fetchSong,
+	selectSongById,
+	selectSongComments,
+} from "../../store/slices/songsSlice";
 
 function Comment({ key }: { key: CommentId }): JSX.Element {
 	const comment = useAppSelector((state) => state.comment.comments[key]);
@@ -139,10 +52,14 @@ const SongDetailsPage: React.FC = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const song = useAppSelector((state) =>
-		selectCurrentSongWithUser(state, songId),
+	const song = useAppSelector((state) => selectSongById(state, Number(songId)));
+	const comments = useAppSelector((state) =>
+		selectSongComments(state, Number(songId)),
 	);
-	const comments = useAppSelector((state) => selectSongComments(state, songId));
+	const artist = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id] : null,
+	);
+
 	const session = useAppSelector((state) => state.session.user);
 	const user = useAppSelector(
 		(state) => session && state.user.users[session.id],
@@ -159,24 +76,8 @@ const SongDetailsPage: React.FC = () => {
 			if (songId) {
 				try {
 					setLoading(true);
-					const songData = await api.songs.getOne(Number.parseInt(songId));
-					const artistData = await api.artists.getOne(songData.artist_id);
 
-					dispatch(
-						userSlice.actions.addUser({
-							id: artistData.id,
-							display_name: artistData.stage_name,
-							profile_image: artistData.profile_image,
-							first_release: artistData.first_release
-								? new Date(artistData.first_release)
-								: undefined,
-							biography: artistData.biography,
-							location: artistData.location,
-							homepage_url: artistData.homepage,
-						}),
-					);
-
-					dispatch(fetchComments(Number.parseInt(songId)));
+					await dispatch(fetchSong(Number(songId)));
 				} catch (err) {
 					setError("Failed to load song details.");
 				} finally {
@@ -279,7 +180,7 @@ const SongDetailsPage: React.FC = () => {
 
 								<div className={styles.songInfo}>
 									<div className={styles.artistName}>
-										{song.user.stage_name || song.user.username}
+										{artist?.display_name}
 									</div>
 									<h1 className={styles.songTitle}>{song.name}</h1>
 									<div className={styles.songMeta}>
@@ -299,8 +200,8 @@ const SongDetailsPage: React.FC = () => {
 
 						<div className={styles.heroRight}>
 							<img
-								src={song.user.profile_image || "/default-profile.png"}
-								alt={song.user.username}
+								src={artist?.profile_image || "/default-profile.png"}
+								alt={artist?.display_name}
 							/>
 						</div>
 					</div>
@@ -343,8 +244,10 @@ const SongDetailsPage: React.FC = () => {
 							)}
 
 							<div className={styles.commentsList}>
-								{comments.length > 0 ? (
-									comments.map((comment) => <Comment key={comment.id} />)
+								{Object.keys(comments).length > 0 ? (
+									Object.keys(comments).map((comment) => (
+										<Comment key={Number(comment)} />
+									))
 								) : (
 									<div className={styles.noComments}>
 										No comments yet. Be the first to comment!

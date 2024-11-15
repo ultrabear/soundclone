@@ -14,9 +14,10 @@ import {
 	type RSet,
 	upgradeTimeStamps,
 } from "./types";
-import { slice as userSlice } from "./userSlice";
+import { apiUserToStore, slice as userSlice } from "./userSlice";
 import type { AppDispatch, RootState } from "..";
 import { slice as sessionSlice } from "./sessionSlice";
+import { apiCommentToStore, commentsSlice } from "./commentsSlice";
 
 const initialState: SongSlice = {
 	songs: {},
@@ -77,9 +78,7 @@ export const fetchNewReleases = createAsyncThunk(
 						id: artist.id as UserId,
 						display_name: artist.stage_name,
 						profile_image: artist.profile_image,
-						first_release: artist.first_release
-							? new Date(artist.first_release)
-							: undefined,
+						first_release: artist.first_release,
 						biography: artist.biography,
 						location: artist.location,
 						homepage_url: artist.homepage,
@@ -137,9 +136,7 @@ export const fetchArtistSongs = createAsyncThunk(
 					id: artist.id as UserId,
 					display_name: artist.stage_name,
 					profile_image: artist.profile_image,
-					first_release: artist.first_release
-						? new Date(artist.first_release)
-						: undefined,
+					first_release: artist.first_release,
 					biography: artist.biography,
 					location: artist.location,
 					homepage_url: artist.homepage,
@@ -148,6 +145,26 @@ export const fetchArtistSongs = createAsyncThunk(
 		}
 
 		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
+	},
+);
+
+export const fetchSong = createAsyncThunk(
+	"songs/fetchSong",
+	async (songId: SongId, { dispatch }) => {
+		const [song, comments] = await Promise.all([
+			api.songs.getOne(songId),
+			api.comments.getForSong(songId),
+		]);
+
+		const artist = await api.artists.getOne(song.artist_id);
+
+		dispatch(songsSlice.actions.addSongs([apiSongToStore(song)]));
+		dispatch(
+			commentsSlice.actions.getComments(
+				comments.comments.map((c) => apiCommentToStore(songId, c)),
+			),
+		);
+		dispatch(userSlice.actions.addUser(apiUserToStore(artist)));
 	},
 );
 

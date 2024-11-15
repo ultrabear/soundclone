@@ -4,45 +4,11 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import type { PlaylistId } from "../../store/slices/types";
-import type { SongWithUser } from "../../types";
-import { createSelector } from "@reduxjs/toolkit";
-import type { RootState } from "../../store";
 import Layout from "../Layout/Layout";
 import styles from "./ArtistPage.module.css";
 import { getUserDetails } from "../../store/slices/userSlice";
-import { addSongs } from "../../store/slices/songsSlice";
-
-const selectArtistSongs = createSelector(
-	[
-		(state: RootState) => state.song.songs,
-		(state: RootState) => state.user.users,
-		(_: RootState, artistId: string | undefined) => artistId,
-	],
-	(songs, users, artistId): SongWithUser[] => {
-		if (!artistId) return [];
-
-		const parsedId = parseInt(artistId);
-		const artist = users[parsedId];
-		if (!artist) return [];
-
-		return Object.values(songs)
-			.filter((song) => song.artist_id === parsedId)
-			.map((song) => ({
-				...song,
-				song_ref: song.song_url,
-				genre: song.genre ?? null,
-				thumb_url: song.thumb_url ?? null,
-				created_at: song.created_at,
-				updated_at: song.updated_at,
-				user: {
-					id: artist.id,
-					username: artist.display_name,
-					stage_name: artist.display_name,
-					profile_image: artist.profile_image ?? null,
-				},
-			}));
-	},
-);
+import { addSongs, selectSongsByArtist } from "../../store/slices/songsSlice";
+import type { SongId } from "../../store/slices/types";
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();
@@ -53,9 +19,11 @@ const ArtistPage: React.FC = () => {
 	const [loading, setLoading] = useState(true);
 
 	const artist = useAppSelector((state) =>
-		userId ? state.user.users[parseInt(userId)] : null,
+		userId ? state.user.users[Number.parseInt(userId)] : null,
 	);
-	const songs = useAppSelector((state) => selectArtistSongs(state, userId));
+	const songs = useAppSelector((state) =>
+		selectSongsByArtist(state, Number(userId)),
+	);
 	const userPlaylists = useAppSelector((state) =>
 		Object.values(state.playlist.playlists),
 	);
@@ -65,7 +33,7 @@ const ArtistPage: React.FC = () => {
 			if (userId) {
 				try {
 					setLoading(true);
-					await dispatch(getUserDetails(parseInt(userId)));
+					await dispatch(getUserDetails(Number.parseInt(userId)));
 					const response = await fetch(`/api/songs?artist_id=${userId}`);
 					const songsData = await response.json();
 					dispatch(addSongs(songsData.songs));
@@ -80,9 +48,9 @@ const ArtistPage: React.FC = () => {
 		loadArtist();
 	}, [dispatch, userId]);
 
-	const handlePlaySong = (songWithUser: SongWithUser) => {
+	const handlePlaySong = (songId: SongId) => {
 		if (artist) {
-			dispatch(setCurrentSong(songWithUser as any));
+			dispatch(setCurrentSong(songId));
 		}
 	};
 
@@ -112,7 +80,7 @@ const ArtistPage: React.FC = () => {
 							alt=""
 							className={styles.backgroundImage}
 						/>
-						<div className={styles.overlay}></div>
+						<div className={styles.overlay} />
 					</div>
 
 					<div className={styles.heroContent}>
@@ -137,7 +105,9 @@ const ArtistPage: React.FC = () => {
 
 				<div className={styles.content}>
 					<div className={styles.contentActions}>
-						<button className={styles.playAllButton}>▶ Play All</button>
+						<button type="button" className={styles.playAllButton}>
+							▶ Play All
+						</button>
 					</div>
 
 					<div className={styles.songsTable}>
@@ -165,13 +135,15 @@ const ArtistPage: React.FC = () => {
 									<div className={styles.songGenre}>{song.genre}</div>
 									<div className={styles.songActions}>
 										<button
+											type="button"
 											className={styles.actionButton}
-											onClick={() => handlePlaySong(song)}
+											onClick={() => handlePlaySong(song.id)}
 											aria-label="Play song"
 										>
 											▶
 										</button>
 										<button
+											type="button"
 											className={styles.actionButton}
 											onClick={() => setShowAddToPlaylist(song.id)}
 											aria-label="Add to playlist"
@@ -182,6 +154,7 @@ const ArtistPage: React.FC = () => {
 											<div className={styles.playlistDropdown}>
 												{userPlaylists.map((playlist) => (
 													<button
+														type="button"
 														key={playlist.id}
 														className={styles.playlistOption}
 													>

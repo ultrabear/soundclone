@@ -3,60 +3,17 @@ import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
-import { fetchNewReleases } from "../../store/slices/songsSlice";
+import {
+	fetchNewReleases,
+	selectNewestSongs,
+} from "../../store/slices/songsSlice";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
-import type { SongWithUser } from "../../types";
 import Layout from "../Layout/Layout";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
-import { createSelector } from "@reduxjs/toolkit";
-import type { RootState } from "../../store";
 import styles from "./HomePage.module.css";
-
-// Selectors
-const selectCurrentUserPlaylists = createSelector(
-	[(state: RootState) => state.playlist.playlists],
-	(playlists) => Object.values(playlists),
-);
-
-const selectSongsWithUsers = createSelector(
-	[
-		(state: RootState) => state.song.songs,
-		(state: RootState) => state.user.users,
-	],
-	(songs, users): SongWithUser[] => {
-		const transformedSongs = Object.values(songs)
-			.map((song) => {
-				const user = users[song.artist_id];
-				if (!user) return null;
-
-				const songWithUser: SongWithUser = {
-					id: song.id,
-					name: song.name,
-					artist_id: song.artist_id,
-					song_ref: song.song_url,
-					genre: song.genre ?? null,
-					thumb_url: song.thumb_url ?? null,
-					created_at: song.created_at,
-					updated_at: song.updated_at,
-					user: {
-						id: song.artist_id,
-						username: user.display_name,
-						stage_name: user.display_name,
-						profile_image: user.profile_image ?? null,
-					},
-				};
-				return songWithUser;
-			})
-			.filter((song): song is SongWithUser => song !== null);
-
-		return transformedSongs.sort(
-			(a, b) =>
-				new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-		);
-	},
-);
+import type { SongId } from "../../store/slices/types";
 
 interface ScrollableSectionProps {
 	title: string;
@@ -117,20 +74,51 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 	);
 };
 
+function SongTile({
+	key,
+	playSong,
+}: { key: SongId; playSong: (_: SongId) => void }) {
+	const song = useAppSelector((state) => state.song.songs[key]);
+	const artist = useAppSelector(
+		(state) => state.user.users[song.artist_id].display_name,
+	);
+
+	return (
+		<div key={song.id} className={styles.songItem}>
+			<Link to={`/songs/${song.id}`} className={styles.songInfo}>
+				<span className={styles.songTitle}>{song.name}</span>
+				<span className={styles.songDivider}>—</span>
+				<span className={styles.songArtist}>{artist}</span>
+			</Link>
+			<button
+				type="button"
+				className={styles.songPlayButton}
+				onClick={(e) => {
+					e.preventDefault();
+					playSong(song.id);
+				}}
+				aria-label="Play song"
+			>
+				▶
+			</button>
+		</div>
+	);
+}
+
 const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
-	const newReleases = useAppSelector(selectSongsWithUsers);
+	const newReleases = useAppSelector(selectNewestSongs);
 	const { user } = useAppSelector((state) => state.session);
 	const users = useAppSelector((state) => state.user.users);
-	const playlists = useAppSelector(selectCurrentUserPlaylists);
+	const playlists = useAppSelector((state) => state.playlist.playlists);
 
 	const featuredRef = useRef<HTMLDivElement>(null);
 	const releasesRef = useRef<HTMLDivElement>(null);
 
-	const handlePlaySong = (songWithUser: SongWithUser) => {
-		dispatch(setCurrentSong(songWithUser.id));
+	const handlePlaySong = (song: SongId) => {
+		dispatch(setCurrentSong(song));
 		dispatch(togglePlayPause());
 	};
 
@@ -189,38 +177,9 @@ const HomePage: React.FC = () => {
 						<div className={styles.heroContent}>
 							<div className={styles.heroSongs}>
 								{playlists[0]?.songs &&
-									Object.keys(playlists[0].songs).map((songId) => {
-										const song = newReleases.find(
-											(s) => s.id === Number(songId),
-										);
-										if (!song) return null;
-
-										return (
-											<div key={song.id} className={styles.songItem}>
-												<Link
-													to={`/songs/${song.id}`}
-													className={styles.songInfo}
-												>
-													<span className={styles.songTitle}>{song.name}</span>
-													<span className={styles.songDivider}>—</span>
-													<span className={styles.songArtist}>
-														{song.user.stage_name || song.user.username}
-													</span>
-												</Link>
-												<button
-													type="button"
-													className={styles.songPlayButton}
-													onClick={(e) => {
-														e.preventDefault();
-														handlePlaySong(song);
-													}}
-													aria-label="Play song"
-												>
-													▶
-												</button>
-											</div>
-										);
-									})}
+									Object.keys(playlists[0].songs).map((songId) => (
+										<SongTile key={Number(songId)} playSong={handlePlaySong} />
+									))}
 							</div>
 						</div>
 					</div>

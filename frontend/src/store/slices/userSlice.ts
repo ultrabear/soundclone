@@ -19,7 +19,7 @@ export function apiUserToStore(u: Artist): User {
 	};
 
 	if (first_release !== undefined) {
-		user.first_release = new Date(first_release);
+		user.first_release = first_release;
 	}
 
 	return user;

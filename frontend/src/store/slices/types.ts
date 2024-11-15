@@ -31,7 +31,7 @@ export interface User {
 	id: UserId;
 	display_name: string;
 	profile_image?: Url;
-	first_release?: Date;
+	first_release?: string;
 	biography?: string;
 	location?: string;
 	homepage_url?: Url;

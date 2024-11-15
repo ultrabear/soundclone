@@ -2,10 +2,22 @@ from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
 from sqlalchemy import select
 from ..models import Song, db
-from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok
+from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok, Created
 from ..forms.song_form import SongForm
+from .aws_integration import (
+    get_unique_filename,
+    SongFile,
+    ImageFile,
+    remove_file_from_s3,
+    HasFileName,
+    SOUND_BUCKET_NAME,
+    IMAGE_BUCKET_NAME,
+    AUDIO_CONTENT_EXT_MAP,
+    IMAGE_CONTENT_EXT_MAP,
+    DEFAULT_THUMBNAIL_IMAGE,
+)
 from datetime import datetime, timezone
-
+import os
 
 song_routes = Blueprint("songs", __name__)
 
@@ -22,7 +34,34 @@ not_authorized_error: ApiErrorResponse = (
 )
 
 
-def db_song_to_api_song(song: Song, likes: int) -> GetSong:
+def create_resource_on_aws(resource: HasFileName, file_type: str):
+    ## prepare and upload the file
+    unique_filename = get_unique_filename(resource.filename)
+    file_ext = os.path.splitext(unique_filename)[1]
+    if file_type == "song":
+        file_content_type = f"audio/{AUDIO_CONTENT_EXT_MAP[file_ext[1:]]}"
+        file = SongFile(unique_filename, file_content_type, resource)
+        file_reference = file.upload()
+        return file_reference["url"]
+    else:
+        file_content_type = f"image/{IMAGE_CONTENT_EXT_MAP[file_ext[1:]]}"
+        file = ImageFile(unique_filename, file_content_type, resource)
+        file_reference = file.upload()
+        return file_reference["url"]
+
+
+def delete_resource_from_aws(filename: str, file_type: str):
+    if file_type == "song":
+        resource_name = filename.rsplit("/", 1)[1]
+        bucket_name = SOUND_BUCKET_NAME
+    else:
+        resource_name = filename.rsplit("/", 1)[1]
+        bucket_name = IMAGE_BUCKET_NAME
+
+    remove_file_from_s3(resource_name, bucket_name)
+
+
+def db_song_to_api_song(song: Song) -> GetSong:
     """Convert database song to API response format"""
     api_song: GetSong = {
         "id": song.id,
@@ -31,11 +70,9 @@ def db_song_to_api_song(song: Song, likes: int) -> GetSong:
         "song_ref": song.song_ref,
         "created_at": str(song.created_at),
         "updated_at": str(song.updated_at),
-        "num_likes": likes,
+        "num_likes": len(song.liking_users),
+        "thumb_url": song.thumb_url or DEFAULT_THUMBNAIL_IMAGE,
     }
-
-    if song.thumb_url is not None:
-        api_song["thumb_url"] = song.thumb_url
 
     if song.genre is not None:
         api_song["genre"] = song.genre
@@ -56,12 +93,12 @@ def get_all_songs() -> GetSongs:
 
         songs = db.session.execute(select(Song).filter(Song.artist_id == id).order_by(Song.created_at.desc()))
 
-        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
+        return {"songs": [db_song_to_api_song(song) for (song,) in songs]}
 
     else:
         songs = db.session.execute(select(Song).order_by(Song.created_at.desc()))
 
-        return {"songs": [db_song_to_api_song(song, len(song.liking_users)) for (song,) in songs]}
+        return {"songs": [db_song_to_api_song(song) for (song,) in songs]}
 
 
 @song_routes.get("/<int:song_id>")
@@ -79,25 +116,33 @@ def get_song(
 
     s: Song = song[0]
 
-    song_details: GetSong = db_song_to_api_song(s, len(s.liking_users))
+    song_details: GetSong = db_song_to_api_song(s)
 
     return song_details
 
 
 @song_routes.post("")
 @login_required
-def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
+def upload_song() -> ApiErrorResponse | Created[IdAndTimestamps]:
     """Create a new song"""
     form = SongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
 
     if form.validate_on_submit():
+        song_url = create_resource_on_aws(form.data["song_file"], "song")
+
+        ## upload the image file, if there is none, assign the default image thumbnail to thumbnail_url
+        thumbnail_url = DEFAULT_THUMBNAIL_IMAGE
+        if form.data["thumbnail_img"] is not None:
+            thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
+
+        ## create a song instance on the db
         new_song = Song(
             name=form.data["name"],
             artist_id=current_user.id,
             genre=form.data["genre"],
-            thumb_url=form.data["thumb_url"],
-            song_ref=form.data["song_ref"],
+            thumb_url=thumbnail_url,
+            song_ref=song_url,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -105,7 +150,7 @@ def upload_song() -> ApiErrorResponse | tuple[IdAndTimestamps, int]:
         db.session.commit()
 
         return {
-            "id": new_song.id,
+            "id": int(new_song.id),
             "created_at": str(new_song.created_at),
             "updated_at": str(new_song.updated_at),
         }, 201
@@ -131,9 +176,11 @@ def update_song(song_id: int) -> ApiErrorResponse | IdAndTimestamps:
     if form.validate_on_submit():
         song_to_update.name = form.data["name"]
         song_to_update.genre = form.data["genre"]
-        song_to_update.thumb_url = form.data["thumb_url"]
-        song_to_update.song_ref = form.data["song_ref"]
         song_to_update.updated_at = datetime.now(timezone.utc)
+        if form.data["thumbnail_img"] is not None:
+            delete_resource_from_aws(song_to_update.thumb_url or DEFAULT_THUMBNAIL_IMAGE, "image")
+            thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
+            song_to_update.thumb_url = thumbnail_url
 
         db.session.commit()
 
@@ -157,6 +204,9 @@ def delete_song(song_id: int) -> Ok[NoBody] | ApiErrorResponse:
 
     if song_to_delete.artist_id != current_user.id:
         return not_authorized_error
+
+    # delete the resource from AWS s3
+    delete_resource_from_aws(song_to_delete.song_ref, "song")
 
     db.session.delete(song_to_delete)
     db.session.commit()

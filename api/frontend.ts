@@ -23,17 +23,23 @@ export type Song = {
 	name: string;
 	artist_id: number;
 	genre?: string;
-	thumb_url?: string;
-	song_ref: string;
 };
 
-export type GetSong = Song & Id & Timestamps & { num_likes: number };
+export type GetSong = Song &
+	Id &
+	Timestamps & {
+		song_ref: string;
+		thumb_url: string;
+		num_likes: number;
+	};
 export type GetSongs = { songs: GetSong[] };
 
 export type BasePlaylist = {
 	name: string;
 	thumbnail?: string;
 };
+
+export type PlaylistInfo = BasePlaylist & Id & Timestamps;
 
 export type PopulatePlaylist = {
 	song_id: number;
@@ -101,6 +107,9 @@ endpoint<BasePlaylist, Id & Timestamps>("POST", "/api/playlists", {
 	RequireAuth,
 });
 endpoint<BasePlaylist, Id & Timestamps>("PUT", "/api/playlists/:playlist_id", {
+	RequireAuth,
+});
+endpoint<void, PlaylistInfo>("GET", "/api/playlists/:playlist_id", {
 	RequireAuth,
 });
 endpoint<void, void>("DELETE", "/api/playlists/:playlist_id", { RequireAuth });
@@ -188,11 +197,11 @@ export const api = {
 		getOne: async (songId: number): Promise<GetSong> => {
 			return notNull(fetchWithError(`/songs/${songId}`));
 		},
-		create: async (song: Song): Promise<Id & Timestamps> => {
+		create: async (songData: FormData): Promise<Id & Timestamps> => {
 			return notNull(
 				fetchWithError("/songs", {
 					method: "POST",
-					body: JSON.stringify(song),
+					body: songData,
 				}),
 			);
 		},
@@ -278,6 +287,12 @@ export const api = {
 		},
 	},
 	playlists: {
+		getOne: async (playlistId: number): Promise<PlaylistInfo> => {
+			return notNull(fetchWithError(`/playlists/${playlistId}`));
+		},
+		/**
+		 * Returns the current users playlists
+		 */
 		getCurrent: async (): Promise<ListOfPlaylist> => {
 			return notNull(fetchWithError("/playlists/current"));
 		},

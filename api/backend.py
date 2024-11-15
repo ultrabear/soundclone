@@ -56,8 +56,6 @@ class Song(TypedDict):
     name: str
     artist_id: int
     genre: NotRequired[str]
-    thumb_url: NotRequired[str]
-    song_ref: str
 
 
 # I want to be able to upload a song
@@ -69,7 +67,9 @@ endpoint("DELETE", "/api/songs/:song_id", req=None, res=Ok[NoBody], auth=True)
 
 
 class GetSong(Song, IdAndTimestamps):
-    num_likes: int
+    num_likes: NotRequired[int]
+    song_ref: str
+    thumb_url: str
 
 
 # I want to view a song's total likes

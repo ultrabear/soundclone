@@ -94,6 +94,14 @@ export const selectSongsByArtist = createSelector(
 			),
 );
 
+export const createSongThunk = createAsyncThunk(
+	"songs/createSong",
+	async (songData: FormData) => {
+		const response = await api.songs.create(songData);
+		return response.id;
+	},
+);
+
 export const fetchArtistSongs = createAsyncThunk(
 	"songs/fetchArtistSongs",
 	async (artistId: UserId, { dispatch }) => {

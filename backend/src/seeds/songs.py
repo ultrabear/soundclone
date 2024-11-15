@@ -4,62 +4,47 @@ from ..backend_api import Song as SongType
 from datetime import datetime, timezone
 
 
-song_data: list[SongType] = [
+class SongSeed(SongType):
+    song_ref: str
+    thumb_url: str
+    song_genre: str
+
+
+song_data: list[SongSeed] = [
     {
-        "name": "West End Blues",
-        "artist_id": 4,  # Jazz Master
-        "genre": "jazz",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b2739e4a3c9e73ce2429c4d1fe70",
-        "song_ref": "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav",
+        "name": "Grandpa's Spells",
+        "artist_id": 4,
+        "song_genre": "jazz",
+        "thumb_url": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/bc92ae1a9219499088c33118fbfc3a2d.jpeg",
+        "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/4eb3af34a8c04c36aadeeba95d924153.mp3",
     },
     {
-        "name": "Jubilee",
-        "artist_id": 4,  # Jazz Master
-        "genre": "jazz",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b2739e4a3c9e73ce2429c4d1fe70",
-        "song_ref": "jubilee.mp3",
+        "name": "Sneak Thievery Theme",
+        "artist_id": 4,
+        "song_genre": "jazz",
+        "thumb_url": "",
+        "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/7e7e53c4e2884a6c94ee46c84f145e14.mp3",
     },
     {
-        "name": "Instance",
-        "artist_id": 5,  # Hip Hop Star
-        "genre": "hip-hop",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b273a1d8c8658dc3c3b30ff5ba48",
-        "song_ref": "instance.mp3",
+        "name": "Ory's Creole Trombone",
+        "artist_id": 5,
+        "song_genre": "jazz",
+        "thumb_url": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/bb9fad5df8294de5980c53add6e0c6fa.png",
+        "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/e805e62d75d04ed69d23f16703320bd7.wav",
     },
     {
-        "name": "Beats & Rhymes",
-        "artist_id": 5,  # Hip Hop Star
-        "genre": "hip-hop",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b273b708840fcb50d49f37b12b45",
-        "song_ref": "beats-and-rhymes.mp3",
+        "name": "Amazing Grace",
+        "artist_id": 6,
+        "song_genre": "classical/spiritual",
+        "thumb_url": "",
+        "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/a160db30d9e34a38b55efeaa42b7a20b.mp3",
     },
     {
-        "name": "String Quartet in F",
-        "artist_id": 6,  # Classical Virtuoso
-        "genre": "classical",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b27398fc869e860cf6c95f6fc26f",
-        "song_ref": "string-qtet-in-F.mp3",
-    },
-    {
-        "name": "Symphony No. 1",
-        "artist_id": 6,  # Classical Virtuoso
-        "genre": "classical",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b273d6d58c6f532a0a3ddb4d85a1",
-        "song_ref": "symphony-1.mp3",
-    },
-    {
-        "name": "Move",
-        "artist_id": 7,  # Rap Legend
-        "genre": "rap",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b273e0b51e8c6f626aa06504151c",
-        "song_ref": "move.mp3",
-    },
-    {
-        "name": "Flow State",
-        "artist_id": 7,  # Rap Legend
-        "genre": "rap",
-        "thumb_url": "https://i.scdn.co/image/ab67616d0000b273c5716278f83f8333ba096e33",
-        "song_ref": "flow-state.mp3",
+        "name": "Danse Russe",
+        "artist_id": 6,
+        "song_genre": "classical",
+        "thumb_url": "",
+        "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/938a7465d2154aaf9f952ec7894b132c.mp3",
     },
 ]
 
@@ -69,11 +54,11 @@ def seed_songs() -> None:
         new_song = Song(
             name=song["name"],
             artist_id=song["artist_id"],
-            genre=song["genre"],  # pyright: ignore
-            thumb_url=song["thumb_url"],  # pyright: ignore
             song_ref=song["song_ref"],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            genre=song["song_genre"],
+            thumb_url=song["thumb_url"],
+            created_at=str(datetime.now(timezone.utc)),
+            updated_at=str(datetime.now(timezone.utc)),
         )
         db.session.add(new_song)
 

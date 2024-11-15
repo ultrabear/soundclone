@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Artist } from "../api";
 import type { UserSlice, User, UserId } from "./types";
-
 import { api } from "../api";
 import type { AppDispatch } from "..";
 

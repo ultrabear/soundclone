@@ -6,6 +6,7 @@ import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
 import PlaylistsScreen from "./components/PlaylistsScreen/PlaylistsScreen";
 import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
+import SongUploadForm from "./components/SongUploadForm/SongUploadForm";
 import SongDetailsPage from "./components/SongDetailsPage/SongDetailsPage";
 import UserView from "./components/UserView/UserView";
 
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
 			{
 				path: "/playlist/:id",
 				element: <PlaylistView />,
+			},
+			{
+				path: "/new-song",
+				element: <SongUploadForm />,
 			},
 			{
 				path: "/songs/:songId",

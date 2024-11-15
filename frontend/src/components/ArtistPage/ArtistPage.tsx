@@ -68,9 +68,11 @@ const ArtistPage: React.FC = () => {
 			if (userId) {
 				try {
 					setLoading(true);
-					const userData = await api.artists.getOne(parseInt(userId));
-					dispatch(userSlice.actions.addUser(apiUserToStore(userData)));
-					dispatch(fetchArtistSongs(parseInt(userId)));
+					// Fetch and transform artist data
+					const userData = await api.users.getOne(Number.parseInt(userId));
+					setArtist(transformUser(userData));
+					// Fetch artist's songs
+					//   dispatch(fetchArtistSongs(Number.parseInt(userId)));
 				} catch (error) {
 					console.error("Error loading artist:", error);
 				} finally {

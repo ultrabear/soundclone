@@ -24,7 +24,7 @@ const initialState: SongSlice = {
 	comments: {},
 };
 
-function apiSongToStore(s: GetSong): Song {
+export function apiSongToStore(s: GetSong): Song {
 	const { num_likes, song_ref, artist_id, ...rest } = s;
 
 	return upgradeTimeStamps({

@@ -126,7 +126,7 @@ const SongUploadForm: () => JSX.Element = () => {
 						type="file"
 						accept="image/png, image/jpeg, image/webp, image/jpg"
 						onChange={(e) => {
-							if (e.target.files) setThumbUrl(e.target.files[0]);
+							if (e.target.files?.length) setThumbUrl(e.target.files[0]!);
 						}}
 					/>
 					{errors.thumbUrl && <p>{errors.thumbUrl}</p>}
@@ -144,7 +144,7 @@ const SongUploadForm: () => JSX.Element = () => {
 						type="file"
 						accept="audio/mp3, audio/mpeg, audio/aac, audio/mp4, audio/x-m4a, audio/opus, audio/wav, audio/flac, audio/ogg"
 						onChange={(e) => {
-							if (e.target.files) setSongFile(e.target.files[0]);
+							if (e.target.files?.length) setSongFile(e.target.files[0]!);
 						}}
 						required
 					/>

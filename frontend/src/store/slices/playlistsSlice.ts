@@ -14,6 +14,7 @@ import type {
 	UserId,
 } from "./types";
 import { upgradeTimeStamps } from "./types";
+import { apiSongToStore, songsSlice } from "./songsSlice";
 
 const initialState: PlaylistSlice = {
 	playlists: {},
@@ -79,6 +80,7 @@ export const fetchPlaylist = createAsyncThunk(
 				),
 			),
 		);
+		dispatch(songsSlice.actions.addSongs(songs.songs.map(apiSongToStore)));
 	},
 );
 
@@ -120,7 +122,7 @@ const playlistsSlice = createSlice({
 
 			const list = state.playlists[playlist]?.songs;
 
-			if (list !== null) {
+			if (list != null && song in list) {
 				list[song] = null;
 			}
 		},
@@ -134,7 +136,7 @@ const playlistsSlice = createSlice({
 			const list = state.playlists[playlist]?.songs;
 
 			if (list !== null) {
-				delete list[song];
+				delete list?.[song];
 			}
 		},
 	},

@@ -179,14 +179,12 @@ const Layout: React.FC<LayoutProps> = ({
 	return (
 		<div className="app-container">
 			<Header />
-
 			<div className="content-wrapper">
 				<div className={`centered-content ${className}`}>
 					<main className="main-content">{children}</main>
 					{!hideSidebar && <Sidebar />}
 				</div>
 			</div>
-
 			<NowPlaying
 				currentSong={currentSong}
 				isPlaying={isPlaying}

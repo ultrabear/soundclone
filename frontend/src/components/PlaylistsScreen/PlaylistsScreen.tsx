@@ -9,8 +9,8 @@ import type { PlaylistId } from "../../store/slices/types";
 
 type LoadState = "no" | "pending" | "yes";
 
-function SongInPlaylist({ key }: { key: SongId }): JSX.Element {
-	const song = useAppSelector((state) => state.song.songs[key]);
+function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
+	const song = useAppSelector((state) => state.song.songs[id]);
 	const user = useAppSelector((state) =>
 		song ? state.user.users[song.artist_id] : null,
 	);
@@ -42,8 +42,8 @@ function SongInPlaylist({ key }: { key: SongId }): JSX.Element {
 	);
 }
 
-function PlaylistTile({ key }: { key: PlaylistId }): JSX.Element {
-	const playlist = useAppSelector((store) => store.playlist.playlists[key]);
+function PlaylistTile({ id }: { id: PlaylistId }): JSX.Element {
+	const playlist = useAppSelector((store) => store.playlist.playlists[id]);
 
 	if (!playlist) {
 		return <>Loading playlist...</>;
@@ -70,7 +70,7 @@ function PlaylistTile({ key }: { key: PlaylistId }): JSX.Element {
 				<div className="hero-content">
 					<div className="hero-songs">
 						{Object.keys(playlist.songs).map((song) => (
-							<SongInPlaylist key={Number(song)} />
+							<SongInPlaylist key={Number(song)} id={Number(song)} />
 						))}
 					</div>
 				</div>
@@ -116,7 +116,7 @@ const PlaylistsScreen: React.FC = () => {
 	return (
 		<div className="playlists-screen">
 			{Object.keys(playlists).map((playlist) => (
-				<PlaylistTile key={Number(playlist)} />
+				<PlaylistTile key={Number(playlist)} id={Number(playlist)} />
 			))}
 		</div>
 	);

@@ -75,16 +75,20 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 };
 
 function SongTile({
-	key,
+	id,
 	playSong,
-}: { key: SongId; playSong: (_: SongId) => void }) {
-	const song = useAppSelector((state) => state.song.songs[key]);
-	const artist = useAppSelector(
-		(state) => state.user.users[song.artist_id].display_name,
+}: { id: SongId; playSong: (_: SongId) => void }) {
+	const song = useAppSelector((state) => state.song.songs[id]);
+	const artist = useAppSelector((state) =>
+		song ? state.user.users[song.artist_id]?.display_name : null,
 	);
 
+	if (!(song && artist)) {
+		return <div className={styles.songItem}>Loading Song/Artist...</div>;
+	}
+
 	return (
-		<div key={song.id} className={styles.songItem}>
+		<div className={styles.songItem}>
 			<Link to={`/songs/${song.id}`} className={styles.songInfo}>
 				<span className={styles.songTitle}>{song.name}</span>
 				<span className={styles.songDivider}>—</span>
@@ -178,7 +182,11 @@ const HomePage: React.FC = () => {
 							<div className={styles.heroSongs}>
 								{playlists[0]?.songs &&
 									Object.keys(playlists[0].songs).map((songId) => (
-										<SongTile key={Number(songId)} playSong={handlePlaySong} />
+										<SongTile
+											key={Number(songId)}
+											playSong={handlePlaySong}
+											id={Number(songId)}
+										/>
 									))}
 							</div>
 						</div>
@@ -188,7 +196,7 @@ const HomePage: React.FC = () => {
 							<button
 								type="button"
 								className={styles.viewPlaylistButton}
-								onClick={() => navigate(`/playlist/${playlists[0].id}`)}
+								onClick={() => navigate(`/playlist/${playlists[0]!.id}`)}
 							>
 								Go to playlist
 							</button>

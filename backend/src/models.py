@@ -94,6 +94,8 @@ class User(Base, UserMixin):
     biography: Mapped[str | None]
     location: Mapped[str | None]
     homepage: Mapped[str | None]
+    created_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
     # Relationships
     playlists: Mapped[list["Playlist"]] = relationship(back_populates="user")
     comments: Mapped[list["Comment"]] = relationship(back_populates="author")

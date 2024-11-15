@@ -38,7 +38,7 @@ export function apiSongToStore(s: GetSong): Song {
 
 export const getLikes = createAsyncThunk(
 	"songs/getLikes",
-	async (_: null, { dispatch }) => {
+	async (_: undefined, { dispatch }) => {
 		const likes = await api.likes.getAll();
 
 		dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));

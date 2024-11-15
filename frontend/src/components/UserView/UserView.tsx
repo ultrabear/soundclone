@@ -4,6 +4,7 @@ import { useAppSelector } from "../../store";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
 import "./UserView.css";
+import LikesScreen from "../PlaylistsScreen/LikesScreen";
 
 type TabType = "playlists" | "likes" | "uploads" | "profile";
 
@@ -22,7 +23,7 @@ function UserView({ tab }: { tab: TabType }) {
 			case "playlists":
 				return <PlaylistsScreen />;
 			case "likes":
-				return <div>Likes Content</div>;
+				return <LikesScreen />;
 			case "uploads":
 				return <div>Uploads Content</div>;
 			case "profile":

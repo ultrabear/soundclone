@@ -1,88 +1,12 @@
 import type React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import "./PlaylistsScreen.css";
-import type { ApiError, SongId } from "../../store/api";
-import type { PlaylistId } from "../../store/slices/types";
+import type { ApiError } from "../../store/api";
+import { PlaylistTile } from "./PlaylistTile";
 
 type LoadState = "no" | "pending" | "yes";
-
-function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
-	const song = useAppSelector((state) => state.song.songs[id]);
-	const user = useAppSelector((state) =>
-		song ? state.user.users[song.artist_id] : null,
-	);
-
-	if (!song) {
-		return <>Loading song...</>;
-	}
-
-	if (!user) {
-		return <>Loading user...</>;
-	}
-
-	return (
-		<div key={song.id} className="hero-song-item">
-			<div className="song-info">
-				<span className="song-title">{song.name}</span>
-				<span className="song-divider">—</span>
-				<span className="song-artist">{user.display_name}</span>
-			</div>
-			<button
-				type="button"
-				className="song-play-button"
-				onClick={() => {}}
-				aria-label="Play song"
-			>
-				▶
-			</button>
-		</div>
-	);
-}
-
-function PlaylistTile({ id }: { id: PlaylistId }): JSX.Element {
-	const playlist = useAppSelector((store) => store.playlist.playlists[id]);
-
-	if (!playlist) {
-		return <>Loading playlist...</>;
-	}
-
-	return (
-		<div key={playlist.id} className="content-section">
-			<div className="section-header">
-				<h2 className="section-title">{playlist.name}</h2>
-			</div>
-			<div className="hero-section">
-				<div className="hero-artwork">
-					{playlist.thumbnail && (
-						<img src={playlist.thumbnail} alt={playlist.name} />
-					)}
-					<button
-						type="button"
-						className="hero-play-button"
-						aria-label="Play playlist"
-					>
-						▶
-					</button>
-				</div>
-				<div className="hero-content">
-					<div className="hero-songs">
-						{Object.keys(playlist.songs).map((song) => (
-							<SongInPlaylist key={Number(song)} id={Number(song)} />
-						))}
-					</div>
-				</div>
-			</div>
-			<div className="hero-footer">
-				<Link to={`/playlist/${playlist.id}`} className="view-playlist-button">
-					Go to playlist
-				</Link>
-			</div>
-		</div>
-	);
-}
 
 const PlaylistsScreen: React.FC = () => {
 	const dispatch = useAppDispatch();

@@ -2,7 +2,7 @@ import {
 	type PayloadAction,
 	createAsyncThunk,
 	createSlice,
-	createAction,
+	createSelector,
 } from "@reduxjs/toolkit";
 import type { RootState } from "..";
 import type { BasePlaylist, Id, Timestamps } from "../api";
@@ -16,14 +16,11 @@ import type {
 } from "./types";
 import { upgradeTimeStamps } from "./types";
 import { apiSongToStore, songsSlice } from "./songsSlice";
-import { slice as userSlice, apiUserToStore } from "./userSlice";
+import { usersSlice } from "./userSlice";
 
 const initialState: PlaylistSlice = {
 	playlists: {},
-	likedSongsPlaylist: null,
 };
-
-export const clearPlaylists = createAction("playlists/clearPlaylists");
 
 function apiPlaylistToStore(
 	p: BasePlaylist & Id & Timestamps & { user_id?: UserId },
@@ -45,7 +42,7 @@ export const fetchUserPlaylists = createAsyncThunk(
 
 		const playlist = await api.playlists.getCurrent();
 
-		const songs = await Promise.all(
+		const songsPlaylists = await Promise.all(
 			playlist.playlists.map((p) =>
 				(async () => ({ p: p, s: await api.playlists.getSongs(p.id) }))(),
 			),
@@ -53,7 +50,7 @@ export const fetchUserPlaylists = createAsyncThunk(
 
 		dispatch(
 			playlistsSlice.actions.addPlaylists(
-				songs.map((p) =>
+				songsPlaylists.map((p) =>
 					apiPlaylistToStore(
 						p.p,
 						sessionUser,
@@ -63,19 +60,10 @@ export const fetchUserPlaylists = createAsyncThunk(
 			),
 		);
 
-		const storeSongs = [
-			...new Map(
-				songs.flatMap(({ s }) => s.songs.map((s) => [s.id, s])),
-			).values(),
-		].map(apiSongToStore);
+		const songs = songsPlaylists.flatMap(({ s }) => s.songs);
 
-		dispatch(songsSlice.actions.addSongs(storeSongs));
-
-		const storeArtists = await Promise.all(
-			[...new Set(storeSongs.map((s) => s.artist_id))].map(api.artists.getOne),
-		);
-
-		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
+		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
+		dispatch(usersSlice.actions.partialAddUsers(songs.map((s) => s.artist)));
 	},
 );
 
@@ -101,11 +89,9 @@ export const fetchPlaylist = createAsyncThunk(
 		);
 		dispatch(songsSlice.actions.addSongs(songs.songs.map(apiSongToStore)));
 
-		const storeArtists = await Promise.all(
-			[...new Set(songs.songs.map((s) => s.artist_id))].map(api.artists.getOne),
+		dispatch(
+			usersSlice.actions.partialAddUsers(songs.songs.map((s) => s.artist)),
 		);
-
-		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
 	},
 );
 
@@ -125,7 +111,17 @@ export const addSongToPlaylistThunk = createAsyncThunk(
 	},
 );
 
-const playlistsSlice = createSlice({
+export const selectMyPlaylists = createSelector(
+	[
+		(state: RootState) => state.playlist.playlists,
+		(state: RootState) => state.session.user?.id,
+	],
+	(playlists, userId) => {
+		return Object.values(playlists).filter((p) => p.user_id === userId);
+	},
+);
+
+export const playlistsSlice = createSlice({
 	name: "playlists",
 	initialState,
 	reducers: {
@@ -161,25 +157,10 @@ const playlistsSlice = createSlice({
 			}
 		},
 
-		setLikedSongsPlaylist: (state, action: PayloadAction<PlaylistId>) => {
-			state.likedSongsPlaylist = action.payload;
+		clearPlaylists: (state) => {
+			state.playlists = {};
 		},
 	},
-
-	extraReducers: (builder) => {
-		builder.addCase(clearPlaylists, (state) => {
-			state.playlists = {};
-			state.likedSongsPlaylist = null;
-		});
-	},
 });
-
-export const {
-	addPlaylists,
-	addPlaylist,
-	addSongToPlaylist,
-	removeSongFromPlaylist,
-	setLikedSongsPlaylist,
-} = playlistsSlice.actions;
 
 export default playlistsSlice.reducer;

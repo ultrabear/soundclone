@@ -13,35 +13,16 @@ from ..backend_api import (
     Ok,
     PlaylistInfo,
     GetSongs,
-    GetSong,
     ListOfPlaylist,
     PopulatePlaylist,
     ApiError,
     Created,
 )
-from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
+from ..db_to_api import db_playlist_to_api, db_song_to_api_song
 from .song_routes import create_resource_on_aws, delete_resource_from_aws
 from ..forms.playlist_form import PlaylistForm
 
 playlist_routes = Blueprint("playlists", __name__, url_prefix="/api/playlists")
-
-
-def db_song_to_api_song(song: Song) -> GetSong:
-    api_song: GetSong = {
-        "id": song.id,
-        "name": song.name,
-        "artist_id": song.artist_id,
-        "song_ref": song.song_ref,
-        "created_at": str(song.created_at),
-        "updated_at": str(song.updated_at),
-        "num_likes": len(song.liking_users),
-        "thumb_url": song.thumb_url or DEFAULT_THUMBNAIL_IMAGE,
-    }
-
-    if song.genre is not None:
-        api_song["genre"] = song.genre
-
-    return api_song
 
 
 # 1. user creates a playlist
@@ -175,18 +156,6 @@ def get_playlist_songs(playlist_id: int) -> Union[GetSongs, Tuple[ApiError, int]
     songs: GetSongs = {"songs": [db_song_to_api_song(song) for song in playlist.songs]}
 
     return songs
-
-
-def db_playlist_to_api(playlist: Playlist) -> PlaylistInfo:
-    pinfo: PlaylistInfo = {
-        "id": playlist.id,
-        "name": playlist.name,
-        "created_at": str(playlist.created_at),
-        "updated_at": str(playlist.updated_at),
-        "thumbnail": playlist.thumbnail or DEFAULT_THUMBNAIL_IMAGE,
-    }
-
-    return pinfo
 
 
 # 6. get all of my playlist of a user

@@ -1,15 +1,13 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import {
-	getLikes,
+	fetchArtistSongs,
 	selectSongsByArtist,
-	addSongs,
 } from "../../store/slices/songsSlice";
 import type { PlaylistId, SongId } from "../../store/slices/types";
-import { getUserDetails } from "../../store/slices/userSlice";
 import { api } from "../../store/api";
 import Layout from "../Layout/Layout";
 import { SongListItem } from "./SongListItem";
@@ -22,7 +20,7 @@ const ArtistPage: React.FC = () => {
 	const [showAddToPlaylist, setShowAddToPlaylist] = useState<PlaylistId | null>(
 		null,
 	);
-	const [loading, setLoading] = useState(true);
+	const [loaded, setLoaded] = useState(false);
 	const [newPlaylistName, setNewPlaylistName] = useState<string>("");
 	const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
 	const [showToast, setShowToast] = useState(false);
@@ -45,27 +43,17 @@ const ArtistPage: React.FC = () => {
 		setTimeout(() => setShowToast(false), 2000);
 	};
 
-	useEffect(() => {
-		const loadArtist = async () => {
-			if (userId) {
-				try {
-					setLoading(true);
-					await dispatch(getUserDetails(Number.parseInt(userId)));
-					const response = await fetch(`/api/songs?artist_id=${userId}`);
-					const songsData = await response.json();
-					dispatch(addSongs(songsData.songs));
-					await dispatch(getLikes()); // Ensure likes are loaded
-				} catch (error) {
-					console.error("Error loading artist:", error);
-					showToastMessage("Failed to load artist data");
-				} finally {
-					setLoading(false);
-				}
+	if (!loaded) {
+		setLoaded(true);
+		(async () => {
+			try {
+				await dispatch(fetchArtistSongs(Number(userId)));
+			} catch (error) {
+				console.error("Error loading artist:", error);
+				showToastMessage("Failed to load artist data");
 			}
-		};
-
-		loadArtist();
-	}, [dispatch, userId]);
+		})();
+	}
 
 	const handlePlaySong = (songId: SongId) => {
 		dispatch(setCurrentSong(songId));
@@ -106,18 +94,10 @@ const ArtistPage: React.FC = () => {
 		}
 	};
 
-	if (loading) {
-		return (
-			<Layout>
-				<div className={styles.loadingContainer}>Loading artist profile...</div>
-			</Layout>
-		);
-	}
-
 	if (!artist) {
 		return (
 			<Layout>
-				<div className={styles.errorContainer}>Artist not found</div>
+				<div className={styles.errorContainer}>Artist loading</div>
 			</Layout>
 		);
 	}

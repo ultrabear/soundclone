@@ -9,29 +9,23 @@ import { api } from "../api";
 import type { GetSong } from "../api";
 import { apiCommentToStore, commentsSlice } from "./commentsSlice";
 import { slice as sessionSlice } from "./sessionSlice";
-import {
-	type Song,
-	type SongId,
-	type SongSlice,
-	type UserId,
-	upgradeTimeStamps,
-} from "./types";
-import { apiUserToStore, slice as userSlice } from "./userSlice";
+import type { Song, SongId, SongSlice, UserId } from "./types";
+import { apiUserToStore, usersSlice } from "./userSlice";
 
 const initialState: SongSlice = {
 	songs: {},
 };
 
 export function apiSongToStore(s: GetSong): Song {
-	const { num_likes, song_ref, artist_id, ...rest } = s;
+	const { num_likes, song_ref, artist_id, artist, ...rest } = s;
 
-	return upgradeTimeStamps({
+	return {
 		...rest,
 		id: s.id as SongId,
 		artist_id: artist_id as UserId,
 		likes: num_likes,
 		song_url: song_ref,
-	});
+	};
 }
 
 export const getLikes = createAsyncThunk(
@@ -41,6 +35,9 @@ export const getLikes = createAsyncThunk(
 
 		dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
 		dispatch(sessionSlice.actions.addBulkLikes(likes.songs.map((s) => s.id)));
+		dispatch(
+			usersSlice.actions.partialAddUsers(likes.songs.map((s) => s.artist)),
+		);
 	},
 );
 
@@ -61,33 +58,65 @@ export const fetchNewReleases = createAsyncThunk(
 	async (_, { dispatch }) => {
 		const { songs } = await api.songs.getAll();
 
-		// Fetch all artists in parallel and normalize them
-		const uniqueArtistIds = [...new Set(songs.map((song) => song.artist_id))];
-		const artists = await Promise.all(
-			uniqueArtistIds.map((id) => api.artists.getOne(id)),
-		);
-
-		// Add users to store
-		dispatch(
-			userSlice.actions.addUsers(
-				artists
-					.filter(
-						(artist): artist is NonNullable<typeof artist> => artist !== null,
-					)
-					.map((artist) => ({
-						id: artist.id as UserId,
-						display_name: artist.stage_name,
-						profile_image: artist.profile_image,
-						first_release: artist.first_release,
-						biography: artist.biography,
-						location: artist.location,
-						homepage_url: artist.homepage,
-					})),
-			),
-		);
-
 		// Add songs to store
 		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
+
+		dispatch(usersSlice.actions.partialAddUsers(songs.map((s) => s.artist)));
+	},
+);
+export const createSongThunk = createAsyncThunk(
+	"songs/createSong",
+	async (songData: FormData) => {
+		const response = await api.songs.create(songData);
+		return response.id;
+	},
+);
+
+export const fetchArtistSongs = createAsyncThunk(
+	"songs/fetchArtistSongs",
+	async (artistId: UserId, { dispatch }) => {
+		const [{ songs }, artist] = await Promise.all([
+			api.songs.getByArtist(artistId),
+			api.artists.getOne(artistId),
+		]);
+
+		dispatch(
+			usersSlice.actions.addUser({
+				id: artist.id as UserId,
+				display_name: artist.stage_name,
+				profile_image: artist.profile_image,
+				first_release: artist.first_release,
+				biography: artist.biography,
+				location: artist.location,
+				homepage_url: artist.homepage,
+			}),
+		);
+
+		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
+	},
+);
+
+export const fetchSong = createAsyncThunk(
+	"songs/fetchSong",
+	async (songId: SongId, { dispatch }) => {
+		const [song, comments] = await Promise.all([
+			api.songs.getOne(songId),
+			api.comments.getForSong(songId),
+		]);
+
+		const artist = await api.artists.getOne(song.artist_id);
+
+		dispatch(songsSlice.actions.addSongs([apiSongToStore(song)]));
+		dispatch(
+			commentsSlice.actions.getComments(
+				comments.comments.map((c) => apiCommentToStore(songId, c, c.user.id)),
+			),
+		);
+		dispatch(usersSlice.actions.addUser(apiUserToStore(artist)));
+
+		dispatch(
+			usersSlice.actions.partialAddUsers(comments.comments.map((c) => c.user)),
+		);
 	},
 );
 
@@ -112,62 +141,6 @@ export const selectSongsByArtist = createSelector(
 				(a, b) =>
 					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
 			),
-);
-
-export const createSongThunk = createAsyncThunk(
-	"songs/createSong",
-	async (songData: FormData) => {
-		const response = await api.songs.create(songData);
-		return response.id;
-	},
-);
-
-export const fetchArtistSongs = createAsyncThunk(
-	"songs/fetchArtistSongs",
-	async (artistId: UserId, { dispatch }) => {
-		const [{ songs }, artist] = await Promise.all([
-			api.songs.getByArtist(artistId),
-			api.artists.getOne(artistId),
-		]);
-
-		if (artist) {
-			dispatch(
-				userSlice.actions.addUser({
-					id: artist.id as UserId,
-					display_name: artist.stage_name,
-					profile_image: artist.profile_image,
-					first_release: artist.first_release,
-					biography: artist.biography,
-					location: artist.location,
-					homepage_url: artist.homepage,
-				}),
-			);
-		}
-
-		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
-	},
-);
-
-export const fetchSong = createAsyncThunk(
-	"songs/fetchSong",
-	async (songId: SongId, { dispatch }) => {
-		const [song, comments] = await Promise.all([
-			api.songs.getOne(songId),
-			api.comments.getForSong(songId),
-		]);
-
-		const artist = await api.artists.getOne(song.artist_id);
-
-		dispatch(songsSlice.actions.addSongs([apiSongToStore(song)]));
-		dispatch(
-			commentsSlice.actions.getComments(
-				comments.comments.map((c) => apiCommentToStore(songId, c, c.user.id)),
-			),
-		);
-		dispatch(userSlice.actions.addUser(apiUserToStore(artist)));
-
-		dispatch(userSlice.actions.addUsers(comments.comments.map((c) => c.user)));
-	},
 );
 
 // Additional selectors for common operations
@@ -212,7 +185,6 @@ export const songsSlice = createSlice({
 	},
 });
 
-export const { addSongs } = songsSlice.actions;
 export default songsSlice.reducer;
 
 //songsslice is finished

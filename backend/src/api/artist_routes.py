@@ -26,11 +26,12 @@ def get_artist(artist_id: int) -> Union[Artist, Tuple[ApiError, int]]:
     if not artist:
         return (ApiError(message="Artist not found", errors={"artist_id": f"No user found with id {artist_id}"}), 404)
 
-    if not artist.songs:
-        return (ApiError(message="Not an artist", errors={"artist_id": f"User {artist_id} is not an artist"}), 404)
-
     # Build artist response
-    result: Artist = {"id": artist.id, "stage_name": artist.stage_name or artist.username}
+    result: Artist = {
+        "id": artist.id,
+        "stage_name": artist.stage_name or artist.username,
+        "num_songs_by_artist": len(artist.songs),
+    }
 
     # Add optional fields if they exist
     if artist.profile_image:
@@ -62,11 +63,11 @@ def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
         )
 
     user = cast(User, current_user)
-    if not user.songs:
-        return (
-            ApiError(message="Not an artist", errors={"artist": "You must upload a song first to become an artist"}),
-            403,
-        )
+    # if not user.songs:
+    #     return (
+    #         ApiError(message="Not an artist", errors={"artist": "You must upload a song first to become an artist"}),
+    #         403,
+    #     )
 
     form = ArtistForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
@@ -81,6 +82,7 @@ def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
             response: ReturnPostArtist = {
                 "created_at": str(user.created_at),
                 "updated_at": str(user.updated_at),
+                "num_songs_by_artist": len(user.songs),
             }
 
             if form.data["stage_name"] is not None:
@@ -88,9 +90,9 @@ def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
                 response["stage_name"] = form.data["stage_name"]
 
             # handle thumbnail if user provided
-            if form.data["thumbnail_img"] is not None:
-                thumbnail_url = create_resource_on_aws(form.data["thumbnail_img"], "image")
-                user.profile_image = thumbnail_url
+            if form.data["profile_image"] is not None:
+                profile_image = create_resource_on_aws(form.data["thumbnail_img"], "image")
+                user.profile_image = profile_image
 
             if form.data["first_release"] is not None:
                 try:

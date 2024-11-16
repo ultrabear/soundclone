@@ -38,6 +38,7 @@ export const createNewArtistThunk = createAsyncThunk(
 	async (artist: FormData, { dispatch, getState }) => {
 		try {
 			const artistUser = await api.artists.update(artist);
+			console.log("artist user: ", artistUser);
 			const currentState = getState() as RootState;
 			const currentUser = currentState.session.user!;
 			const { id, username } = currentUser!;

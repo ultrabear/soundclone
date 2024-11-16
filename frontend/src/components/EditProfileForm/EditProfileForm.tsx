@@ -19,6 +19,7 @@ const EditProfileForm = (): JSX.Element => {
 	const [biography, setBiography] = useState<string>("");
 	const [location, setLocation] = useState<string>("");
 	const [homepage, setHomepage] = useState<string>("");
+	const [numSongsByUser, setNumSongsByUser] = useState<number>(0);
 	const [loading, setLoading] = useState<LoadingState>("no");
 	const [existingProfileImage, setExistingProfileImage] = useState<
 		string | null
@@ -41,6 +42,7 @@ const EditProfileForm = (): JSX.Element => {
 	} else if (loading === "response") {
 		setLoading("finished");
 		const currentUsersDetails = users[sessionUser.id];
+		console.log("current user: ", currentUsersDetails);
 		if (currentUsersDetails?.display_name)
 			setStageName(currentUsersDetails.display_name);
 		if (currentUsersDetails?.first_release)
@@ -51,12 +53,19 @@ const EditProfileForm = (): JSX.Element => {
 			setLocation(currentUsersDetails.location);
 		if (currentUsersDetails?.homepage_url)
 			setHomepage(currentUsersDetails.homepage_url);
+		if (
+			currentUsersDetails?.num_songs_by_artist &&
+			currentUsersDetails?.num_songs_by_artist > 0
+		) {
+			setNumSongsByUser(currentUsersDetails.num_songs_by_artist);
+		}
 		if (currentUsersDetails?.profile_image)
 			setExistingProfileImage(currentUsersDetails.profile_image);
 	}
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		setErrors({});
 
 		const formData = new FormData();
 
@@ -69,7 +78,7 @@ const EditProfileForm = (): JSX.Element => {
 
 		const serverResponse = await dispatch(createNewArtistThunk(formData));
 
-		if (serverResponse) {
+		if (serverResponse.payload !== undefined) {
 			setErrors({
 				server: "Failed to update artist profile",
 			});
@@ -94,7 +103,11 @@ const EditProfileForm = (): JSX.Element => {
 				<div className="upload-form-field flex-col">
 					<button className="choose-file-button" type="button">
 						<label className="label-on-button" htmlFor="profile-image-file">
-							Edit Profile Image
+							{imageToUpload
+								? imageToUpload.name
+								: existingProfileImage
+									? "Edit Profile Image"
+									: "Add Profile Image"}
 						</label>
 					</button>
 					<input
@@ -168,6 +181,13 @@ const EditProfileForm = (): JSX.Element => {
 						onChange={(e) => setHomepage(e.target.value)}
 					/>
 				</div>
+
+				{numSongsByUser === 0 && (
+					<p>
+						Once you've uploaded your first song, your profile will be visible
+						to all users!
+					</p>
+				)}
 
 				<button className="song-upload-button" type="submit">
 					Update Profile

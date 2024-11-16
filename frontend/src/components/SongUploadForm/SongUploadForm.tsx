@@ -77,8 +77,10 @@ const SongUploadForm = (): JSX.Element => {
 		if (thumbUrl) formData.append("thumbnail_img", thumbUrl);
 		if (songFile) formData.append("song_file", songFile);
 		setUploading(true);
+
 		const serverResponse = await dispatch(createSongThunk(formData));
 
+		// TODO - redirect to new song's details page
 		console.log("server response: ", serverResponse);
 	};
 

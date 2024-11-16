@@ -189,6 +189,7 @@ class BaseArtist(TypedDict, total=False):
     biography: str
     location: str
     homepage: str
+    num_songs_by_artist: int
 
 
 class Artist(BaseArtist):

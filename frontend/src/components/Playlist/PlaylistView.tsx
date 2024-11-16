@@ -112,15 +112,17 @@ const PlaylistView: React.FC = () => {
 
 	const addToPlaylist = async (songId: SongId, targetPlaylistId: number) => {
 		try {
-		  await dispatch(addSongToPlaylistThunk({
-			playlist: targetPlaylistId,  // Changed from playlistId to playlist
-			song: songId
-		  }));
-		  setShowAddToPlaylist(null);
+			await dispatch(
+				addSongToPlaylistThunk({
+					playlist: targetPlaylistId, // Changed from playlistId to playlist
+					song: songId,
+				}),
+			);
+			setShowAddToPlaylist(null);
 		} catch (error) {
-		  console.error('Error adding song to playlist:', error);
+			console.error("Error adding song to playlist:", error);
 		}
-	  };
+	};
 
 	if (!playlist) {
 		return (

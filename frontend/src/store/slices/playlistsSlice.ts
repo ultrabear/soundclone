@@ -2,36 +2,42 @@ import {
 	type PayloadAction,
 	createAsyncThunk,
 	createSlice,
-	createAction 
-  } from "@reduxjs/toolkit";
-  import type { RootState } from "..";
-  import type { BasePlaylist, Id, Timestamps } from "../api";
-  import { api } from "../api";
-  import type { Playlist, PlaylistId, PlaylistSlice, SongId, UserId } from "./types";
-  import { upgradeTimeStamps } from "./types";
-  import { apiSongToStore, songsSlice } from "./songsSlice";
-  import { slice as userSlice, apiUserToStore } from "./userSlice";
+	createAction,
+} from "@reduxjs/toolkit";
+import type { RootState } from "..";
+import type { BasePlaylist, Id, Timestamps } from "../api";
+import { api } from "../api";
+import type {
+	Playlist,
+	PlaylistId,
+	PlaylistSlice,
+	SongId,
+	UserId,
+} from "./types";
+import { upgradeTimeStamps } from "./types";
+import { apiSongToStore, songsSlice } from "./songsSlice";
+import { slice as userSlice, apiUserToStore } from "./userSlice";
 
-  const initialState: PlaylistSlice = {
+const initialState: PlaylistSlice = {
 	playlists: {},
 	likedSongsPlaylist: null,
-  };
+};
 
-  export const clearPlaylists = createAction("playlists/clearPlaylists");
+export const clearPlaylists = createAction("playlists/clearPlaylists");
 
-  function apiPlaylistToStore(
+function apiPlaylistToStore(
 	p: BasePlaylist & Id & Timestamps & { user_id?: UserId },
 	user_id: UserId,
 	songs: SongId[],
-  ): Playlist {
+): Playlist {
 	return upgradeTimeStamps({
-	  ...p,
-	  user_id: p.user_id || user_id,
-	  songs: Object.fromEntries(songs.map((s) => [s, null])),
+		...p,
+		user_id: p.user_id || user_id,
+		songs: Object.fromEntries(songs.map((s) => [s, null])),
 	});
-  }
+}
 
-  export const fetchUserPlaylists = createAsyncThunk(
+export const fetchUserPlaylists = createAsyncThunk(
 	"playlists/fetchUserPlaylists",
 	async (_: undefined, { dispatch, getState }) => {
 		const state = getState() as RootState;
@@ -71,7 +77,7 @@ import {
 
 		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
 	},
-  );
+);
 
 export const fetchPlaylist = createAsyncThunk(
 	"playlists/fetchPlaylist",
@@ -106,77 +112,74 @@ export const fetchPlaylist = createAsyncThunk(
 export const addSongToPlaylistThunk = createAsyncThunk(
 	"playlists/addSong",
 	async (
-	  { playlist, song }: { playlist: PlaylistId; song: SongId },
-	  { dispatch },
+		{ playlist, song }: { playlist: PlaylistId; song: SongId },
+		{ dispatch },
 	) => {
-	  await api.playlists.addSong(playlist, song);
-	  dispatch(
-		playlistsSlice.actions.addSongToPlaylist({
-		  playlist,
-		  song,
-		}),
-	  );
+		await api.playlists.addSong(playlist, song);
+		dispatch(
+			playlistsSlice.actions.addSongToPlaylist({
+				playlist,
+				song,
+			}),
+		);
 	},
-  );
+);
 
-  const playlistsSlice = createSlice({
+const playlistsSlice = createSlice({
 	name: "playlists",
 	initialState,
 	reducers: {
-	  addPlaylists: (state, action: PayloadAction<Playlist[]>) => {
-		for (const p of action.payload) {
-		  state.playlists[p.id] = p;
-		}
-	  },
-  
-	  addPlaylist: (state, action: PayloadAction<Playlist>) => {
-		state.playlists[action.payload.id] = action.payload;
-	  },
-  
-	  addSongToPlaylist: (
-		state,
-		action: PayloadAction<{ playlist: PlaylistId; song: SongId }>,
-	  ) => {
-		const { playlist, song } = action.payload;
-		const list = state.playlists[playlist]?.songs;
-		if (list != null && song in list) {
-		  list[song] = null;
-		}
-	  },
-  
-	  removeSongFromPlaylist: (
-		state,
-		action: PayloadAction<{ playlist: PlaylistId; song: SongId }>,
-	  ) => {
-		const { playlist, song } = action.payload;
-		const list = state.playlists[playlist]?.songs;
-		if (list !== null) {
-		  delete list?.[song];
-		}
-	  },
-  
-	  setLikedSongsPlaylist: (state, action: PayloadAction<PlaylistId>) => {
-		state.likedSongsPlaylist = action.payload;
-	  },
+		addPlaylists: (state, action: PayloadAction<Playlist[]>) => {
+			for (const p of action.payload) {
+				state.playlists[p.id] = p;
+			}
+		},
+
+		addPlaylist: (state, action: PayloadAction<Playlist>) => {
+			state.playlists[action.payload.id] = action.payload;
+		},
+
+		addSongToPlaylist: (
+			state,
+			action: PayloadAction<{ playlist: PlaylistId; song: SongId }>,
+		) => {
+			const { playlist, song } = action.payload;
+			const list = state.playlists[playlist]?.songs;
+			if (list != null && song in list) {
+				list[song] = null;
+			}
+		},
+
+		removeSongFromPlaylist: (
+			state,
+			action: PayloadAction<{ playlist: PlaylistId; song: SongId }>,
+		) => {
+			const { playlist, song } = action.payload;
+			const list = state.playlists[playlist]?.songs;
+			if (list !== null) {
+				delete list?.[song];
+			}
+		},
+
+		setLikedSongsPlaylist: (state, action: PayloadAction<PlaylistId>) => {
+			state.likedSongsPlaylist = action.payload;
+		},
 	},
 
 	extraReducers: (builder) => {
-	  builder.addCase(clearPlaylists, (state) => {
-		state.playlists = {};
-		state.likedSongsPlaylist = null;
-	  });
+		builder.addCase(clearPlaylists, (state) => {
+			state.playlists = {};
+			state.likedSongsPlaylist = null;
+		});
 	},
-  });
+});
 
-
-
-  export const {
+export const {
 	addPlaylists,
 	addPlaylist,
 	addSongToPlaylist,
 	removeSongFromPlaylist,
 	setLikedSongsPlaylist,
-  } = playlistsSlice.actions;
-  
+} = playlistsSlice.actions;
 
 export default playlistsSlice.reducer;

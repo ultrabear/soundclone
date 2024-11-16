@@ -1,147 +1,162 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { fetchPlaylist } from '../../store/slices/playlistsSlice';
-import Layout from '../Layout/Layout';
-import type { SongId } from '../../store/slices/types';
-import { api } from '../../store/api';
-import './EditPlaylistPage.css';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../store";
+import { fetchPlaylist } from "../../store/slices/playlistsSlice";
+import Layout from "../Layout/Layout";
+import type { SongId } from "../../store/slices/types";
+import { api } from "../../store/api";
+import "./EditPlaylistPage.css";
 
 interface EditPlaylistFormData {
-  name: string;
-  thumbnail?: string;
+	name: string;
+	thumbnail?: string;
 }
 
 const EditPlaylistPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const [formData, setFormData] = useState<EditPlaylistFormData>({ name: '' });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+	const { id } = useParams<{ id: string }>();
+	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
+	const [formData, setFormData] = useState<EditPlaylistFormData>({ name: "" });
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const playlist = useAppSelector(
-    (state) => (id ? state.playlist.playlists[parseInt(id)] : null)
-  );
+	const playlist = useAppSelector((state) =>
+		id ? state.playlist.playlists[parseInt(id)] : null,
+	);
 
-  const songs = useAppSelector((state) => 
-    playlist ? Object.keys(playlist.songs).map(songId => state.song.songs[parseInt(songId)]) : []
-  );
+	const songs = useAppSelector((state) =>
+		playlist
+			? Object.keys(playlist.songs).map(
+					(songId) => state.song.songs[parseInt(songId)],
+				)
+			: [],
+	);
 
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchPlaylist(parseInt(id)));
-    }
-  }, [dispatch, id]);
+	useEffect(() => {
+		if (id) {
+			dispatch(fetchPlaylist(parseInt(id)));
+		}
+	}, [dispatch, id]);
 
-  useEffect(() => {
-    if (playlist) {
-      setFormData({
-        name: playlist.name,
-        thumbnail: playlist.thumbnail
-      });
-    }
-  }, [playlist]);
+	useEffect(() => {
+		if (playlist) {
+			setFormData({
+				name: playlist.name,
+				thumbnail: playlist.thumbnail,
+			});
+		}
+	}, [playlist]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setErrors({});
 
-    try {
-      if (id) {
-        await api.playlists.update(parseInt(id), formData);
-        dispatch(fetchPlaylist(parseInt(id)));
-        navigate(`/playlist/${id}`);
-      } else {
-        const response = await api.playlists.create(formData);
-        navigate(`/playlist/${response.id}`);
-      }
-    } catch (err) {
-      if (err instanceof Error && err.api) {
-        setErrors(err.api.errors);
-      }
-    }
-  };
+		try {
+			if (id) {
+				await api.playlists.update(parseInt(id), formData);
+				dispatch(fetchPlaylist(parseInt(id)));
+				navigate(`/playlist/${id}`);
+			} else {
+				const response = await api.playlists.create(formData);
+				navigate(`/playlist/${response.id}`);
+			}
+		} catch (err) {
+			if (err instanceof Error && err.api) {
+				setErrors(err.api.errors);
+			}
+		}
+	};
 
-  const handleRemoveSong = async (songId: SongId) => {
-    if (id) {
-      try {
-        await api.playlists.removeSong(parseInt(id), songId);
-        dispatch(fetchPlaylist(parseInt(id)));
-      } catch (err) {
-        if (err instanceof Error && err.api) {
-          setErrors(err.api.errors);
-        }
-      }
-    }
-  };
+	const handleRemoveSong = async (songId: SongId) => {
+		if (id) {
+			try {
+				await api.playlists.removeSong(parseInt(id), songId);
+				dispatch(fetchPlaylist(parseInt(id)));
+			} catch (err) {
+				if (err instanceof Error && err.api) {
+					setErrors(err.api.errors);
+				}
+			}
+		}
+	};
 
-  return (
-    <Layout>
-      <div className="edit-playlist-container">
-        <h1>{id ? 'Edit Playlist' : 'Create New Playlist'}</h1>
-        
-        <form onSubmit={handleSubmit} className="edit-playlist-form">
-          <div className="form-group">
-            <label htmlFor="name">Playlist Name</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className={errors.name ? 'error' : ''}
-            />
-            {errors.name && <span className="error-message">{errors.name}</span>}
-          </div>
+	return (
+		<Layout>
+			<div className="edit-playlist-container">
+				<h1>{id ? "Edit Playlist" : "Create New Playlist"}</h1>
 
-          <div className="form-group">
-            <label htmlFor="thumbnail">Thumbnail URL</label>
-            <input
-              type="text"
-              id="thumbnail"
-              name="thumbnail"
-              value={formData.thumbnail || ''}
-              onChange={handleInputChange}
-              className={errors.thumbnail ? 'error' : ''}
-            />
-            {errors.thumbnail && <span className="error-message">{errors.thumbnail}</span>}
-          </div>
+				<form onSubmit={handleSubmit} className="edit-playlist-form">
+					<div className="form-group">
+						<label htmlFor="name">Playlist Name</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							value={formData.name}
+							onChange={handleInputChange}
+							className={errors.name ? "error" : ""}
+						/>
+						{errors.name && (
+							<span className="error-message">{errors.name}</span>
+						)}
+					</div>
 
-          <button type="submit" className="save-button">
-            {id ? 'Save Changes' : 'Create Playlist'}
-          </button>
-        </form>
+					<div className="form-group">
+						<label htmlFor="thumbnail">Thumbnail URL</label>
+						<input
+							type="text"
+							id="thumbnail"
+							name="thumbnail"
+							value={formData.thumbnail || ""}
+							onChange={handleInputChange}
+							className={errors.thumbnail ? "error" : ""}
+						/>
+						{errors.thumbnail && (
+							<span className="error-message">{errors.thumbnail}</span>
+						)}
+					</div>
 
-        {id && songs.length > 0 && (
-          <div className="playlist-songs">
-            <h2>Songs in Playlist</h2>
-            <div className="songs-list">
-              {songs.map(song => song && (
-                <div key={song.id} className="song-item">
-                  <div className="song-info">
-                    <img src={song.thumb_url} alt={song.name} className="song-thumbnail" />
-                    <span className="song-name">{song.name}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSong(song.id)}
-                    className="remove-song-button"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </Layout>
-  );
+					<button type="submit" className="save-button">
+						{id ? "Save Changes" : "Create Playlist"}
+					</button>
+				</form>
+
+				{id && songs.length > 0 && (
+					<div className="playlist-songs">
+						<h2>Songs in Playlist</h2>
+						<div className="songs-list">
+							{songs.map(
+								(song) =>
+									song && (
+										<div key={song.id} className="song-item">
+											<div className="song-info">
+												<img
+													src={song.thumb_url}
+													alt={song.name}
+													className="song-thumbnail"
+												/>
+												<span className="song-name">{song.name}</span>
+											</div>
+											<button
+												type="button"
+												onClick={() => handleRemoveSong(song.id)}
+												className="remove-song-button"
+											>
+												Remove
+											</button>
+										</div>
+									),
+							)}
+						</div>
+					</div>
+				)}
+			</div>
+		</Layout>
+	);
 };
 
 export default EditPlaylistPage;

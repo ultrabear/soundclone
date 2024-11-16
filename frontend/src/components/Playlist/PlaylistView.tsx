@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import {
-	addSongToPlaylist,
+	addSongToPlaylistThunk,
 	fetchPlaylist,
 } from "../../store/slices/playlistsSlice";
 import type { PlaylistId, SongId } from "../../store/slices/types";
@@ -110,9 +110,18 @@ const PlaylistView: React.FC = () => {
 		dispatch(setCurrentSong(song));
 	};
 
-	const addToPlaylist = (songId: SongId, targetPlaylistId: number) => {
-		dispatch(addSongToPlaylist({ playlistId: targetPlaylistId, songId }));
-		setShowAddToPlaylist(null);
+	const addToPlaylist = async (songId: SongId, targetPlaylistId: number) => {
+		try {
+			await dispatch(
+				addSongToPlaylistThunk({
+					playlist: targetPlaylistId, // Changed from playlistId to playlist
+					song: songId,
+				}),
+			);
+			setShowAddToPlaylist(null);
+		} catch (error) {
+			console.error("Error adding song to playlist:", error);
+		}
 	};
 
 	if (!playlist) {

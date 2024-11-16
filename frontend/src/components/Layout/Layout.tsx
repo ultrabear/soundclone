@@ -6,6 +6,7 @@ import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import { thunkLogout } from "../../store/slices/sessionSlice";
+import type { Song } from "../../store/slices/types";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
@@ -18,6 +19,38 @@ interface LayoutProps {
 	className?: string;
 	hideSidebar?: boolean;
 }
+
+// Selector for user playlists
+export const selectUserPlaylists = createSelector(
+	[
+		(state: RootState) => state.playlist.playlists,
+		(state: RootState) => state.session.user?.id,
+	],
+	(playlists, userId) =>
+		userId
+			? Object.values(playlists).filter(
+					(playlist) => playlist.user_id === userId,
+				)
+			: [],
+);
+
+// Selector for liked songs
+const selectLikedSongs = createSelector(
+	[
+		(state: RootState) => state.session.likes,
+		(state: RootState) => state.song.songs,
+	],
+	(likes, songs): Song[] => {
+		return Object.keys(likes)
+			.map((id) => songs[Number(id)])
+			.filter((song): song is Song => !!song)
+			.sort((a, b) => {
+				const dateA = new Date(a.created_at).getTime();
+				const dateB = new Date(b.created_at).getTime();
+				return dateB - dateA;
+			});
+	},
+);
 
 const Header: React.FC = () => {
 	const dispatch = useAppDispatch();
@@ -107,21 +140,17 @@ const Header: React.FC = () => {
 	);
 };
 
-const selectAllPlaylists = createSelector(
-	[(state: RootState) => state.playlist.playlists],
-	(playlists) => Object.values(playlists),
-);
-
 export const Sidebar: React.FC = () => {
-	const userPlaylists = useAppSelector(selectAllPlaylists);
 	const { user } = useAppSelector((state) => state.session);
+	const userPlaylists = useAppSelector(selectUserPlaylists);
+	const likedSongs = useAppSelector(selectLikedSongs);
 
 	return (
 		<aside className="sidebar">
 			<div className="sidebar-section">
 				<h2 className="sidebar-heading">Your Playlists</h2>
 				{user ? (
-					userPlaylists?.length ? (
+					userPlaylists.length ? (
 						userPlaylists.map((playlist) => (
 							<Link
 								key={playlist.id}
@@ -142,9 +171,36 @@ export const Sidebar: React.FC = () => {
 			</div>
 
 			<div className="sidebar-section">
-				<h2 className="sidebar-heading">Liked Songs</h2>
+				<h2 className="sidebar-heading">
+					Liked Songs ({user ? likedSongs.length : 0})
+				</h2>
 				{user ? (
-					<div className="sidebar-link placeholder">No liked songs yet</div>
+					likedSongs.length > 0 ? (
+						<div className="liked-songs-list">
+							{likedSongs.map((song) => (
+								<Link
+									key={song.id}
+									to={`/songs/${song.id}`}
+									className="sidebar-liked-song"
+								>
+									<div className="liked-song-thumbnail">
+										{song.thumb_url ? (
+											<img src={song.thumb_url} alt={song.name} />
+										) : (
+											<div className="song-thumbnail-placeholder" />
+										)}
+									</div>
+									<div className="liked-song-info">
+										<span className="liked-song-name" title={song.name}>
+											{song.name}
+										</span>
+									</div>
+								</Link>
+							))}
+						</div>
+					) : (
+						<div className="sidebar-link placeholder">No liked songs yet</div>
+					)
 				) : (
 					<div className="sidebar-link placeholder">
 						Log in to see your liked songs
@@ -165,9 +221,17 @@ const Layout: React.FC<LayoutProps> = ({
 	const { user } = useAppSelector((state) => state.session);
 
 	useEffect(() => {
-		if (user) {
-			dispatch(fetchUserPlaylists());
-		}
+		const initializeUserData = async () => {
+			if (user) {
+				try {
+					await dispatch(fetchUserPlaylists());
+				} catch (error) {
+					console.error("Error initializing user data:", error);
+				}
+			}
+		};
+
+		initializeUserData();
 	}, [dispatch, user]);
 
 	return (

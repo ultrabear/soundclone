@@ -5,6 +5,7 @@
 	position: fixed;
 	right: 0;
 	top: 0;
+	z-index: 9999;
 }
 
 #modal {
@@ -36,6 +37,7 @@
 	font-size: clamp(1.5rem, 3.125vw, 2rem);
 	margin-bottom: 20px;
 	text-align: center;
+	z-index: 10000;
 }
 
 #modal-content .form-container,

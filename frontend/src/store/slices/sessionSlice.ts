@@ -4,6 +4,7 @@ import type { AppDispatch } from "..";
 import { type User as ApiUser, api } from "../api";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { slice as userSlice } from "./userSlice";
+import { clearPlaylists } from "./playlistsSlice";
 
 function authUserToStore(u: ApiUser): User {
 	const { stage_name, username, ...rest } = u;
@@ -60,6 +61,7 @@ export const thunkSignup =
 export const thunkLogout = () => async (dispatch: AppDispatch) => {
 	await api.auth.logout();
 	dispatch(slice.actions.removeUser());
+	dispatch(clearPlaylists());
 };
 
 function normalizeApiUser(u: ApiUser): [SessionUser, User] {

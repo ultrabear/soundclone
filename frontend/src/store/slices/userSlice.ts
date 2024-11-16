@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
-import type { Artist, PostArtist } from "../api";
+import type { Artist } from "../api";
 import { api } from "../api";
 import type { User, UserId, UserSlice } from "./types";
 import { RootState } from "..";
@@ -35,17 +35,24 @@ export const getUserDetails =
 
 export const createNewArtistThunk = createAsyncThunk(
 	"users/createArtist",
-	async (artist: PostArtist, { dispatch, getState }) => {
-		const artistUser = await api.artists.update(artist);
-		const currentState = getState() as RootState;
-		const currentUser = currentState.session.user!;
-		const { id, username } = currentUser!;
-		const newArtist = {
-			...artistUser,
-			id,
-			stage_name: artistUser.stage_name || username,
-		};
-		dispatch(slice.actions.updateUser(apiUserToStore(newArtist)));
+	async (artist: FormData, { dispatch, getState }) => {
+		try {
+			const artistUser = await api.artists.update(artist);
+			const currentState = getState() as RootState;
+			const currentUser = currentState.session.user!;
+			const { id, username } = currentUser!;
+			const newArtist = {
+				...artistUser,
+				id,
+				stage_name: artistUser.stage_name || username,
+			};
+			dispatch(slice.actions.updateUser(apiUserToStore(newArtist)));
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
 	},
 );
 

@@ -72,7 +72,7 @@ def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
     form["csrf_token"].data = request.cookies["csrf_token"]
 
     if form.validate_on_submit():
-        # handle name is required
+        # form data is required
         if not form.data:
             return (ApiError(message="No data provided", errors={"body": "Request body is required"}), 400)
 

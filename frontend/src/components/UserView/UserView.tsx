@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../store";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
+import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import "./UserView.css";
 
 type TabType = "playlists" | "likes" | "uploads" | "profile";
@@ -26,7 +27,7 @@ function UserView({ tab }: { tab: TabType }) {
 			case "uploads":
 				return <div>Uploads Content</div>;
 			case "profile":
-				return <div>Profile Content</div>;
+				return <EditProfileForm />;
 			default:
 				return <PlaylistsScreen />;
 		}
@@ -41,28 +42,36 @@ function UserView({ tab }: { tab: TabType }) {
 						<div className="tab-list">
 							<button
 								type="button"
-								className={`tab-button ${activeTab === "playlists" ? "active" : ""}`}
+								className={`tab-button ${
+									activeTab === "playlists" ? "active" : ""
+								}`}
 								onClick={() => handleTabChange("playlists")}
 							>
 								Playlists
 							</button>
 							<button
 								type="button"
-								className={`tab-button ${activeTab === "likes" ? "active" : ""}`}
+								className={`tab-button ${
+									activeTab === "likes" ? "active" : ""
+								}`}
 								onClick={() => handleTabChange("likes")}
 							>
 								Likes
 							</button>
 							<button
 								type="button"
-								className={`tab-button ${activeTab === "uploads" ? "active" : ""}`}
+								className={`tab-button ${
+									activeTab === "uploads" ? "active" : ""
+								}`}
 								onClick={() => handleTabChange("uploads")}
 							>
 								Uploads
 							</button>
 							<button
 								type="button"
-								className={`tab-button ${activeTab === "profile" ? "active" : ""}`}
+								className={`tab-button ${
+									activeTab === "profile" ? "active" : ""
+								}`}
 								onClick={() => handleTabChange("profile")}
 							>
 								Profile

@@ -1,12 +1,14 @@
-import { createSelector } from "@reduxjs/toolkit";
 import type React from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import { thunkLogout } from "../../store/slices/sessionSlice";
-import type { Song } from "../../store/slices/types";
+
+import {
+	selectUserPlaylists,
+	selectLikedSongs,
+} from "../../store/selectors/userSelectors";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
@@ -19,38 +21,6 @@ interface LayoutProps {
 	className?: string;
 	hideSidebar?: boolean;
 }
-
-// Selector for user playlists
-export const selectUserPlaylists = createSelector(
-	[
-		(state: RootState) => state.playlist.playlists,
-		(state: RootState) => state.session.user?.id,
-	],
-	(playlists, userId) =>
-		userId
-			? Object.values(playlists).filter(
-					(playlist) => playlist.user_id === userId,
-				)
-			: [],
-);
-
-// Selector for liked songs
-const selectLikedSongs = createSelector(
-	[
-		(state: RootState) => state.session.likes,
-		(state: RootState) => state.song.songs,
-	],
-	(likes, songs): Song[] => {
-		return Object.keys(likes)
-			.map((id) => songs[Number(id)])
-			.filter((song): song is Song => !!song)
-			.sort((a, b) => {
-				const dateA = new Date(a.created_at).getTime();
-				const dateB = new Date(b.created_at).getTime();
-				return dateB - dateA;
-			});
-	},
-);
 
 const Header: React.FC = () => {
 	const dispatch = useAppDispatch();
@@ -243,11 +213,13 @@ const Layout: React.FC<LayoutProps> = ({
 					{!hideSidebar && <Sidebar />}
 				</div>
 			</div>
-			<NowPlaying
-				currentSong={currentSong}
-				isPlaying={isPlaying}
-				className="now-playing-bar"
-			/>
+			{currentSong && (
+				<NowPlaying
+					currentSong={currentSong}
+					isPlaying={isPlaying}
+					className="now-playing-bar"
+				/>
+			)}
 		</div>
 	);
 };

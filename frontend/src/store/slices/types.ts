@@ -79,7 +79,6 @@ export interface CommentsSlice {
 // imports userSlice
 export interface SongSlice {
 	songs: Record<SongId, Song>;
-	comments: Record<SongId, RSet<CommentId>>;
 }
 
 // imports songSlice

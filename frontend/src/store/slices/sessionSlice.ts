@@ -5,16 +5,20 @@ import { type User as ApiUser, api } from "../api";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { slice as userSlice } from "./userSlice";
 
-export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
-	const response = await fetch("/api/auth");
-	if (response.ok) {
-		const data = await response.json();
-		if (data.errors) {
-			return;
-		}
+function authUserToStore(u: ApiUser): User {
+	const { stage_name, username, ...rest } = u;
 
-		dispatch(slice.actions.setUser(data));
-	}
+	return {
+		...rest,
+		display_name: stage_name || username,
+	};
+}
+
+export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
+	const res = await api.auth.restore();
+
+	dispatch(slice.actions.setUser(res));
+	dispatch(userSlice.actions.addUser(authUserToStore(res)));
 };
 
 export const thunkLogin =

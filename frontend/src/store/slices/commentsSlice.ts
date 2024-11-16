@@ -11,8 +11,8 @@ import {
 	type SongId,
 	type StoreComment,
 	upgradeTimeStamps,
+	type UserId,
 } from "./types";
-import { apiUserToStore, slice as userSlice } from "./userSlice";
 
 const initialState: CommentsSlice = {
 	comments: {},
@@ -20,36 +20,15 @@ const initialState: CommentsSlice = {
 
 export function apiCommentToStore(
 	songId: SongId,
-	comment: UserComment,
+	comment: Omit<UserComment, "user">,
+	userId: UserId,
 ): StoreComment {
-	const { user_id, ...rest } = comment;
-
 	return upgradeTimeStamps({
-		...rest,
+		...comment,
 		song_id: songId,
-		author_id: comment.user_id,
+		author_id: userId,
 	});
 }
-
-//fetch song comments thunk
-export const fetchComments = createAsyncThunk(
-	"comments/fetchComments",
-	async (songId: SongId, { dispatch }) => {
-		const { comments } = await api.comments.getForSong(songId);
-		const users = await Promise.all(
-			comments.map(async (comment) => {
-				return api.artists.getOne(comment.user_id);
-			}),
-		);
-		const arr = users.filter((v) => v !== null).map(apiUserToStore);
-		dispatch(userSlice.actions.addUsers(arr));
-
-		const storeComments = comments.map((comment) => {
-			return apiCommentToStore(songId, comment);
-		});
-		dispatch(commentsSlice.actions.getComments(storeComments));
-	},
-);
 
 //post a new comment thunk
 export const postCommentThunk = createAsyncThunk(
@@ -60,16 +39,15 @@ export const postCommentThunk = createAsyncThunk(
 	) => {
 		const response = await api.comments.create(songId, { text });
 		const currentState = getState() as RootState;
-		const userId = currentState.session.user!.id;
+		const user = currentState.session.user!;
 
-		const apiComment: UserComment = {
+		const apiComment = {
 			id: response.id,
 			text,
-			user_id: userId,
 			created_at: response.created_at,
 			updated_at: response.updated_at,
 		};
-		const storeComment = apiCommentToStore(songId, apiComment);
+		const storeComment = apiCommentToStore(songId, apiComment, user.id);
 
 		dispatch(commentsSlice.actions.addComment(storeComment));
 	},
@@ -79,7 +57,7 @@ export const postCommentThunk = createAsyncThunk(
 export const editCommentThunk = createAsyncThunk(
 	"comments/editComment",
 	async (
-		{ commentId, text }: { commentId: number; songId: SongId; text: string },
+		{ commentId, text }: { commentId: number; text: string },
 		{ dispatch },
 	) => {
 		const response = await api.comments.update(commentId, { text });

@@ -30,7 +30,7 @@ def get_comments(song_id: int) -> GetComments | ApiErrorResponse:
             {
                 "id": c.id,
                 "text": c.comment_text,
-                "user_id": c.author_id,
+                "user": {"id": c.author_id, "display_name": c.author.stage_name or c.author.username},
                 "created_at": str(c.created_at),
                 "updated_at": str(c.updated_at),
             }
@@ -106,5 +106,8 @@ def delete_comment(comment_id: int) -> ApiErrorResponse | NoPayload:
 
     if comment.author_id != user.id:
         return {"message": "You do not have permission to delete this comment", "errors": {}}, 403
+
+    db.session.delete(comment)
+    db.session.commit()
 
     return {}

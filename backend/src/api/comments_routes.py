@@ -107,4 +107,7 @@ def delete_comment(comment_id: int) -> ApiErrorResponse | NoPayload:
     if comment.author_id != user.id:
         return {"message": "You do not have permission to delete this comment", "errors": {}}, 403
 
+    db.session.delete(comment)
+    db.session.commit()
+
     return {}

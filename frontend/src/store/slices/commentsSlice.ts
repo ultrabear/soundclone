@@ -57,7 +57,7 @@ export const postCommentThunk = createAsyncThunk(
 export const editCommentThunk = createAsyncThunk(
 	"comments/editComment",
 	async (
-		{ commentId, text }: { commentId: number; songId: SongId; text: string },
+		{ commentId, text }: { commentId: number; text: string },
 		{ dispatch },
 	) => {
 		const response = await api.comments.update(commentId, { text });

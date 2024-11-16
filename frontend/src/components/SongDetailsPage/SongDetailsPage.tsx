@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import { postCommentThunk } from "../../store/slices/commentsSlice";
+import {
+	deleteCommentThunk,
+	editCommentThunk,
+	postCommentThunk,
+} from "../../store/slices/commentsSlice";
 import {
 	fetchSong,
 	getLikes,
@@ -17,12 +21,54 @@ import Layout from "../Layout/Layout";
 import { Sidebar } from "../Layout/Layout";
 import styles from "./SongDetailsPage.module.css";
 
+function CommentEditBox({
+	text,
+	setText,
+	close,
+	edit,
+}: {
+	text: string;
+	setText: (_: string) => void;
+	close: () => void;
+	edit: () => void;
+}) {
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				edit();
+			}}
+		>
+			<input
+				style={{ width: "400px" }}
+				type="text"
+				minLength={10}
+				onChange={(e) => setText(e.target.value)}
+				value={text}
+			/>
+			<button type="submit">Edit</button>
+			<button type="button" onClick={close}>
+				Close
+			</button>
+		</form>
+	);
+}
+
 function Comment({ id }: { id: CommentId }): JSX.Element {
 	const comment = useAppSelector((state) => state.comment.comments[id]);
 
 	const user = useAppSelector((state) =>
 		comment ? state.user.users[comment.author_id] : null,
 	);
+
+	const me = useAppSelector(
+		(state) => comment && state.session.user?.id === comment.author_id,
+	);
+
+	const dispatch = useAppDispatch();
+
+	const [edits, setEdits] = useState("");
+	const [editor, setEditor] = useState(false);
 
 	if (!comment) {
 		return <h1>Loading comment...</h1>;
@@ -31,6 +77,15 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 	if (!user) {
 		return <h1>Loading user...</h1>;
 	}
+
+	const deleteComment = () => {
+		dispatch(deleteCommentThunk(comment.id));
+	};
+
+	const editComment = async () => {
+		await dispatch(editCommentThunk({ commentId: comment.id, text: edits }));
+		setEditor(false);
+	};
 
 	return (
 		<div className={styles.comment}>
@@ -42,7 +97,39 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 			</div>
 			<div className={styles.commentContent}>
 				<div className={styles.commenterName}>{user.display_name}</div>
-				<div className={styles.commentText}>{comment.text}</div>
+				{editor ? (
+					<CommentEditBox
+						text={edits}
+						setText={setEdits}
+						close={() => setEditor(false)}
+						edit={editComment}
+					/>
+				) : (
+					<div className={styles.commentText}>{comment.text}</div>
+				)}
+				{me && !editor && (
+					<>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								setEdits(comment.text);
+								setEditor(true);
+							}}
+						>
+							Edit
+						</button>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								deleteComment();
+							}}
+						>
+							Delete
+						</button>
+					</>
+				)}
 			</div>
 		</div>
 	);

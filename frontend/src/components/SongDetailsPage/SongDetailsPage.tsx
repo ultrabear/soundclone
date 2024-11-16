@@ -73,10 +73,10 @@ const SongDetailsPage: React.FC = () => {
 	const [commentText, setCommentText] = useState("");
 	const [commentError, setCommentError] = useState<string | null>(null);
 
-	const [gotLikes, setGotLikes] = useState(false);
+	const [gotLatest, setGotLatest] = useState(false);
 
-	if (!gotLikes) {
-		setGotLikes(true);
+	if (!gotLatest) {
+		setGotLatest(true);
 
 		dispatch(getLikes());
 	}
@@ -119,7 +119,7 @@ const SongDetailsPage: React.FC = () => {
 			return;
 		}
 
-		if (!user) {
+		if (!session) {
 			setCommentError("You must be logged in to comment.");
 			return;
 		}
@@ -142,7 +142,7 @@ const SongDetailsPage: React.FC = () => {
 	};
 
 	const handleLike = () => {
-		if (!user || !song) {
+		if (!session || !song) {
 			alert("You must be logged in to like a song.");
 			return;
 		}
@@ -254,9 +254,9 @@ const SongDetailsPage: React.FC = () => {
 							)}
 
 							<div className={styles.commentsList}>
-								{Object.keys(comments).length > 0 ? (
-									Object.keys(comments).map((comment) => (
-										<Comment key={Number(comment)} id={Number(comment)} />
+								{comments.length > 0 ? (
+									comments.map((comment) => (
+										<Comment key={comment.id} id={comment.id} />
 									))
 								) : (
 									<div className={styles.noComments}>

@@ -1,6 +1,5 @@
 import { useState } from "react";
-// import { Navigate, useNavigate } from "react-router-dom";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { createSongThunk } from "../../store/slices/songsSlice";
 import Layout from "../Layout/Layout";
@@ -17,9 +16,9 @@ const ALLOWED_SOUND_EXTENSIONS = new Set([
 ]);
 const ALLOWED_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"]);
 
-const SongUploadForm: () => JSX.Element = () => {
+const SongUploadForm = (): JSX.Element => {
 	const dispatch = useAppDispatch();
-	// const navigate = useNavigate();
+	const navigate = useNavigate();
 	const sessionUser = useAppSelector((state) => state.session.user);
 	const [name, setName] = useState<string>("");
 	const [genre, setGenre] = useState<string>("");
@@ -34,7 +33,10 @@ const SongUploadForm: () => JSX.Element = () => {
 		},
 	);
 
-	if (!sessionUser) return <Navigate to="/" replace={true} />;
+	if (!sessionUser) {
+		navigate("/");
+		return <></>;
+	}
 
 	interface clientSideErrors {
 		thumbUrl?: string;
@@ -75,8 +77,10 @@ const SongUploadForm: () => JSX.Element = () => {
 		if (thumbUrl) formData.append("thumbnail_img", thumbUrl);
 		if (songFile) formData.append("song_file", songFile);
 		setUploading(true);
+
 		const serverResponse = await dispatch(createSongThunk(formData));
 
+		// TODO - redirect to new song's details page
 		console.log("server response: ", serverResponse);
 	};
 

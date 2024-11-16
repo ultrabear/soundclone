@@ -5,9 +5,9 @@ from ..api.aws_integration import ALLOWED_IMAGE_EXTENSIONS
 
 
 class ArtistForm(FlaskForm):
-    stage_name = StringField("song-name")
-    first_release = StringField("first-release")
-    profile_image = FileField("thumbnail-file", validators=[FileAllowed(list(ALLOWED_IMAGE_EXTENSIONS))])
+    stage_name = StringField("stage_name")
+    first_release = StringField("first_release")
+    profile_image = FileField("profile_image", validators=[FileAllowed(list(ALLOWED_IMAGE_EXTENSIONS))])
     biography = StringField("biography")
     location = StringField("location")
     homepage = StringField("homepage")

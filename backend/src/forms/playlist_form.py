@@ -6,5 +6,5 @@ from ..api.aws_integration import ALLOWED_IMAGE_EXTENSIONS
 
 
 class PlaylistForm(FlaskForm):
-    name = StringField("song-name", validators=[DataRequired()])
-    thumbnail_img = FileField("thumbnail-file", validators=[FileAllowed(list(ALLOWED_IMAGE_EXTENSIONS))])
+    name = StringField("name", validators=[DataRequired()])
+    thumbnail_img = FileField("thumbnail_img", validators=[FileAllowed(list(ALLOWED_IMAGE_EXTENSIONS))])

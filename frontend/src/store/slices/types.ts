@@ -35,6 +35,7 @@ export interface User {
 	biography?: string;
 	location?: string;
 	homepage_url?: Url;
+	num_songs_by_artist?: number;
 }
 
 export interface SessionUser {

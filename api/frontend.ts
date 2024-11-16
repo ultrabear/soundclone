@@ -67,6 +67,7 @@ export type BaseArtist = {
 	biography?: string;
 	location?: string;
 	homepage?: string;
+	num_songs_by_artist: number;
 };
 
 export type Artist = Id &
@@ -245,9 +246,12 @@ export const api = {
 		getOne: async (artistId: number): Promise<Artist> => {
 			return notNull(fetchWithError(`/artists/${artistId}`));
 		},
-		update: async (p: PostArtist): Promise<PostArtist & Timestamps> => {
+		update: async (artist: FormData): Promise<PostArtist & Timestamps> => {
 			return notNull(
-				fetchWithError("/artists", { method: "POST", body: JSON.stringify(p) }),
+				fetchWithErrNoJson("/artists", {
+					method: "POST",
+					body: artist,
+				}),
 			);
 		},
 	},

@@ -4,11 +4,13 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import { postCommentThunk } from "../../store/slices/commentsSlice";
-import { slice as sessionSlice } from "../../store/slices/sessionSlice";
 import {
 	fetchSong,
+	getLikes,
+	likeSong,
 	selectSongById,
 	selectSongComments,
+	unlikeSong,
 } from "../../store/slices/songsSlice";
 import type { CommentId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
@@ -70,6 +72,14 @@ const SongDetailsPage: React.FC = () => {
 
 	const [commentText, setCommentText] = useState("");
 	const [commentError, setCommentError] = useState<string | null>(null);
+
+	const [gotLikes, setGotLikes] = useState(false);
+
+	if (!gotLikes) {
+		setGotLikes(true);
+
+		dispatch(getLikes());
+	}
 
 	useEffect(() => {
 		const loadSongDetails = async () => {
@@ -137,9 +147,9 @@ const SongDetailsPage: React.FC = () => {
 			return;
 		}
 		if (isLiked) {
-			dispatch(sessionSlice.actions.removeLike(song.id));
+			dispatch(unlikeSong(song.id));
 		} else {
-			dispatch(sessionSlice.actions.addLike(song.id));
+			dispatch(likeSong(song.id));
 		}
 	};
 
@@ -234,7 +244,7 @@ const SongDetailsPage: React.FC = () => {
 										className={styles.likeButton}
 										onClick={handleLike}
 									>
-										{isLiked ? "♥" : "♡"}
+										{isLiked ? "♥" : "♡"} {song.likes}
 									</button>
 								</form>
 							</div>

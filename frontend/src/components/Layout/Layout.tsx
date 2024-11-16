@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
@@ -15,6 +15,7 @@ import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import "./Layout.css";
 import MobileMenu from "../MobileMenu/MobileMenu";
+import { getLikes } from "../../store/slices/songsSlice";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -164,6 +165,7 @@ export const Sidebar: React.FC = () => {
 					)
 				) : (
 					<button
+						type="button"
 						onClick={handleLoginClick}
 						className="sidebar-link placeholder login-prompt"
 					>
@@ -210,6 +212,7 @@ export const Sidebar: React.FC = () => {
 					)
 				) : (
 					<button
+						type="button"
 						onClick={handleLoginClick}
 						className="sidebar-link placeholder login-prompt"
 					>
@@ -227,22 +230,25 @@ const Layout: React.FC<LayoutProps> = ({
 	className = "",
 }) => {
 	const dispatch = useAppDispatch();
+	const [loaded, setLoaded] = useState(false);
 	const { currentSong, isPlaying } = useAppSelector((state) => state.player);
 	const { user } = useAppSelector((state) => state.session);
 
-	useEffect(() => {
-		const initializeUserData = async () => {
+	if (!loaded) {
+		setLoaded(true);
+		(async () => {
 			if (user) {
 				try {
-					await dispatch(fetchUserPlaylists());
+					await Promise.all([
+						dispatch(fetchUserPlaylists()),
+						dispatch(getLikes()),
+					]);
 				} catch (error) {
 					console.error("Error initializing user data:", error);
 				}
 			}
-		};
-
-		initializeUserData();
-	}, [dispatch, user]);
+		})();
+	}
 
 	return (
 		<div className="app-container">

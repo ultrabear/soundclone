@@ -25,8 +25,12 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	);
 	const [duration, setDuration] = useState(() => AudioService.getDuration());
 	const [volume, setVolume] = useState(() => AudioService.getVolume());
+
 	const [showToast, setShowToast] = useState(false);
 	const [toastMessage, setToastMessage] = useState("");
+	const [showAddToPlaylist, setShowAddToPlaylist] = useState<boolean>(false);
+	const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
+	const [newPlaylistName, setNewPlaylistName] = useState("");
 
 	const progressRef = useRef<HTMLDivElement>(null);
 	const volumeRef = useRef<HTMLDivElement>(null);
@@ -43,14 +47,19 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	const isLiked = useAppSelector((state) =>
 		songId ? songId in state.session.likes : false,
 	);
+	const userPlaylists = useAppSelector((state) =>
+		user
+			? Object.values(state.playlist.playlists).filter(
+					(p) => p.user_id === user.id,
+				)
+			: [],
+	);
 
-	useEffect(() => {
-		console.log("NowPlaying component state:", {
-			user,
-			songId,
-			isLiked,
-		});
-	}, [user, songId, isLiked]);
+	const showToastMessage = (message: string) => {
+		setToastMessage(message);
+		setShowToast(true);
+		setTimeout(() => setShowToast(false), 2000);
+	};
 
 	useEffect(() => {
 		if (currentSongData?.song_url) {
@@ -59,7 +68,6 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 		}
 	}, [currentSongData]);
 
-	//  play/pause state
 	useEffect(() => {
 		console.log("[NowPlaying] Play state changed:", isPlaying);
 		if (isPlaying) {
@@ -69,9 +77,25 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 		}
 	}, [isPlaying]);
 
-	// time and duration listeners
 	useEffect(() => {
-		// sync with current audio state
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as HTMLElement;
+			if (!target.closest(".playlist-button-container")) {
+				setShowAddToPlaylist(false);
+				setIsCreatingPlaylist(false);
+			}
+		};
+
+		if (showAddToPlaylist) {
+			document.addEventListener("click", handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener("click", handleClickOutside);
+		};
+	}, [showAddToPlaylist]);
+
+	useEffect(() => {
 		setCurrentTime(AudioService.getCurrentTime());
 		setDuration(AudioService.getDuration());
 		setVolume(AudioService.getVolume());
@@ -118,156 +142,229 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	};
 
 	const handleLikeToggle = async () => {
-		console.log("Like toggle - Initial state:", {
-			user,
-			songId,
-			isLiked,
-		});
-
 		if (!user || !songId) {
-			setToastMessage("Please log in to like songs");
-			setShowToast(true);
-			setTimeout(() => setShowToast(false), 2000);
+			showToastMessage("Please log in to like songs");
 			return;
 		}
 
 		try {
-			const method = isLiked ? "DELETE" : "POST";
-			console.log(`Attempting ${method} request for song ${songId}`);
-
-			// Update Redux first
 			if (isLiked) {
 				dispatch(unlikeSong(songId));
-				await api.likes.toggleLike(songId, "DELETE");
+				showToastMessage("Removed from liked songs");
 			} else {
 				dispatch(likeSong(songId));
-				await api.likes.toggleLike(songId, "POST");
+				showToastMessage("Added to liked songs");
 			}
+		} catch (error) {
+			showToastMessage("Failed to update like status");
+			console.error("Error updating like status:", error);
+		}
+	};
 
-			setToastMessage(
-				isLiked ? "Song removed from likes!" : "Song added to likes!",
-			);
-			setShowToast(true);
-		} catch (e) {
-			// Type assertion for error
-			const error = e as {
-				message?: string;
-				api?: { message: string };
-				response?: { status: number };
-			};
+	const handleAddToPlaylist = async (
+		playlistId: number,
+		playlistName: string,
+	) => {
+		if (!songId) return;
 
-			console.error("Like toggle error:", {
-				message: error.message || "Unknown error",
-				apiError: error.api || {},
-				status: error.response?.status,
+		try {
+			await api.playlists.addSong(playlistId, songId);
+			setShowAddToPlaylist(false);
+			showToastMessage(`Added to ${playlistName}`);
+		} catch (error) {
+			console.error("Error adding song to playlist:", error);
+			showToastMessage("Failed to add song to playlist");
+		}
+	};
+
+	const handleCreateNewPlaylist = async () => {
+		if (!newPlaylistName.trim() || !songId) return;
+
+		try {
+			const response = await api.playlists.create({
+				name: newPlaylistName,
 			});
 
-			// Revert Redux state on error
-			if (isLiked) {
-				dispatch(likeSong(songId));
-			} else {
-				dispatch(unlikeSong(songId));
-			}
-			setToastMessage("Error updating like status");
-			setShowToast(true);
-		} finally {
-			setTimeout(() => setShowToast(false), 2000);
+			await api.playlists.addSong(response.id, songId);
+			setShowAddToPlaylist(false);
+			setIsCreatingPlaylist(false);
+			setNewPlaylistName("");
+			showToastMessage("Added to new playlist!");
+		} catch (error) {
+			console.error("Error creating playlist:", error);
+			showToastMessage("Failed to create playlist");
 		}
 	};
 
 	return (
-		<div className={`now-playing ${className}`}>
+		<>
 			{showToast && <div className="toast-notification">{toastMessage}</div>}
-			<div className="now-playing-inner">
-				{currentSongData && songArtist ? (
-					<>
-						<div className="now-playing-left">
-							<Link
-								to={`/songs/${currentSongData.id}`}
-								className="now-playing-art"
-							>
-								<img
-									src={currentSongData.thumb_url || "/default-album-art.png"}
-									alt={currentSongData.name}
-								/>
-							</Link>
-							<div className="now-playing-info">
-								<Link to={`/songs/${currentSongData.id}`} className="song-name">
-									{currentSongData.name}
-								</Link>
-								<Link to={`/artists/${songArtist.id}`} className="artist-name">
-									{songArtist.display_name}
-								</Link>
-							</div>
-							<button
-								type="button"
-								className={`like-button ${isLiked ? "liked" : ""}`}
-								onClick={handleLikeToggle}
-								aria-label={isLiked ? "Unlike" : "Like"}
-							>
-								{isLiked ? "❤️" : "♡"}
-							</button>
-						</div>
-
-						<div className="now-playing-center">
-							<div className="playback-controls">
-								<button
-									type="button"
-									className="control-button play-button"
-									onClick={handleTogglePlay}
-									aria-label={isPlaying ? "Pause" : "Play"}
+			<div className={`now-playing ${className}`}>
+				<div className="now-playing-inner">
+					{currentSongData && songArtist ? (
+						<>
+							<div className="now-playing-left">
+								<Link
+									to={`/songs/${currentSongData.id}`}
+									className="now-playing-art"
 								>
-									{isPlaying ? "⏸" : "▶"}
-								</button>
-							</div>
-
-							<div className="progress-bar-container">
-								<span className="time">{formatTime(currentTime)}</span>
-								<div
-									className="progress-bar"
-									ref={progressRef}
-									onClick={handleProgress}
-								>
-									<div
-										className="progress-bar-fill"
-										style={{
-											width: `${duration ? (currentTime / duration) * 100 : 0}%`,
-										}}
+									<img
+										src={currentSongData.thumb_url || "/default-album-art.png"}
+										alt={currentSongData.name}
 									/>
-								</div>
-								<span className="time">{formatTime(duration)}</span>
-							</div>
-						</div>
+								</Link>
 
-						<div className="now-playing-right">
-							<div className="volume-control">
-								<button
-									type="button"
-									className="volume-button"
-									aria-label="Volume"
-								>
-									🔊
-								</button>
-								<div className="volume-slider-container">
-									<div
-										className="volume-slider"
-										ref={volumeRef}
-										onClick={handleVolumeChange}
+								<div className="now-playing-info">
+									<Link
+										to={`/songs/${currentSongData.id}`}
+										className="song-name"
 									>
-										<div
-											className="volume-slider-fill"
-											style={{ width: `${volume * 100}%` }}
-										/>
+										{currentSongData.name}
+									</Link>
+									<Link
+										to={`/artists/${songArtist.id}`}
+										className="artist-name"
+									>
+										{songArtist.display_name}
+									</Link>
+								</div>
+
+								<div className="now-playing-actions">
+									<button
+										type="button"
+										className={`like-button ${isLiked ? "liked" : ""}`}
+										onClick={handleLikeToggle}
+										aria-label={isLiked ? "Unlike" : "Like"}
+									>
+										{isLiked ? "❤️" : "♡"}
+									</button>
+
+									<div className="playlist-button-container">
+										<button
+											type="button"
+											className="add-to-playlist-button"
+											onClick={(e) => {
+												e.stopPropagation();
+												setShowAddToPlaylist(!showAddToPlaylist);
+											}}
+											aria-label="Add to playlist"
+										>
+											+
+										</button>
+
+										{/* Popover Menu */}
+										{showAddToPlaylist && (
+											<div
+												className="playlist-popup"
+												onClick={(e) => e.stopPropagation()}
+											>
+												{userPlaylists.map((playlist) => (
+													<button
+														key={playlist.id}
+														type="button"
+														className="playlist-option"
+														onClick={() =>
+															handleAddToPlaylist(playlist.id, playlist.name)
+														}
+													>
+														{playlist.name}
+													</button>
+												))}
+
+												{isCreatingPlaylist ? (
+													<div className="playlist-option">
+														<input
+															type="text"
+															value={newPlaylistName}
+															onChange={(e) =>
+																setNewPlaylistName(e.target.value)
+															}
+															placeholder="Enter playlist name"
+															autoFocus
+															onKeyPress={(e) => {
+																if (e.key === "Enter") {
+																	handleCreateNewPlaylist();
+																}
+															}}
+														/>
+													</div>
+												) : (
+													<button
+														type="button"
+														className="playlist-option create-new"
+														onClick={() => setIsCreatingPlaylist(true)}
+													>
+														Create New Playlist
+													</button>
+												)}
+											</div>
+										)}
 									</div>
 								</div>
 							</div>
-						</div>
-					</>
-				) : (
-					<div className="no-song-playing">No track currently playing</div>
-				)}
+
+							<div className="now-playing-center">
+								<div className="playback-controls">
+									<button
+										type="button"
+										className="control-button play-button"
+										onClick={handleTogglePlay}
+										aria-label={isPlaying ? "Pause" : "Play"}
+									>
+										{isPlaying ? "⏸" : "▶"}
+									</button>
+								</div>
+
+								<div className="progress-bar-container">
+									<span className="time">{formatTime(currentTime)}</span>
+									<div
+										className="progress-bar"
+										ref={progressRef}
+										onClick={handleProgress}
+									>
+										<div
+											className="progress-bar-fill"
+											style={{
+												width: `${
+													duration ? (currentTime / duration) * 100 : 0
+												}%`,
+											}}
+										/>
+									</div>
+									<span className="time">{formatTime(duration)}</span>
+								</div>
+							</div>
+
+							<div className="now-playing-right">
+								<div className="volume-control">
+									<button
+										type="button"
+										className="volume-button"
+										aria-label="Volume"
+									>
+										🔊
+									</button>
+									<div className="volume-slider-container">
+										<div
+											className="volume-slider"
+											ref={volumeRef}
+											onClick={handleVolumeChange}
+										>
+											<div
+												className="volume-slider-fill"
+												style={{ width: `${volume * 100}%` }}
+											/>
+										</div>
+									</div>
+								</div>
+							</div>
+						</>
+					) : (
+						<div className="no-song-playing">No track currently playing</div>
+					)}
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

@@ -263,6 +263,68 @@
 	background-color: rgba(0, 0, 0, 0.05);
 }
 
+.hero-footer {
+	display: flex;
+	gap: 12px;
+	justify-content: flex-end;
+	padding: 8px 0;
+}
+
+.view-playlist-button,
+.edit-playlist-button {
+	padding: 6px 16px;
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	text-decoration: none;
+	transition: all 0.2s ease;
+}
+
+.view-playlist-button {
+	background: #f2f2f2;
+	border: 1px solid #e5e5e5;
+	color: #333;
+}
+
+.edit-playlist-button {
+	background: transparent;
+	border: 1px solid #e5e5e5;
+	color: #333;
+}
+
+.view-playlist-button:hover,
+.edit-playlist-button:hover {
+	background: #e5e5e5;
+}
+
+/* PlaylistView specific styles */
+.playlist-actions {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.play-all-button,
+.edit-playlist-button {
+	padding: 8px 24px;
+	border-radius: 3px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.play-all-button {
+	background: #ff5500;
+	color: white;
+	border: none;
+}
+
+.play-all-button:hover {
+	background: #ff6a1a;
+}
+
 /* Loading and Error States */
 .loading-container,
 .error-container {

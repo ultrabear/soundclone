@@ -336,6 +336,117 @@
 	}
 }
 
+.now-playing-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	position: relative; /* Added for dropdown positioning */
+}
+
+.like-button,
+.add-to-playlist-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 18px;
+	padding: 8px;
+	color: rgba(255, 255, 255, 0.8);
+	transition: all 0.2s ease;
+}
+
+.like-button:hover,
+.add-to-playlist-button:hover {
+	color: #ff5500;
+	transform: scale(1.1);
+}
+
+.like-button.liked {
+	color: var(--primary-color);
+}
+
+.playlist-button-container {
+	position: relative; /* Establishes a positioning context */
+	display: inline-block; /* Adjust as needed */
+}
+
+.playlist-popup {
+	position: absolute;
+	bottom: 100%; /* Positions it directly above the button */
+	left: 50%;
+	transform: translateX(-50%) translateY(-8px); /* Centers horizontally and adds spacing */
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+	min-width: 240px;
+	max-height: 400px;
+	overflow-y: auto;
+	z-index: 2001;
+	padding: 8px 0;
+	opacity: 0;
+	animation: fadeIn 0.2s forwards;
+}
+
+@keyframes fadeIn {
+	to {
+		opacity: 1;
+	}
+}
+
+.playlist-popup::before {
+	content: "";
+	position: absolute;
+	bottom: -8px; /* Positions the arrow */
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 8px;
+	border-style: solid;
+	border-color: white transparent transparent transparent;
+}
+
+.playlist-option {
+	width: 100%;
+	padding: 12px 16px;
+	text-align: left;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: #333;
+	font-size: 14px;
+	transition: background-color 0.2s;
+}
+
+.playlist-option:hover {
+	background-color: rgba(0, 0, 0, 0.05);
+}
+
+.playlist-option.create-new {
+	border-top: 1px solid #eee;
+	color: #ff5500;
+	padding-top: 12px;
+}
+
+.playlist-option input {
+	width: calc(100% - 32px);
+	margin: 8px 16px;
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.toast-notification {
+	position: fixed;
+	bottom: 80px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(0, 0, 0, 0.8);
+	color: white;
+	padding: 8px 16px;
+	border-radius: 4px;
+	font-size: 14px;
+	z-index: 2000;
+}
+
 /* Enhanced Responsiveness */
 @media (max-width: 1024px) {
 	.now-playing-inner {
@@ -372,6 +483,16 @@
 
 	.now-playing-center {
 		padding: 0 12px;
+	}
+
+	.playlist-dropdown {
+		width: 90%;
+		max-width: 300px;
+		bottom: 80px;
+	}
+
+	.playlist-dropdown::after {
+		display: none; /* Hide arrow on mobile */
 	}
 
 	.play-button {

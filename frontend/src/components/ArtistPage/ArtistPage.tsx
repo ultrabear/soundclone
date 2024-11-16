@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import {
-	fetchSong,
 	getLikes,
 	selectSongsByArtist,
 	addSongs,

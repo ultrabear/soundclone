@@ -164,8 +164,13 @@ endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=IdAndTimestamp
 endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=IdAndTimestamps, auth=True)
 
 
+class BareUser(TypedDict):
+    id: int
+    display_name: str
+
+
 class UserComment(Comment, IdAndTimestamps):
-    user_id: int
+    user: BareUser
 
 
 # I want to be able to delete a comment that I left on a song's page

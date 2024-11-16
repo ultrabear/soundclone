@@ -62,6 +62,12 @@ export interface Playlist extends WeakTimestamps {
 	songs: Record<SongId, null>;
 }
 
+export interface BasePlaylist {
+	name: string;
+	thumbnail?: string;
+	user_id?: UserId;
+}
+
 export interface UserSlice {
 	users: Record<UserId, User>;
 }
@@ -80,10 +86,10 @@ export interface CommentsSlice {
 // imports userSlice
 export interface SongSlice {
 	songs: Record<SongId, Song>;
-	comments: Record<SongId, RSet<CommentId>>;
 }
 
 // imports songSlice
 export interface PlaylistSlice {
 	playlists: Record<PlaylistId, Playlist>;
+	likedSongsPlaylist: PlaylistId | null;
 }

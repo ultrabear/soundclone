@@ -56,7 +56,7 @@ export type Comment = {
 export type UserComment = Comment &
 	Id &
 	Timestamps & {
-		user_id: number;
+		user: { id: number; display_name: string };
 	};
 
 export type GetComments = { comments: UserComment[] };

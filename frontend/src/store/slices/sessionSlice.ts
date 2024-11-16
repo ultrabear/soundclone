@@ -4,16 +4,24 @@ import type { AppDispatch } from "..";
 import { type User as ApiUser, api } from "../api";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { slice as userSlice } from "./userSlice";
+import { clearPlaylists } from "./playlistsSlice";
+
+function authUserToStore(u: ApiUser): User {
+	const { stage_name, username, ...rest } = u;
+
+	return {
+		...rest,
+		display_name: stage_name || username,
+	};
+}
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
-	const response = await fetch("/api/auth");
-	if (response.ok) {
-		const data = await response.json();
-		if (data.errors) {
-			return;
-		}
-
-		dispatch(slice.actions.setUser(data));
+	try {
+		const res = await api.auth.restore();
+		dispatch(slice.actions.setUser(res));
+		dispatch(userSlice.actions.addUser(authUserToStore(res)));
+	} catch (e) {
+		dispatch(slice.actions.removeUser());
 	}
 };
 
@@ -56,6 +64,7 @@ export const thunkSignup =
 export const thunkLogout = () => async (dispatch: AppDispatch) => {
 	await api.auth.logout();
 	dispatch(slice.actions.removeUser());
+	dispatch(clearPlaylists());
 };
 
 function normalizeApiUser(u: ApiUser): [SessionUser, User] {

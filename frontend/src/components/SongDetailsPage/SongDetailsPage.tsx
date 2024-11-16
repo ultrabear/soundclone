@@ -3,17 +3,56 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
-import { postCommentThunk } from "../../store/slices/commentsSlice";
-import { slice as sessionSlice } from "../../store/slices/sessionSlice";
+import {
+	deleteCommentThunk,
+	editCommentThunk,
+	postCommentThunk,
+} from "../../store/slices/commentsSlice";
 import {
 	fetchSong,
+	getLikes,
+	likeSong,
 	selectSongById,
 	selectSongComments,
+	unlikeSong,
 } from "../../store/slices/songsSlice";
 import type { CommentId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
 import { Sidebar } from "../Layout/Layout";
 import styles from "./SongDetailsPage.module.css";
+
+function CommentEditBox({
+	text,
+	setText,
+	close,
+	edit,
+}: {
+	text: string;
+	setText: (_: string) => void;
+	close: () => void;
+	edit: () => void;
+}) {
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				edit();
+			}}
+		>
+			<input
+				style={{ width: "400px" }}
+				type="text"
+				minLength={10}
+				onChange={(e) => setText(e.target.value)}
+				value={text}
+			/>
+			<button type="submit">Edit</button>
+			<button type="button" onClick={close}>
+				Close
+			</button>
+		</form>
+	);
+}
 
 function Comment({ id }: { id: CommentId }): JSX.Element {
 	const comment = useAppSelector((state) => state.comment.comments[id]);
@@ -22,6 +61,15 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 		comment ? state.user.users[comment.author_id] : null,
 	);
 
+	const me = useAppSelector(
+		(state) => comment && state.session.user?.id === comment.author_id,
+	);
+
+	const dispatch = useAppDispatch();
+
+	const [edits, setEdits] = useState("");
+	const [editor, setEditor] = useState(false);
+
 	if (!comment) {
 		return <h1>Loading comment...</h1>;
 	}
@@ -29,6 +77,15 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 	if (!user) {
 		return <h1>Loading user...</h1>;
 	}
+
+	const deleteComment = () => {
+		dispatch(deleteCommentThunk(comment.id));
+	};
+
+	const editComment = async () => {
+		await dispatch(editCommentThunk({ commentId: comment.id, text: edits }));
+		setEditor(false);
+	};
 
 	return (
 		<div className={styles.comment}>
@@ -40,7 +97,39 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 			</div>
 			<div className={styles.commentContent}>
 				<div className={styles.commenterName}>{user.display_name}</div>
-				<div className={styles.commentText}>{comment.text}</div>
+				{editor ? (
+					<CommentEditBox
+						text={edits}
+						setText={setEdits}
+						close={() => setEditor(false)}
+						edit={editComment}
+					/>
+				) : (
+					<div className={styles.commentText}>{comment.text}</div>
+				)}
+				{me && !editor && (
+					<>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								setEdits(comment.text);
+								setEditor(true);
+							}}
+						>
+							Edit
+						</button>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault();
+								deleteComment();
+							}}
+						>
+							Delete
+						</button>
+					</>
+				)}
 			</div>
 		</div>
 	);
@@ -70,6 +159,14 @@ const SongDetailsPage: React.FC = () => {
 
 	const [commentText, setCommentText] = useState("");
 	const [commentError, setCommentError] = useState<string | null>(null);
+
+	const [gotLatest, setGotLatest] = useState(false);
+
+	if (!gotLatest) {
+		setGotLatest(true);
+
+		dispatch(getLikes());
+	}
 
 	useEffect(() => {
 		const loadSongDetails = async () => {
@@ -109,7 +206,7 @@ const SongDetailsPage: React.FC = () => {
 			return;
 		}
 
-		if (!user) {
+		if (!session) {
 			setCommentError("You must be logged in to comment.");
 			return;
 		}
@@ -132,14 +229,14 @@ const SongDetailsPage: React.FC = () => {
 	};
 
 	const handleLike = () => {
-		if (!user || !song) {
+		if (!session || !song) {
 			alert("You must be logged in to like a song.");
 			return;
 		}
 		if (isLiked) {
-			dispatch(sessionSlice.actions.removeLike(song.id));
+			dispatch(unlikeSong(song.id));
 		} else {
-			dispatch(sessionSlice.actions.addLike(song.id));
+			dispatch(likeSong(song.id));
 		}
 	};
 
@@ -234,7 +331,7 @@ const SongDetailsPage: React.FC = () => {
 										className={styles.likeButton}
 										onClick={handleLike}
 									>
-										{isLiked ? "♥" : "♡"}
+										{isLiked ? "♥" : "♡"} {song.likes}
 									</button>
 								</form>
 							</div>
@@ -244,9 +341,9 @@ const SongDetailsPage: React.FC = () => {
 							)}
 
 							<div className={styles.commentsList}>
-								{Object.keys(comments).length > 0 ? (
-									Object.keys(comments).map((comment) => (
-										<Comment key={Number(comment)} id={Number(comment)} />
+								{comments.length > 0 ? (
+									comments.map((comment) => (
+										<Comment key={comment.id} id={comment.id} />
 									))
 								) : (
 									<div className={styles.noComments}>

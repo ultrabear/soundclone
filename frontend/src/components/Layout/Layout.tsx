@@ -1,16 +1,20 @@
-import { createSelector } from "@reduxjs/toolkit";
 import type React from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { RootState } from "../../store";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import { thunkLogout } from "../../store/slices/sessionSlice";
+
+import {
+	selectUserPlaylists,
+	selectLikedSongs,
+} from "../../store/selectors/userSelectors";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import "./Layout.css";
+import MobileMenu from "../MobileMenu/MobileMenu";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -51,12 +55,6 @@ const Header: React.FC = () => {
 				<nav className="header-nav">
 					<Link to="/" className="nav-link active">
 						Home
-					</Link>
-					<Link to="/feed" className="nav-link">
-						Feed
-					</Link>
-					<Link to="/library" className="nav-link">
-						Library
 					</Link>
 				</nav>
 				<div className="search-container">
@@ -108,53 +106,115 @@ const Header: React.FC = () => {
 						</div>
 					)}
 				</div>
+				<MobileMenu
+					user={user}
+					userDetails={userDetails}
+					onLogout={handleLogout}
+					onProfileClick={handleUserProfileClick}
+				/>
 			</div>
 		</header>
 	);
 };
 
-const selectAllPlaylists = createSelector(
-	[(state: RootState) => state.playlist.playlists],
-	(playlists) => Object.values(playlists),
-);
-
 export const Sidebar: React.FC = () => {
-	const userPlaylists = useAppSelector(selectAllPlaylists);
 	const { user } = useAppSelector((state) => state.session);
+	const userPlaylists = useAppSelector(selectUserPlaylists);
+	const likedSongs = useAppSelector(selectLikedSongs);
+	const MAX_ITEMS = 6;
+
+	const handleLoginClick = () => {
+		const loginButton = document.querySelector(
+			".header-button.button-secondary button",
+		) as HTMLButtonElement | null;
+		loginButton?.click();
+	};
 
 	return (
 		<aside className="sidebar">
 			<div className="sidebar-section">
 				<h2 className="sidebar-heading">Your Playlists</h2>
 				{user ? (
-					userPlaylists?.length ? (
-						userPlaylists.map((playlist) => (
-							<Link
-								key={playlist.id}
-								to={`/playlist/${playlist.id}`}
-								className="sidebar-link"
-							>
-								{playlist.name}
-							</Link>
-						))
+					userPlaylists.length ? (
+						<div className="playlists-list">
+							{userPlaylists.slice(0, MAX_ITEMS).map((playlist) => (
+								<Link
+									key={playlist.id}
+									to={`/playlist/${playlist.id}`}
+									className="sidebar-playlist-item"
+								>
+									<div className="playlist-thumbnail">
+										{playlist.thumbnail ? (
+											<img src={playlist.thumbnail} alt={playlist.name} />
+										) : (
+											<div className="playlist-thumbnail-placeholder" />
+										)}
+									</div>
+									<span className="playlist-name">{playlist.name}</span>
+								</Link>
+							))}
+							{userPlaylists.length > MAX_ITEMS && (
+								<Link to="/user/playlists" className="view-all-link">
+									View All Playlists ({userPlaylists.length})
+								</Link>
+							)}
+						</div>
 					) : (
 						<div className="sidebar-link placeholder">No playlists yet</div>
 					)
 				) : (
-					<div className="sidebar-link placeholder">
+					<button
+						onClick={handleLoginClick}
+						className="sidebar-link placeholder login-prompt"
+					>
 						Log in to see your playlists
-					</div>
+					</button>
 				)}
 			</div>
 
 			<div className="sidebar-section">
-				<h2 className="sidebar-heading">Liked Songs</h2>
+				<h2 className="sidebar-heading">
+					Liked Songs ({user ? likedSongs.length : 0})
+				</h2>
 				{user ? (
-					<div className="sidebar-link placeholder">No liked songs yet</div>
+					likedSongs.length > 0 ? (
+						<div className="liked-songs-list">
+							{likedSongs.slice(0, MAX_ITEMS).map((song) => (
+								<Link
+									key={song.id}
+									to={`/songs/${song.id}`}
+									className="sidebar-liked-song"
+								>
+									<div className="liked-song-thumbnail">
+										{song.thumb_url ? (
+											<img src={song.thumb_url} alt={song.name} />
+										) : (
+											<div className="song-thumbnail-placeholder" />
+										)}
+									</div>
+									<div className="liked-song-info">
+										<span className="liked-song-name" title={song.name}>
+											{song.name}
+										</span>
+									</div>
+								</Link>
+							))}
+							{likedSongs.length > MAX_ITEMS && (
+								<Link to="/user/likes" className="view-all-link">
+									View All Liked Songs ({likedSongs.length})
+								</Link>
+							)}
+						</div>
+					) : (
+						<div className="sidebar-link placeholder">No liked songs yet</div>
+					)
 				) : (
-					<div className="sidebar-link placeholder">
+					<button
+						onClick={handleLoginClick}
+						className="sidebar-link placeholder login-prompt"
+					>
 						Log in to see your liked songs
-					</div>
+					</button>
 				)}
 			</div>
 		</aside>
@@ -171,9 +231,17 @@ const Layout: React.FC<LayoutProps> = ({
 	const { user } = useAppSelector((state) => state.session);
 
 	useEffect(() => {
-		if (user) {
-			dispatch(fetchUserPlaylists());
-		}
+		const initializeUserData = async () => {
+			if (user) {
+				try {
+					await dispatch(fetchUserPlaylists());
+				} catch (error) {
+					console.error("Error initializing user data:", error);
+				}
+			}
+		};
+
+		initializeUserData();
 	}, [dispatch, user]);
 
 	return (
@@ -185,11 +253,13 @@ const Layout: React.FC<LayoutProps> = ({
 					{!hideSidebar && <Sidebar />}
 				</div>
 			</div>
-			<NowPlaying
-				currentSong={currentSong}
-				isPlaying={isPlaying}
-				className="now-playing-bar"
-			/>
+			{currentSong && (
+				<NowPlaying
+					currentSong={currentSong}
+					isPlaying={isPlaying}
+					className="now-playing-bar"
+				/>
+			)}
 		</div>
 	);
 };

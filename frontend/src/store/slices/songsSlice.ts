@@ -10,7 +10,6 @@ import type { GetSong } from "../api";
 import { apiCommentToStore, commentsSlice } from "./commentsSlice";
 import { slice as sessionSlice } from "./sessionSlice";
 import {
-	type RSet,
 	type Song,
 	type SongId,
 	type SongSlice,
@@ -21,7 +20,6 @@ import { apiUserToStore, slice as userSlice } from "./userSlice";
 
 const initialState: SongSlice = {
 	songs: {},
-	comments: {},
 };
 
 export function apiSongToStore(s: GetSong): Song {
@@ -38,7 +36,7 @@ export function apiSongToStore(s: GetSong): Song {
 
 export const getLikes = createAsyncThunk(
 	"songs/getLikes",
-	async (_: null, { dispatch }) => {
+	async (_: undefined, { dispatch }) => {
 		const likes = await api.likes.getAll();
 
 		dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
@@ -47,13 +45,15 @@ export const getLikes = createAsyncThunk(
 );
 
 export const likeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
-	await api.likes.toggleLike(songId, "POST");
 	dispatch(sessionSlice.actions.addLike(songId));
+	dispatch(songsSlice.actions.addLike(songId));
+	await api.likes.toggleLike(songId, "POST");
 };
 
 export const unlikeSong = (songId: SongId) => async (dispatch: AppDispatch) => {
-	await api.likes.toggleLike(songId, "DELETE");
 	dispatch(sessionSlice.actions.removeLike(songId));
+	dispatch(songsSlice.actions.removeLike(songId));
+	await api.likes.toggleLike(songId, "DELETE");
 };
 
 export const fetchNewReleases = createAsyncThunk(
@@ -161,10 +161,12 @@ export const fetchSong = createAsyncThunk(
 		dispatch(songsSlice.actions.addSongs([apiSongToStore(song)]));
 		dispatch(
 			commentsSlice.actions.getComments(
-				comments.comments.map((c) => apiCommentToStore(songId, c)),
+				comments.comments.map((c) => apiCommentToStore(songId, c, c.user.id)),
 			),
 		);
 		dispatch(userSlice.actions.addUser(apiUserToStore(artist)));
+
+		dispatch(userSlice.actions.addUsers(comments.comments.map((c) => c.user)));
 	},
 );
 
@@ -174,49 +176,43 @@ export const selectSongById = (
 	songId: SongId,
 ): Song | undefined => state.song.songs[songId];
 
-export const selectSongComments = (
-	state: RootState,
-	songId: SongId,
-): RSet<number> => state.song.comments[songId] ?? {};
+export const selectSongComments = createSelector(
+	[
+		(state: RootState) => state.comment.comments,
+		(_: RootState, songId: SongId) => songId,
+	],
+	(comments, songId) => {
+		return Object.values(comments).filter((c) => c.song_id === songId);
+	},
+);
 
 export const songsSlice = createSlice({
 	name: "songs",
 	initialState,
 	reducers: {
+		addLike: (state, action: PayloadAction<SongId>) => {
+			const song = state.songs[action.payload];
+
+			if (song) {
+				song.likes++;
+			}
+		},
+		removeLike: (state, action: PayloadAction<SongId>) => {
+			const song = state.songs[action.payload];
+
+			if (song) {
+				song.likes--;
+			}
+		},
 		addSongs: (state, action: PayloadAction<Song[]>) => {
 			for (const song of action.payload) {
 				state.songs[song.id] = song;
 			}
 		},
-		initializeComments: (state, action: PayloadAction<SongId>) => {
-			if (!state.comments[action.payload]) {
-				state.comments[action.payload] = {};
-			}
-		},
-		addComment: (
-			state,
-			action: PayloadAction<{ songId: SongId; commentId: number }>,
-		) => {
-			const { songId, commentId } = action.payload;
-			if (!state.comments[songId]) {
-				state.comments[songId] = {};
-			}
-			state.comments[songId][commentId] = null;
-		},
-		removeComment: (
-			state,
-			action: PayloadAction<{ songId: SongId; commentId: number }>,
-		) => {
-			const { songId, commentId } = action.payload;
-			if (state.comments[songId]) {
-				delete state.comments[songId][commentId];
-			}
-		},
 	},
 });
 
-export const { addSongs, initializeComments, addComment, removeComment } =
-	songsSlice.actions;
+export const { addSongs } = songsSlice.actions;
 export default songsSlice.reducer;
 
 //songsslice is finished

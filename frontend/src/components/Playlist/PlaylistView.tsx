@@ -4,12 +4,13 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { setCurrentSong } from "../../store/playerSlice";
 import {
-	addSongToPlaylist,
+	addSongToPlaylistThunk,
 	fetchPlaylist,
 } from "../../store/slices/playlistsSlice";
 import type { PlaylistId, SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
+import { Link } from "react-router-dom";
 
 type SongListItemProps = {
 	id: SongId;
@@ -110,9 +111,18 @@ const PlaylistView: React.FC = () => {
 		dispatch(setCurrentSong(song));
 	};
 
-	const addToPlaylist = (songId: SongId, targetPlaylistId: number) => {
-		dispatch(addSongToPlaylist({ playlistId: targetPlaylistId, songId }));
-		setShowAddToPlaylist(null);
+	const addToPlaylist = async (songId: SongId, targetPlaylistId: number) => {
+		try {
+			await dispatch(
+				addSongToPlaylistThunk({
+					playlist: targetPlaylistId,
+					song: songId,
+				}),
+			);
+			setShowAddToPlaylist(null);
+		} catch (error) {
+			console.error("Error adding song to playlist:", error);
+		}
 	};
 
 	if (!playlist) {
@@ -152,9 +162,9 @@ const PlaylistView: React.FC = () => {
 						<button type="button" className="play-all-button">
 							▶ Play All
 						</button>
-						<button type="button" className="share-button">
-							Share Playlist
-						</button>
+						<Link to={`/playlist/${id}/edit`} className="edit-playlist-button">
+							Edit Playlist
+						</Link>
 					</div>
 
 					<div className="songs-table">

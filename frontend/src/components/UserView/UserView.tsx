@@ -6,6 +6,7 @@ import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
 import SongsByUser from "../SongsByUser/SongsByUser";
 import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import "./UserView.css";
+import LikesScreen from "../PlaylistsScreen/LikesScreen";
 
 type TabType = "playlists" | "likes" | "uploads" | "profile";
 
@@ -24,7 +25,7 @@ function UserView({ tab }: { tab: TabType }) {
 			case "playlists":
 				return <PlaylistsScreen />;
 			case "likes":
-				return <div>Likes Content</div>;
+				return <LikesScreen />;
 			case "uploads":
 				return <SongsByUser />;
 			case "profile":

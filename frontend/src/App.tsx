@@ -8,7 +8,7 @@ import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
 import SongDetailsPage from "./components/SongDetailsPage/SongDetailsPage";
 import SongUploadForm from "./components/SongUploadForm/SongUploadForm";
 import UserView from "./components/UserView/UserView";
-
+import EditPlaylistPage from "./components/EditPlaylistPage/EditPlaylistPage";
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Modal, ModalProvider } from "./context/Modal";
@@ -18,18 +18,22 @@ import { thunkAuthenticate } from "./store/slices/sessionSlice";
 function Layout() {
 	const dispatch = useAppDispatch();
 	const [isLoaded, setIsLoaded] = useState(false);
+
 	useEffect(() => {
-		dispatch(thunkAuthenticate()).then(() => setIsLoaded(true));
+		dispatch(thunkAuthenticate()).finally(() => setIsLoaded(true));
 	}, [dispatch]);
+
+	if (!isLoaded) {
+		return null;
+	}
 
 	return (
 		<ModalProvider>
-			{isLoaded && <Outlet />}
+			<Outlet />
 			<Modal />
 		</ModalProvider>
 	);
 }
-
 const router = createBrowserRouter([
 	{
 		element: <Layout />,
@@ -62,6 +66,10 @@ const router = createBrowserRouter([
 				path: "/songs/:songId",
 				element: <SongDetailsPage />,
 			},
+			{
+				path: "/playlist/:id/edit",
+				element: <EditPlaylistPage />,
+			},
 			// Regular user view for playlists
 			{
 				path: "/user",
@@ -89,10 +97,10 @@ const router = createBrowserRouter([
 					},
 				],
 			},
-			// Artist view (user with songs)
+
 			{
 				path: "/artists/:userId",
-				element: <ArtistPage />, // Different component for artist profiles
+				element: <ArtistPage />,
 				children: [
 					{
 						index: true,

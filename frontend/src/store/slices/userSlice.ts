@@ -4,7 +4,7 @@ import type { AppDispatch } from "..";
 import type { Artist } from "../api";
 import { api } from "../api";
 import type { User, UserId, UserSlice } from "./types";
-import { RootState } from "..";
+import { type RootState } from "..";
 
 const initialState: UserSlice = {
 	users: {},
@@ -38,7 +38,6 @@ export const createNewArtistThunk = createAsyncThunk(
 	async (artist: FormData, { dispatch, getState }) => {
 		try {
 			const artistUser = await api.artists.update(artist);
-			console.log("artist user: ", artistUser);
 			const currentState = getState() as RootState;
 			const currentUser = currentState.session.user!;
 			const { id, username } = currentUser!;
@@ -47,7 +46,7 @@ export const createNewArtistThunk = createAsyncThunk(
 				id,
 				stage_name: artistUser.stage_name || username,
 			};
-			dispatch(slice.actions.updateUser(apiUserToStore(newArtist)));
+			dispatch(slice.actions.addUser(apiUserToStore(newArtist)));
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.api;
@@ -68,9 +67,6 @@ export const slice = createSlice({
 			for (const u of action.payload) {
 				store.users[u.id] = u;
 			}
-		},
-		updateUser: (store, action: PayloadAction<User>) => {
-			store.users[action.payload.id] = action.payload;
 		},
 	},
 });

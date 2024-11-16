@@ -168,6 +168,7 @@ class BareUser(TypedDict):
     id: int
     display_name: str
 
+
 class UserComment(Comment, IdAndTimestamps):
     user: BareUser
 

@@ -30,7 +30,7 @@ const Header: React.FC = () => {
 
 	const handleUserProfileClick = () => {
 		if (user) {
-			navigate(`/user/${user.id}`);
+			navigate("/user");
 		}
 	};
 
@@ -52,12 +52,6 @@ const Header: React.FC = () => {
 				<nav className="header-nav">
 					<Link to="/" className="nav-link active">
 						Home
-					</Link>
-					<Link to="/feed" className="nav-link">
-						Feed
-					</Link>
-					<Link to="/library" className="nav-link">
-						Library
 					</Link>
 				</nav>
 				<div className="search-container">

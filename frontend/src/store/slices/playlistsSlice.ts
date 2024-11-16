@@ -10,7 +10,8 @@ import {
   import type { Playlist, PlaylistId, PlaylistSlice, SongId, UserId } from "./types";
   import { upgradeTimeStamps } from "./types";
   import { apiSongToStore, songsSlice } from "./songsSlice";
-  
+  import { slice as userSlice, apiUserToStore } from "./userSlice";
+
   const initialState: PlaylistSlice = {
 	playlists: {},
 	likedSongsPlaylist: null,
@@ -123,33 +124,42 @@ import {
   export const fetchUserPlaylists = createAsyncThunk(
 	"playlists/fetchUserPlaylists",
 	async (_: undefined, { dispatch, getState }) => {
-	  const state = getState() as RootState;
-	  const sessionUser = state.session.user!.id;
-  
-	  const playlist = await api.playlists.getCurrent();
-	  
-	  const userPlaylists = playlist.playlists 
-  
-	  const songs = await Promise.all(
-		userPlaylists.map((p) =>
-		  (async () => ({
-			p: { ...p, user_id: sessionUser },
-			s: await api.playlists.getSongs(p.id)
-		  }))(),
-		),
-	  );
-  
-	  dispatch(
-		playlistsSlice.actions.addPlaylists(
-		  songs.map((p) =>
-			apiPlaylistToStore(
-			  p.p,
-			  sessionUser,
-			  p.s.songs.map((s) => s.id),
+		const state = getState() as RootState;
+		const sessionUser = state.session.user!.id;
+
+		const playlist = await api.playlists.getCurrent();
+
+		const songs = await Promise.all(
+			playlist.playlists.map((p) =>
+				(async () => ({ p: p, s: await api.playlists.getSongs(p.id) }))(),
 			),
-		  ),
-		),
-	  );
+		);
+
+		dispatch(
+			playlistsSlice.actions.addPlaylists(
+				songs.map((p) =>
+					apiPlaylistToStore(
+						p.p,
+						sessionUser,
+						p.s.songs.map((s) => s.id),
+					),
+				),
+			),
+		);
+
+		const storeSongs = [
+			...new Map(
+				songs.flatMap(({ s }) => s.songs.map((s) => [s.id, s])),
+			).values(),
+		].map(apiSongToStore);
+
+		dispatch(songsSlice.actions.addSongs(storeSongs));
+
+		const storeArtists = await Promise.all(
+			[...new Set(storeSongs.map((s) => s.artist_id))].map(api.artists.getOne),
+		);
+
+		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
 	},
   );
 
@@ -174,6 +184,12 @@ export const fetchPlaylist = createAsyncThunk(
 			),
 		);
 		dispatch(songsSlice.actions.addSongs(songs.songs.map(apiSongToStore)));
+
+		const storeArtists = await Promise.all(
+			[...new Set(songs.songs.map((s) => s.artist_id))].map(api.artists.getOne),
+		);
+
+		dispatch(userSlice.actions.addUsers(storeArtists.map(apiUserToStore)));
 	},
 );
 

@@ -20,6 +20,8 @@ from ..backend_api import (
     Created,
 )
 from .aws_integration import DEFAULT_THUMBNAIL_IMAGE
+from .song_routes import create_resource_on_aws, delete_resource_from_aws
+from ..forms.playlist_form import PlaylistForm
 
 playlist_routes = Blueprint("playlists", __name__, url_prefix="/api/playlists")
 
@@ -46,30 +48,39 @@ def db_song_to_api_song(song: Song) -> GetSong:
 @playlist_routes.route("", methods=["POST"])
 @login_required
 def create_playlist() -> Union[Created[IdAndTimestamps], Tuple[ApiError, int]]:
-    data: BasePlaylist = request.get_json()
-    name = data.get("name")
-    thumbnail = data.get("thumbnail")
+    form = PlaylistForm()
+    form["csrf_token"].data = request.cookies["csrf_token"]
 
-    if not name:
-        return ApiError(message="Name is required", errors={"name": "Playlist name cannot be empty"}), 400
+    if form.validate_on_submit():
+        # handle name is required
+        if not form.data["name"]:
+            return ApiError(message="Name is required", errors={"name": "Playlist name cannot be empty"}), 400
 
-    playlist = Playlist(
-        name=name,
-        user_id=current_user.id,
-        thumbnail=thumbnail,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
-    )
+        # handle set thumbnail to None or user provided file
+        thumbnail_url_or_none = None
+        if form.data["thumbnail_img"] is not None:
+            thumbnail_url_or_none = create_resource_on_aws(form.data["thumbnail_img"], "image")
 
-    db.session.add(playlist)
-    db.session.commit()
+        # construct the playlist
+        new_playlist = Playlist(
+            name=form.data["name"],
+            user_id=current_user.id,
+            thumbnail=thumbnail_url_or_none,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
 
-    response: IdAndTimestamps = {
-        "id": playlist.id,
-        "created_at": str(playlist.created_at),
-        "updated_at": str(playlist.updated_at),
-    }
-    return response, 201
+        db.session.add(new_playlist)
+        db.session.commit()
+
+        response: IdAndTimestamps = {
+            "id": new_playlist.id,
+            "created_at": str(new_playlist.created_at),
+            "updated_at": str(new_playlist.updated_at),
+        }
+        return response, 201
+
+    return form.errors, 400
 
 
 # 2. Update a playlist (name can be changed)
@@ -102,6 +113,9 @@ def delete_playlist(playlist_id: int) -> Ok[NoBody] | ApiErrorResponse:
         return ApiError(
             message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
         ), 404
+
+    if playlist.thumbnail is not None:
+        delete_resource_from_aws(playlist.thumbnail, "image")
 
     db.session.delete(playlist)
     db.session.commit()
@@ -169,10 +183,8 @@ def db_playlist_to_api(playlist: Playlist) -> PlaylistInfo:
         "name": playlist.name,
         "created_at": str(playlist.created_at),
         "updated_at": str(playlist.updated_at),
+        "thumbnail": playlist.thumbnail or DEFAULT_THUMBNAIL_IMAGE,
     }
-
-    if playlist.thumbnail:
-        pinfo["thumbnail"] = playlist.thumbnail
 
     return pinfo
 

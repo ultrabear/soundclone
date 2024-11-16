@@ -42,18 +42,27 @@ export function ModalProvider<T>({
 			<div ref={modalRef} />
 		</>
 	);
+	
 }
-
 export function Modal() {
-	const { modalRef, modalContent, closeModal } = useContext(ModalContext);
+    const { modalRef, modalContent, closeModal } = useContext(ModalContext);
 
-	if (!modalRef || !modalRef.current || !modalContent) return null;
+    if (!modalRef || !modalRef.current || !modalContent) return null;
 
-	return createPortal(
-		<div id="modal">
-			<div id="modal-background" onClick={closeModal} />
-			<div id="modal-content">{modalContent}</div>
-		</div>,
-		modalRef.current,
-	);
+    return createPortal(
+        <div id="modal" style={{ zIndex: 'var(--z-index-modal)' }}>
+            <div 
+                id="modal-background" 
+                onClick={closeModal} 
+                style={{ zIndex: 'var(--z-index-modal-backdrop)' }}
+            />
+            <div 
+                id="modal-content"
+                style={{ zIndex: 'var(--z-index-modal)' }}
+            >
+                {modalContent}
+            </div>
+        </div>,
+        modalRef.current,
+    );
 }

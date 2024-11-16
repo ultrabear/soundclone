@@ -239,6 +239,28 @@ body {
 	color: var(--primary-color);
 }
 
+/* Liked Songs in Sidebar*/
+.liked-songs-list {
+	max-height: 300px;
+	overflow-y: auto;
+	margin-top: 8px;
+  }
+  
+  .liked-song-item {
+	font-size: 0.9em;
+	padding: 4px 8px;
+	color: #666;
+  }
+  
+  .liked-song-item:hover {
+	color: #ff5500;
+  }
+  
+  .liked-songs-header {
+	font-weight: 500;
+	color: #333;
+  }
+  
 /* Content Sections */
 .content-section {
 	width: 100%;

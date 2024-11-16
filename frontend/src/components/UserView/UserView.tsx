@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../store";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
+import SongsByUser from "../SongsByUser/SongsByUser";
 import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import "./UserView.css";
 
@@ -25,7 +26,7 @@ function UserView({ tab }: { tab: TabType }) {
 			case "likes":
 				return <div>Likes Content</div>;
 			case "uploads":
-				return <div>Uploads Content</div>;
+				return <SongsByUser />;
 			case "profile":
 				return <EditProfileForm />;
 			default:

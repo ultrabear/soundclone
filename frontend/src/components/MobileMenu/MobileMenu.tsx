@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { SessionUser, User } from "../../store/slices/types";
-import LoginFormModal from "../LoginFormModal/LoginFormModal";
-import SignupFormModal from "../SignupFormModal/SignupFormModal";
-import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import { Sidebar } from "../Layout/Layout";
+import LoginFormModal from "../LoginFormModal/LoginFormModal";
+import OpenModalButton from "../OpenModalButton/OpenModalButton";
+import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import "./MobileMenu.css";
 
 interface MobileMenuProps {

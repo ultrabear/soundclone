@@ -66,10 +66,16 @@ endpoint("PUT", "/api/songs/:song_id", req=Song, res=Ok[NoBody], auth=True)
 endpoint("DELETE", "/api/songs/:song_id", req=None, res=Ok[NoBody], auth=True)
 
 
+class BareUser(TypedDict):
+    id: int
+    display_name: str
+
+
 class GetSong(Song, IdAndTimestamps):
     num_likes: NotRequired[int]
     song_ref: str
     thumb_url: str
+    artist: BareUser
 
 
 # I want to view a song's total likes
@@ -162,11 +168,6 @@ endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=IdAndTimestamp
 
 # I want to be able to update a comment that I left on a song's page
 endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=IdAndTimestamps, auth=True)
-
-
-class BareUser(TypedDict):
-    id: int
-    display_name: str
 
 
 class UserComment(Comment, IdAndTimestamps):

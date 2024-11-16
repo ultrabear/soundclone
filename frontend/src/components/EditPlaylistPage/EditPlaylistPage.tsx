@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { fetchPlaylist } from "../../store/slices/playlistsSlice";
-import Layout from "../Layout/Layout";
-import type { SongId } from "../../store/slices/types";
 import { api } from "../../store/api";
+import { fetchPlaylist } from "../../store/slices/playlistsSlice";
+import type { SongId } from "../../store/slices/types";
+import Layout from "../Layout/Layout";
 import "./EditPlaylistPage.css";
 
 interface EditPlaylistFormData {
@@ -20,20 +20,20 @@ const EditPlaylistPage = () => {
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const playlist = useAppSelector((state) =>
-		id ? state.playlist.playlists[parseInt(id)] : null,
+		id ? state.playlist.playlists[Number.parseInt(id)] : null,
 	);
 
 	const songs = useAppSelector((state) =>
 		playlist
 			? Object.keys(playlist.songs).map(
-					(songId) => state.song.songs[parseInt(songId)],
+					(songId) => state.song.songs[Number.parseInt(songId)],
 				)
 			: [],
 	);
 
 	useEffect(() => {
 		if (id) {
-			dispatch(fetchPlaylist(parseInt(id)));
+			dispatch(fetchPlaylist(Number.parseInt(id)));
 		}
 	}, [dispatch, id]);
 
@@ -57,8 +57,8 @@ const EditPlaylistPage = () => {
 
 		try {
 			if (id) {
-				await api.playlists.update(parseInt(id), formData);
-				dispatch(fetchPlaylist(parseInt(id)));
+				await api.playlists.update(Number.parseInt(id), formData);
+				dispatch(fetchPlaylist(Number.parseInt(id)));
 				navigate(`/playlist/${id}`);
 			} else {
 				const response = await api.playlists.create(formData);
@@ -74,8 +74,8 @@ const EditPlaylistPage = () => {
 	const handleRemoveSong = async (songId: SongId) => {
 		if (id) {
 			try {
-				await api.playlists.removeSong(parseInt(id), songId);
-				dispatch(fetchPlaylist(parseInt(id)));
+				await api.playlists.removeSong(Number.parseInt(id), songId);
+				dispatch(fetchPlaylist(Number.parseInt(id)));
 			} catch (err) {
 				if (err instanceof Error && err.api) {
 					setErrors(err.api.errors);

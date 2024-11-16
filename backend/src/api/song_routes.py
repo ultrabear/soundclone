@@ -16,6 +16,7 @@ from .aws_integration import (
     IMAGE_CONTENT_EXT_MAP,
     DEFAULT_THUMBNAIL_IMAGE,
 )
+from ..db_to_api import db_song_to_api_song
 from datetime import datetime, timezone
 import os
 
@@ -59,25 +60,6 @@ def delete_resource_from_aws(filename: str, file_type: str):
         bucket_name = IMAGE_BUCKET_NAME
 
     remove_file_from_s3(resource_name, bucket_name)
-
-
-def db_song_to_api_song(song: Song) -> GetSong:
-    """Convert database song to API response format"""
-    api_song: GetSong = {
-        "id": song.id,
-        "name": song.name,
-        "artist_id": song.artist_id,
-        "song_ref": song.song_ref,
-        "created_at": str(song.created_at),
-        "updated_at": str(song.updated_at),
-        "num_likes": len(song.liking_users),
-        "thumb_url": song.thumb_url or DEFAULT_THUMBNAIL_IMAGE,
-    }
-
-    if song.genre is not None:
-        api_song["genre"] = song.genre
-
-    return api_song
 
 
 @song_routes.get("")

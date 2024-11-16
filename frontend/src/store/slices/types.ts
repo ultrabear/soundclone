@@ -91,5 +91,4 @@ export interface SongSlice {
 // imports songSlice
 export interface PlaylistSlice {
 	playlists: Record<PlaylistId, Playlist>;
-	likedSongsPlaylist: PlaylistId | null;
 }

@@ -12,6 +12,7 @@ import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import "./Layout.css";
+import MobileMenu from "../MobileMenu/MobileMenu";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -135,6 +136,12 @@ const Header: React.FC = () => {
 						</div>
 					)}
 				</div>
+				<MobileMenu
+					user={user}
+					userDetails={userDetails}
+					onLogout={handleLogout}
+					onProfileClick={handleUserProfileClick}
+				/>
 			</div>
 		</header>
 	);
@@ -144,6 +151,14 @@ export const Sidebar: React.FC = () => {
 	const { user } = useAppSelector((state) => state.session);
 	const userPlaylists = useAppSelector(selectUserPlaylists);
 	const likedSongs = useAppSelector(selectLikedSongs);
+	const MAX_ITEMS = 6;
+
+	const handleLoginClick = () => {
+		const loginButton = document.querySelector(
+			".header-button.button-secondary button",
+		) as HTMLButtonElement | null;
+		loginButton?.click();
+	};
 
 	return (
 		<aside className="sidebar">
@@ -151,22 +166,39 @@ export const Sidebar: React.FC = () => {
 				<h2 className="sidebar-heading">Your Playlists</h2>
 				{user ? (
 					userPlaylists.length ? (
-						userPlaylists.map((playlist) => (
-							<Link
-								key={playlist.id}
-								to={`/playlist/${playlist.id}`}
-								className="sidebar-link"
-							>
-								{playlist.name}
-							</Link>
-						))
+						<div className="playlists-list">
+							{userPlaylists.slice(0, MAX_ITEMS).map((playlist) => (
+								<Link
+									key={playlist.id}
+									to={`/playlist/${playlist.id}`}
+									className="sidebar-playlist-item"
+								>
+									<div className="playlist-thumbnail">
+										{playlist.thumbnail ? (
+											<img src={playlist.thumbnail} alt={playlist.name} />
+										) : (
+											<div className="playlist-thumbnail-placeholder" />
+										)}
+									</div>
+									<span className="playlist-name">{playlist.name}</span>
+								</Link>
+							))}
+							{userPlaylists.length > MAX_ITEMS && (
+								<Link to="/user/playlists" className="view-all-link">
+									View All Playlists ({userPlaylists.length})
+								</Link>
+							)}
+						</div>
 					) : (
 						<div className="sidebar-link placeholder">No playlists yet</div>
 					)
 				) : (
-					<div className="sidebar-link placeholder">
+					<button
+						onClick={handleLoginClick}
+						className="sidebar-link placeholder login-prompt"
+					>
 						Log in to see your playlists
-					</div>
+					</button>
 				)}
 			</div>
 
@@ -177,7 +209,7 @@ export const Sidebar: React.FC = () => {
 				{user ? (
 					likedSongs.length > 0 ? (
 						<div className="liked-songs-list">
-							{likedSongs.map((song) => (
+							{likedSongs.slice(0, MAX_ITEMS).map((song) => (
 								<Link
 									key={song.id}
 									to={`/songs/${song.id}`}
@@ -197,14 +229,22 @@ export const Sidebar: React.FC = () => {
 									</div>
 								</Link>
 							))}
+							{likedSongs.length > MAX_ITEMS && (
+								<Link to="/user/likes" className="view-all-link">
+									View All Liked Songs ({likedSongs.length})
+								</Link>
+							)}
 						</div>
 					) : (
 						<div className="sidebar-link placeholder">No liked songs yet</div>
 					)
 				) : (
-					<div className="sidebar-link placeholder">
+					<button
+						onClick={handleLoginClick}
+						className="sidebar-link placeholder login-prompt"
+					>
 						Log in to see your liked songs
-					</div>
+					</button>
 				)}
 			</div>
 		</aside>

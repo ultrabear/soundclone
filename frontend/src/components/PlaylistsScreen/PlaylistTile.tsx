@@ -97,6 +97,12 @@ export function PlaylistTile({
 					>
 						Go to playlist
 					</Link>
+					<Link
+						to={`/playlist/${playlist.id}/edit`}
+						className="edit-playlist-button"
+					>
+						Edit playlist
+					</Link>
 				</div>
 			)}
 		</div>

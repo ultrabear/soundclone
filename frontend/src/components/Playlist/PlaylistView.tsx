@@ -10,6 +10,7 @@ import {
 import type { PlaylistId, SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
+import { Link } from "react-router-dom";
 
 type SongListItemProps = {
 	id: SongId;
@@ -114,7 +115,7 @@ const PlaylistView: React.FC = () => {
 		try {
 			await dispatch(
 				addSongToPlaylistThunk({
-					playlist: targetPlaylistId, // Changed from playlistId to playlist
+					playlist: targetPlaylistId,
 					song: songId,
 				}),
 			);
@@ -161,9 +162,9 @@ const PlaylistView: React.FC = () => {
 						<button type="button" className="play-all-button">
 							▶ Play All
 						</button>
-						<button type="button" className="share-button">
-							Share Playlist
-						</button>
+						<Link to={`/playlist/${id}/edit`} className="edit-playlist-button">
+							Edit Playlist
+						</Link>
 					</div>
 
 					<div className="songs-table">

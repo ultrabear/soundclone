@@ -18,18 +18,22 @@ import { thunkAuthenticate } from "./store/slices/sessionSlice";
 function Layout() {
 	const dispatch = useAppDispatch();
 	const [isLoaded, setIsLoaded] = useState(false);
+
 	useEffect(() => {
-		dispatch(thunkAuthenticate()).then(() => setIsLoaded(true));
+		dispatch(thunkAuthenticate()).finally(() => setIsLoaded(true));
 	}, [dispatch]);
+
+	if (!isLoaded) {
+		return null;
+	}
 
 	return (
 		<ModalProvider>
-			{isLoaded && <Outlet />}
+			<Outlet />
 			<Modal />
 		</ModalProvider>
 	);
 }
-
 const router = createBrowserRouter([
 	{
 		element: <Layout />,

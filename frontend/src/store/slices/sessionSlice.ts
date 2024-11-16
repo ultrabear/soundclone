@@ -16,10 +16,13 @@ function authUserToStore(u: ApiUser): User {
 }
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
-	const res = await api.auth.restore();
-
-	dispatch(slice.actions.setUser(res));
-	dispatch(userSlice.actions.addUser(authUserToStore(res)));
+	try {
+		const res = await api.auth.restore();
+		dispatch(slice.actions.setUser(res));
+		dispatch(userSlice.actions.addUser(authUserToStore(res)));
+	} catch (e) {
+		dispatch(slice.actions.removeUser());
+	}
 };
 
 export const thunkLogin =

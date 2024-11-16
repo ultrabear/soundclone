@@ -1,17 +1,17 @@
 import type React from "react";
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
+import { api } from "../../store/api";
 import { setCurrentSong } from "../../store/playerSlice";
 import {
 	fetchArtistSongs,
 	selectSongsByArtist,
 } from "../../store/slices/songsSlice";
 import type { PlaylistId, SongId } from "../../store/slices/types";
-import { api } from "../../store/api";
 import Layout from "../Layout/Layout";
-import { SongListItem } from "./SongListItem";
 import styles from "./ArtistPage.module.css";
+import { SongListItem } from "./SongListItem";
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();

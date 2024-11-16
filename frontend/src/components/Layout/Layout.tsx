@@ -1,21 +1,21 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import { thunkLogout } from "../../store/slices/sessionSlice";
 
 import {
-	selectUserPlaylists,
 	selectLikedSongs,
+	selectUserPlaylists,
 } from "../../store/selectors/userSelectors";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
 import NowPlaying from "../NowPlaying/NowPlaying";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import "./Layout.css";
-import MobileMenu from "../MobileMenu/MobileMenu";
 import { getLikes } from "../../store/slices/songsSlice";
+import MobileMenu from "../MobileMenu/MobileMenu";
 
 interface LayoutProps {
 	children: React.ReactNode;

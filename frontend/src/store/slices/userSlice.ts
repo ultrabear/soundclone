@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
+import type { RootState } from "..";
 import type { Artist } from "../api";
 import { api } from "../api";
 import type { User, UserId, UserSlice } from "./types";
-import type { RootState } from "..";
 
 const initialState: UserSlice = {
 	users: {},

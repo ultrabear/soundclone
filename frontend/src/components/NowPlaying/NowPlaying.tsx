@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import AudioService from "../../services/AudioService";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { togglePlayPause } from "../../store/playerSlice";
-import AudioService from "../../services/AudioService";
 import "./NowPlaying.css";
 import { api } from "../../store/api";
 import { likeSong, unlikeSong } from "../../store/slices/songsSlice";

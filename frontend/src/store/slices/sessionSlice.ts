@@ -2,9 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
 import { type User as ApiUser, api } from "../api";
+import { playlistsSlice } from "./playlistsSlice";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { usersSlice } from "./userSlice";
-import { playlistsSlice } from "./playlistsSlice";
 
 function authUserToStore(u: ApiUser): User {
 	const { stage_name, username, ...rest } = u;

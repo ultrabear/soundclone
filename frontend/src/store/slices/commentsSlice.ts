@@ -10,8 +10,8 @@ import {
 	type CommentsSlice,
 	type SongId,
 	type StoreComment,
-	upgradeTimeStamps,
 	type UserId,
+	upgradeTimeStamps,
 } from "./types";
 
 const initialState: CommentsSlice = {

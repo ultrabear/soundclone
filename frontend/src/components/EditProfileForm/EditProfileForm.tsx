@@ -42,7 +42,6 @@ const EditProfileForm = (): JSX.Element => {
 	} else if (loading === "response") {
 		setLoading("finished");
 		const currentUsersDetails = users[sessionUser.id];
-		console.log("current user: ", currentUsersDetails);
 		if (currentUsersDetails?.display_name)
 			setStageName(currentUsersDetails.display_name);
 		if (currentUsersDetails?.first_release)

@@ -10,9 +10,7 @@ import ArtistPage from "./components/ArtistPage/ArtistPage";
 import ArtistsSongsPage from "./components/ArtistsSongsPage/ArtistsSongsPage";
 import EditPlaylistPage from "./components/EditPlaylistPage/EditPlaylistPage";
 import HomePage from "./components/Home/HomePage";
-import LoginFormPage from "./components/LoginFormPage/LoginFormPage";
 import PlaylistView from "./components/Playlist/PlaylistView";
-import SignupFormPage from "./components/SignupFormPage/SignupFormPage";
 import SongDetailsPage from "./components/SongDetailsPage/SongDetailsPage";
 import SongUploadForm from "./components/SongUploadForm/SongUploadForm";
 import EditProfileForm from "./components/EditProfileForm/EditProfileForm";
@@ -80,16 +78,6 @@ const router = createBrowserRouter([
 			{
 				path: "/home",
 				element: <HomePage />,
-				errorElement: <ErrorBoundary />,
-			},
-			{
-				path: "login",
-				element: <LoginFormPage />,
-				errorElement: <ErrorBoundary />,
-			},
-			{
-				path: "signup",
-				element: <SignupFormPage />,
 				errorElement: <ErrorBoundary />,
 			},
 			{

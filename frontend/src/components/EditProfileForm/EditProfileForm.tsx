@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Add useEffect import
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
@@ -21,9 +21,7 @@ const EditProfileForm = (): JSX.Element => {
 	const [location, setLocation] = useState<string>("");
 	const [homepage, setHomepage] = useState<string>("");
 	const [loading, setLoading] = useState<LoadingState>("no");
-	const [existingProfileImage, setExistingProfileImage] = useState<
-		string | null
-	>(null);
+	const [existingProfileImage, setExistingProfileImage] = useState<string>("");
 	const [imageToUpload, setImageToUpload] = useState<File | null>(null);
 	const [errors, setErrors] = useState<{ server?: string }>({});
 
@@ -39,7 +37,6 @@ const EditProfileForm = (): JSX.Element => {
 				setLoading("response"),
 			);
 		} else if (loading === "response") {
-			setLoading("finished");
 			const currentUsersDetails = users[sessionUser.id];
 			if (currentUsersDetails?.display_name)
 				setStageName(currentUsersDetails.display_name);
@@ -49,10 +46,15 @@ const EditProfileForm = (): JSX.Element => {
 				setBiography(currentUsersDetails.biography);
 			if (currentUsersDetails?.location)
 				setLocation(currentUsersDetails.location);
-			if (currentUsersDetails?.homepage_url)
+			if (currentUsersDetails?.homepage_url) {
 				setHomepage(currentUsersDetails.homepage_url);
-			if (currentUsersDetails?.profile_image)
+			}
+
+			if (currentUsersDetails?.profile_image) {
 				setExistingProfileImage(currentUsersDetails.profile_image);
+				setImageToUpload(null);
+			}
+			setLoading("finished");
 		}
 	}, [sessionUser, loading, users, dispatch, navigate]);
 
@@ -76,10 +78,9 @@ const EditProfileForm = (): JSX.Element => {
 					server: String(response.payload),
 				});
 			} else {
-				navigate("/user/profile");
+				setLoading("no");
 			}
 		} catch (err) {
-			console.error("Profile update error:", err);
 			setErrors({
 				server:
 					err instanceof Error ? err.message : "An unexpected error occurred",

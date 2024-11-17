@@ -58,7 +58,6 @@ function SignupFormModal() {
 		);
 
 		if (serverResponse) {
-			console.log(serverResponse);
 			setErrors({
 				email: serverResponse.email?.[0],
 				password: serverResponse.password?.[0],

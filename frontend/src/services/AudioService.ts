@@ -24,8 +24,6 @@ class AudioService {
 		this.audio.addEventListener("loadedmetadata", () => {
 			this.durationCallbacks.forEach((cb) => cb(this.audio.duration));
 		});
-
-		console.log("[AudioService] Initialized");
 	}
 
 	static getInstance(): AudioService {
@@ -36,17 +34,14 @@ class AudioService {
 	}
 
 	play() {
-		console.log("[AudioService] Play called");
 		return this.audio.play();
 	}
 
 	pause() {
-		console.log("[AudioService] Pause called");
 		this.audio.pause();
 	}
 
 	setSource(url: string) {
-		console.log("[AudioService] Setting source:", url);
 		if (this.audio.src !== url) {
 			this.audio.src = url;
 			this.audio.load();

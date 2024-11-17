@@ -194,6 +194,17 @@ body {
 	height: 26px;
 	border-radius: 50%;
 	background: #555;
+	overflow: hidden; /* Add this */
+	position: relative; /* Add this */
+	display: flex; /* Add this */
+	align-items: center; /* Add this */
+	justify-content: center; /* Add this */
+}
+
+.user-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover; /* Add this */
 }
 
 /* Main Layout */

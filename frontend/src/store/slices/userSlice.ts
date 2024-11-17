@@ -29,7 +29,6 @@ export function apiUserToStore(u: Artist): User {
 export const getUserDetails =
 	(userId: number) => async (dispatch: AppDispatch) => {
 		const user = await api.artists.getOne(userId);
-
 		dispatch(usersSlice.actions.addUser(apiUserToStore(user)));
 	};
 
@@ -37,19 +36,30 @@ export const createNewArtistThunk = createAsyncThunk(
 	"users/createArtist",
 	async (artist: FormData, { dispatch, getState }) => {
 		try {
-			const artistUser = await api.artists.update(artist);
 			const currentState = getState() as RootState;
-			const currentUser = currentState.session.user!;
-			const { id, username } = currentUser!;
+			const currentUser = currentState.session.user;
+
+			if (!currentUser) throw new Error("No user logged in");
+
+			console.log("Sending artist data:", Object.fromEntries(artist.entries()));
+
+			const artistUser = await api.artists.update(artist);
+			console.log("Received artist update response:", artistUser);
+
+			const { id, username } = currentUser;
 			const newArtist = {
 				...artistUser,
 				id,
 				stage_name: artistUser.stage_name || username,
 			};
+
 			dispatch(usersSlice.actions.addUser(apiUserToStore(newArtist)));
+			return null;
 		} catch (e) {
+			console.error("Artist update error:", e);
 			if (e instanceof Error) {
-				return e.api;
+				console.log("Error details:", e.api);
+				return e.api?.errors || e.api?.message || "Failed to update profile";
 			}
 			throw e;
 		}

@@ -11,11 +11,12 @@ const initialState: UserSlice = {
 };
 
 export function apiUserToStore(u: Artist): User {
-	const { id, stage_name, first_release, ...rest } = u;
+	const { id, stage_name, homepage, first_release, ...rest } = u;
 
 	const user: User = {
 		id: id as UserId,
 		display_name: stage_name,
+		homepage_url: homepage,
 		...rest,
 	};
 
@@ -41,10 +42,7 @@ export const createNewArtistThunk = createAsyncThunk(
 
 			if (!currentUser) throw new Error("No user logged in");
 
-			console.log("Sending artist data:", Object.fromEntries(artist.entries()));
-
 			const artistUser = await api.artists.update(artist);
-			console.log("Received artist update response:", artistUser);
 
 			const { id, username } = currentUser;
 			const newArtist = {
@@ -56,9 +54,7 @@ export const createNewArtistThunk = createAsyncThunk(
 			dispatch(usersSlice.actions.addUser(apiUserToStore(newArtist)));
 			return null;
 		} catch (e) {
-			console.error("Artist update error:", e);
 			if (e instanceof Error) {
-				console.log("Error details:", e.api);
 				return e.api?.errors || e.api?.message || "Failed to update profile";
 			}
 			throw e;

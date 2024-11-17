@@ -68,7 +68,6 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 
 	useEffect(() => {
 		if (currentSongData?.song_url) {
-			console.log("[NowPlaying] Setting song:", currentSongData.name);
 			AudioService.setSource(currentSongData.song_url);
 			if (isPlaying) {
 				AudioService.play().catch((error: Error) =>
@@ -79,7 +78,6 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	}, [currentSongData, isPlaying]);
 
 	useEffect(() => {
-		console.log("[NowPlaying] Play state changed:", isPlaying);
 		if (isPlaying) {
 			AudioService.play().catch((e) => console.error("Play error:", e));
 		} else {

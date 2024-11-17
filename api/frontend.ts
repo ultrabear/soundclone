@@ -19,6 +19,10 @@ export type ApiError = {
 	errors: Record<string, string>;
 };
 
+export type FlaskError = {
+	[key: string]: string[];
+};
+
 export type Song = {
 	name: string;
 	artist_id: number;
@@ -168,6 +172,7 @@ type FPromise<T = null> = Promise<T | null>;
 declare global {
 	export interface Error {
 		api?: ApiError;
+		flaskError?: FlaskError;
 	}
 }
 
@@ -186,7 +191,10 @@ async function fetchWithError<T>(
 
 	if (!response.ok) {
 		const e = new Error("API Error");
-		e.api = await response.json();
+		const error = await response.json();
+		e.api = error;
+		e.flaskError = error;
+
 		throw e;
 	}
 

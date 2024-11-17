@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
-import { type User as ApiUser, api } from "../api";
+import { type User as ApiUser, FlaskError, api } from "../api";
 import { playlistsSlice } from "./playlistsSlice";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { usersSlice } from "./userSlice";
@@ -45,7 +45,7 @@ export const thunkLogin =
 
 export const thunkSignup =
 	(cred: { username: string; email: string; password: string }) =>
-	async (dispatch: AppDispatch) => {
+	async (dispatch: AppDispatch): Promise<FlaskError | undefined> => {
 		try {
 			const response = (await api.auth.signup(cred))!;
 
@@ -55,7 +55,7 @@ export const thunkSignup =
 			dispatch(usersSlice.actions.addUser(user));
 		} catch (e) {
 			if (e instanceof Error) {
-				return e.api;
+				return e.flaskError;
 			}
 			throw e;
 		}

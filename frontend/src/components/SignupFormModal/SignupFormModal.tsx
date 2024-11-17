@@ -56,11 +56,13 @@ function SignupFormModal() {
 				password,
 			}),
 		);
+
 		if (serverResponse) {
+			console.log(serverResponse);
 			setErrors({
-				email: serverResponse.errors?.email,
-				password: serverResponse.errors?.password,
-				username: serverResponse.errors?.username,
+				email: serverResponse.email?.[0],
+				password: serverResponse.password?.[0],
+				username: serverResponse.username?.[0],
 			});
 		} else {
 			closeModal();
@@ -70,7 +72,7 @@ function SignupFormModal() {
 	return (
 		<>
 			<h1>Sign Up</h1>
-			{errors.server && <p>{errors.server}</p>}
+			{errors.server && <p className="error-text">{errors.server}</p>}
 			<form className="form-container flex-col" onSubmit={handleSubmit}>
 				<label>
 					Email

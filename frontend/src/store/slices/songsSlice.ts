@@ -116,9 +116,21 @@ export const selectSongsByArtist = createSelector(
 
 export const createSongThunk = createAsyncThunk(
 	"songs/createSong",
-	async (songData: FormData) => {
-		const response = await api.songs.create(songData);
-		return response.id;
+	async (
+		songData: FormData,
+		{ dispatch },
+	): Promise<ApiError | SongId | undefined> => {
+		try {
+			const response = await api.songs.create(songData);
+			const newSong = await api.songs.getOne(response.id);
+			dispatch(songsSlice.actions.addSongs([newSong].map(apiSongToStore)));
+			return response.id;
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
 	},
 );
 

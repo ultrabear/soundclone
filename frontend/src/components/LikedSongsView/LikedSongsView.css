@@ -17,7 +17,7 @@
 	padding: 8px 16px;
 	border-bottom: 1px solid var(--border-color);
 	color: #666;
-	font-size: 12px;
+	font-size: 16px;
 	font-weight: 500;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
@@ -47,7 +47,7 @@
 
 .song-number {
 	color: #999;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 }
 
 .song-title-cell {
@@ -78,7 +78,7 @@
 .song-artist,
 .song-genre {
 	color: #666;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 }
 
 .song-actions {

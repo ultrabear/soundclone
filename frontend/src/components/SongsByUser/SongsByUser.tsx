@@ -6,10 +6,11 @@ import {
 	selectSongsByArtist,
 } from "../../store/slices/songsSlice";
 import type { SongId } from "../../store/slices/types";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
 import DeleteSongModal from "../DeleteSongModal/DeleteSongModal";
 import EditSongFormModal from "../EditSongFormModal/EditSongFormModal";
+import "./SongsByUser.css";
 
 type LoadingState = "no" | "loading" | "response" | "finished";
 
@@ -39,13 +40,13 @@ function UploadedSong({ songId }: { songId: SongId }) {
 				<div className="track-actions">
 					<OpenModalButton
 						modalComponent={<EditSongFormModal songId={song.id} />}
-						buttonText="Edit Song"
-						classes="action-button"
+						buttonText="Edit"
+						classes="action-button edit-song-button"
 					/>
 					<OpenModalButton
 						modalComponent={<DeleteSongModal songId={song.id} />}
-						buttonText="Delete Song"
-						classes="action-button"
+						buttonText="Remove"
+						classes="action-button delete-song-button"
 					/>
 				</div>
 			</div>
@@ -81,11 +82,28 @@ const SongsByUser: React.FC = () => {
 	}
 
 	return (
-		<div className="artists-songs">
-			{songs.map((song) => (
-				<UploadedSong key={song.id} songId={song.id} />
-			))}
-		</div>
+		<section className="uploads-section flex-col">
+			<img
+				className="uploads-section-image"
+				src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/f81c659b703b46d486eebcadd968685d.png"
+				alt=""
+			/>
+			<div className="hero-section user-uploads">
+				{songs.length === 0 ? (
+					<div className="no-uploads-yet flex-col">
+						<h2>You have not uploaded any songs yet!</h2>
+						<Link
+							to="/new-song"
+							className="no-uploads-button header-button button-primary"
+						>
+							Upload First Song
+						</Link>
+					</div>
+				) : (
+					songs.map((song) => <UploadedSong key={song.id} songId={song.id} />)
+				)}
+			</div>
+		</section>
 	);
 };
 

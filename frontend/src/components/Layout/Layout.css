@@ -112,7 +112,7 @@ body {
 .nav-link {
 	color: #ccc;
 	text-decoration: none;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	padding: 0 8px;
 	height: 100%;
 	display: flex;
@@ -141,7 +141,7 @@ body {
 	border-radius: 4px;
 	border: none;
 	background: var(--search-background);
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 }
 
 .header-actions {
@@ -152,7 +152,7 @@ body {
 
 .header-button {
 	padding: 4px 10px;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 500;
 	cursor: pointer;
 	transition: background-color 0.3s;
@@ -263,7 +263,7 @@ body {
 }
 
 .playlist-name {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -275,7 +275,7 @@ body {
 }
 
 .sidebar-heading {
-	font-size: 12px;
+	font-size: 16px;
 	font-weight: 500;
 	text-transform: uppercase;
 	color: var(--text-secondary);
@@ -288,7 +288,7 @@ body {
 	padding: 8px 0;
 	color: var(--text-primary);
 	text-decoration: none;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 }
 
 .sidebar-link:hover {
@@ -409,7 +409,7 @@ body {
 
 .liked-song-name {
 	display: block;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	line-height: 1.2;
 	white-space: nowrap;
 	overflow: hidden;
@@ -422,7 +422,7 @@ body {
 	padding: 12px 8px;
 	color: #ff5500;
 	text-decoration: none;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	border-radius: 4px;
 	transition: background-color 0.2s;
 }
@@ -451,7 +451,7 @@ body {
 
 .liked-song-name {
 	display: block;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -517,7 +517,7 @@ body {
 }
 
 .section-title {
-	font-size: 18px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 500;
 	color: var(--text-primary);
 }
@@ -559,7 +559,7 @@ body {
 	background: var(--primary-color);
 	border: none;
 	color: white;
-	font-size: 24px;
+	font-size: min(8.15vw, 32px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -609,7 +609,7 @@ body {
 }
 
 .song-title {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 500;
 }
 
@@ -619,7 +619,7 @@ body {
 }
 
 .song-artist {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	color: rgba(255, 255, 255, 0.8);
 }
 
@@ -660,7 +660,7 @@ body {
 	background: #f2f2f2;
 	border: 1px solid #e5e5e5;
 	color: var(--text-primary);
-	font-size: 12px;
+	font-size: 16px;
 	font-weight: 500;
 	cursor: pointer;
 	transition: all 0.2s ease;
@@ -671,7 +671,7 @@ body {
 }
 
 .song-title {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 500;
 }
 
@@ -681,7 +681,7 @@ body {
 	padding: 8px 0;
 	color: var(--text-secondary);
 	text-decoration: none;
-	font-size: 12px;
+	font-size: 16px;
 	transition: color 0.2s ease;
 }
 
@@ -758,7 +758,7 @@ body {
 .view-playlist-link {
 	color: white;
 	text-decoration: none;
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	opacity: 0.8;
 	transition: opacity 0.2s ease;
 	padding: 8px 0;
@@ -804,14 +804,14 @@ body {
 }
 
 .artist-name {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 500;
 	color: var(--text-primary);
 	margin-bottom: 4px;
 }
 
 .artist-followers {
-	font-size: 12px;
+	font-size: 16px;
 	color: var(--text-secondary);
 }
 
@@ -842,7 +842,7 @@ body {
 }
 
 .track-title {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 500;
 	color: var(--text-primary);
 	margin-bottom: 4px;
@@ -852,7 +852,7 @@ body {
 }
 
 .track-artist {
-	font-size: 12px;
+	font-size: 16px;
 	color: var(--text-secondary);
 }
 

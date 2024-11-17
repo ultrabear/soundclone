@@ -30,7 +30,7 @@
 }
 
 .sectionTitle {
-	font-size: 24px;
+	font-size: min(8.15vw, 32px);
 	font-weight: 700;
 	color: #333;
 }
@@ -78,7 +78,7 @@
 	background: #ff5500;
 	border: none;
 	color: white;
-	font-size: 24px;
+	font-size: min(8.15vw, 32px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -141,7 +141,7 @@
 }
 
 .songTitle {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 600;
 	color: white;
 }
@@ -151,7 +151,7 @@
 }
 
 .songArtist {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	color: rgba(255, 255, 255, 0.6);
 }
 
@@ -185,7 +185,7 @@
 	background: #f2f2f2;
 	border: 1px solid #e5e5e5;
 	color: #333;
-	font-size: 12px;
+	font-size: 16px;
 	font-weight: 500;
 	cursor: pointer;
 	transition: all 0.2s ease;
@@ -395,7 +395,7 @@
 }
 
 .artistName {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 600;
 	color: #333;
 	transition: color 0.3s ease;
@@ -487,7 +487,7 @@
 }
 
 .trackTitle {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	font-weight: 600;
 	color: #333;
 	margin-bottom: 4px;
@@ -511,7 +511,7 @@
 }
 
 .trackArtist {
-	font-size: 12px;
+	font-size: 16px;
 	color: #999;
 }
 

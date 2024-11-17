@@ -12,13 +12,31 @@
 }
 
 .hero {
-	background: linear-gradient(135deg, #846170, #70929c);
+	background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(34, 57, 64, 0.6));
 	width: 100%;
 	height: 380px;
 	display: flex;
 	margin-bottom: 30px;
 	position: relative;
 	z-index: 2;
+	overflow: hidden;
+}
+
+.hero::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: var(--song-thumbnail);
+	background-size: cover;
+	background-position: center;
+	filter: blur(6px);
+	padding: 1px;
+	transform: scale(1.1);
+	z-index: -1;
+	opacity: 1;
 }
 
 .heroLeft {
@@ -28,18 +46,39 @@
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 20px;
+	background: linear-gradient(
+		135deg,
+		rgba(255, 255, 255, 0.08),
+		rgba(255, 255, 255, 0.03)
+	);
+	margin: 1px;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .heroRight {
 	width: 380px;
 	height: 380px;
 	flex-shrink: 0;
+	padding: 1px;
+	background: linear-gradient(
+		135deg,
+		rgba(255, 255, 255, 0.1),
+		rgba(255, 255, 255, 0.05)
+	);
 }
 
 .heroRight img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.heroLeft,
+.heroRight {
+	position: relative;
+	z-index: 1;
 }
 
 .playButton {
@@ -114,7 +153,6 @@
 	margin-top: auto;
 }
 
-/* Content area below hero */
 .content {
 	display: flex;
 	gap: 30px;

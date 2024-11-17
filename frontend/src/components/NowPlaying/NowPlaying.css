@@ -153,6 +153,16 @@
 	box-shadow: 0 2px 12px rgba(255, 85, 0, 0.3);
 }
 
+.previous-button,
+.next-button {
+	opacity: 0.8;
+}
+
+.previous-button:hover,
+.next-button:hover {
+	opacity: 1;
+}
+
 .progress-bar-container {
 	width: 100%;
 	display: flex;
@@ -207,7 +217,7 @@
 	border: none;
 	padding: 8px;
 	cursor: pointer;
-	color: #666;
+	color: #ff0000;
 	transition: all 0.2s ease;
 	font-size: 20px;
 }
@@ -226,20 +236,23 @@
 	border: none;
 	padding: 8px;
 	cursor: pointer;
-	color: #ff5500;
+	/* Change from #ff5500 to a more visible color when not liked */
+	color: rgba(255, 85, 0, 0.4); /* Semi-transparent orange */
+	/* Or use a grayish pink */
+	/* color: rgba(255, 192, 203, 0.6); */ /* Alternative color */
 	transition: all 0.2s ease;
 	font-size: 20px;
 	margin-right: 16px;
 }
 
-.like-button.liked {
-	color: #ff5500;
-	text-shadow: 0 0 8px rgba(255, 85, 0, 0.4);
-}
-
 .like-button:hover {
 	transform: scale(1.1);
 	color: #ff5500;
+}
+
+.like-button.liked {
+	color: #ff5500;
+	text-shadow: 0 0 8px rgba(255, 85, 0, 0.4);
 }
 
 .volume-control {
@@ -343,7 +356,6 @@
 	position: relative; /* Added for dropdown positioning */
 }
 
-.like-button,
 .add-to-playlist-button {
 	background: none;
 	border: none;
@@ -365,15 +377,15 @@
 }
 
 .playlist-button-container {
-	position: relative; /* Establishes a positioning context */
-	display: inline-block; /* Adjust as needed */
+	position: relative;
+	display: inline-block;
 }
 
 .playlist-popup {
 	position: absolute;
-	bottom: 100%; /* Positions it directly above the button */
+	bottom: 100%;
 	left: 50%;
-	transform: translateX(-50%) translateY(-8px); /* Centers horizontally and adds spacing */
+	transform: translateX(-50%) translateY(-8px);
 	background: white;
 	border-radius: 8px;
 	box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
@@ -395,7 +407,7 @@
 .playlist-popup::before {
 	content: "";
 	position: absolute;
-	bottom: -8px; /* Positions the arrow */
+	bottom: -8px;
 	left: 50%;
 	transform: translateX(-50%);
 	border-width: 8px;

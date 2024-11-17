@@ -3,7 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import AudioService from "../../services/AudioService";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { togglePlayPause } from "../../store/playerSlice";
+import {
+	togglePlayPause,
+	playNext,
+	playPrevious,
+} from "../../store/playerSlice";
 import "./NowPlaying.css";
 import { api } from "../../store/api";
 import { likeSong, unlikeSong } from "../../store/slices/songsSlice";
@@ -66,8 +70,13 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 		if (currentSongData?.song_url) {
 			console.log("[NowPlaying] Setting song:", currentSongData.name);
 			AudioService.setSource(currentSongData.song_url);
+			if (isPlaying) {
+				AudioService.play().catch((error: Error) =>
+					console.error("Play error:", error),
+				);
+			}
 		}
-	}, [currentSongData]);
+	}, [currentSongData, isPlaying]);
 
 	useEffect(() => {
 		console.log("[NowPlaying] Play state changed:", isPlaying);
@@ -114,6 +123,14 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 
 	const handleTogglePlay = () => {
 		dispatch(togglePlayPause());
+	};
+
+	const handleNext = () => {
+		dispatch(playNext());
+	};
+
+	const handlePrevious = () => {
+		dispatch(playPrevious());
 	};
 
 	const handleProgress = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -308,11 +325,27 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 								<div className="playback-controls">
 									<button
 										type="button"
+										className="control-button previous-button"
+										onClick={handlePrevious}
+										aria-label="Previous"
+									>
+										⏮
+									</button>
+									<button
+										type="button"
 										className="control-button play-button"
 										onClick={handleTogglePlay}
 										aria-label={isPlaying ? "Pause" : "Play"}
 									>
 										{isPlaying ? "⏸" : "▶"}
+									</button>
+									<button
+										type="button"
+										className="control-button next-button"
+										onClick={handleNext}
+										aria-label="Next"
+									>
+										⏭
 									</button>
 								</div>
 

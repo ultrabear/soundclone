@@ -50,7 +50,17 @@ class AudioService {
 		if (this.audio.src !== url) {
 			this.audio.src = url;
 			this.audio.load();
+			return new Promise((resolve) => {
+				this.audio.addEventListener(
+					"canplay",
+					() => {
+						resolve(true);
+					},
+					{ once: true },
+				);
+			});
 		}
+		return Promise.resolve(true);
 	}
 
 	setCurrentTime(time: number) {

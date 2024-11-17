@@ -2,7 +2,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { setCurrentSong } from "../../store/playerSlice";
+import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
 import {
 	deleteCommentThunk,
 	editCommentThunk,
@@ -187,12 +187,23 @@ const SongDetailsPage: React.FC = () => {
 		loadSongDetails();
 	}, [dispatch, songId]);
 
-	const handlePlay = () => {
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
+
+	const handlePlayPause = () => {
 		if (song) {
-			dispatch(setCurrentSong(song.id));
+			if (currentSong === song.id) {
+				// If this is the current song, just toggle play/pause
+				dispatch(togglePlayPause());
+			} else {
+				// If it's a different song, ensure we're in playing state first
+				if (!isPlaying) {
+					dispatch(togglePlayPause());
+				}
+				dispatch(setCurrentSong(song.id));
+			}
 		}
 	};
-
 	const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setCommentText(e.target.value);
 	};
@@ -259,20 +270,28 @@ const SongDetailsPage: React.FC = () => {
 	return (
 		<Layout hideSidebar>
 			<div className={styles.container}>
-				{/* Content wrapper for consistent width */}
 				<div className={styles.contentWrapper}>
-					{/* Hero section */}
-					<div className={styles.hero}>
+					<div
+						className={styles.hero}
+						style={
+							{
+								"--song-thumbnail": `url(${song.thumb_url || "/default-song-art.png"})`,
+							} as React.CSSProperties
+						}
+					>
 						<div className={styles.heroLeft}>
-							{/* Top section with play button and info */}
 							<div style={{ display: "flex", alignItems: "flex-start" }}>
 								<button
 									type="button"
 									className={styles.playButton}
-									onClick={handlePlay}
-									aria-label="Play song"
+									onClick={handlePlayPause}
+									aria-label={
+										isPlaying && currentSong === song?.id
+											? "Pause song"
+											: "Play song"
+									}
 								>
-									▶
+									{isPlaying && currentSong === song?.id ? "⏸" : "▶"}
 								</button>
 
 								<div className={styles.songInfo}>
@@ -291,7 +310,6 @@ const SongDetailsPage: React.FC = () => {
 								</div>
 							</div>
 
-							{/* Waveform at bottom */}
 							<div className={styles.waveform}>Waveform Player Placeholder</div>
 						</div>
 
@@ -305,6 +323,7 @@ const SongDetailsPage: React.FC = () => {
 
 					<div className={styles.content}>
 						<div className={styles.mainContent}>
+							{/* Comment form section */}
 							<div className={styles.commentForm}>
 								<div className={styles.userAvatar}>
 									<img

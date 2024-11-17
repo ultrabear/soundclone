@@ -5,7 +5,6 @@ import {
 	createNewArtistThunk,
 	getUserDetails,
 } from "../../store/slices/userSlice";
-import { updateUserProfileThunk } from "../../store/slices/profileThunks";
 import "./EditProfileForm.css";
 
 type LoadingState = "no" | "loading" | "response" | "finished";
@@ -71,7 +70,6 @@ const EditProfileForm = (): JSX.Element => {
 
 		if (imageToUpload) formData.append("profile_image", imageToUpload);
 
-		// Always include artist fields regardless of isArtist status
 		if (stageName) formData.append("stage_name", stageName);
 		if (firstRelease) formData.append("first_release", firstRelease);
 		if (biography) formData.append("biography", biography);
@@ -82,11 +80,9 @@ const EditProfileForm = (): JSX.Element => {
 			const response = await dispatch(createNewArtistThunk(formData));
 
 			if (response.payload) {
-				// Handle different error formats
 				if (typeof response.payload === "string") {
 					setErrors({ server: response.payload });
 				} else if (typeof response.payload === "object") {
-					// If it's an error object with a nested errors object
 					if ("errors" in response.payload) {
 						const errorPayload = response.payload as {
 							errors: string | Record<string, string>;
@@ -94,13 +90,11 @@ const EditProfileForm = (): JSX.Element => {
 						if (typeof errorPayload.errors === "string") {
 							setErrors({ server: errorPayload.errors });
 						} else {
-							// If it's an object of errors, join them
 							setErrors({
 								server: Object.values(errorPayload.errors).join(", "),
 							});
 						}
 					} else {
-						// If it's just an error object, stringify it nicely
 						setErrors({
 							server: JSON.stringify(response.payload, null, 2),
 						});
@@ -114,7 +108,6 @@ const EditProfileForm = (): JSX.Element => {
 			let errorMessage = "An unexpected error occurred";
 
 			if (err instanceof Error) {
-				// If the error has an api property with errors
 				const apiError = (err as any).api;
 				if (apiError?.errors) {
 					if (typeof apiError.errors === "string") {
@@ -168,7 +161,6 @@ const EditProfileForm = (): JSX.Element => {
 					/>
 				</div>
 
-				{/* Always show artist fields, but with different messaging */}
 				<div className="upload-form-field flex-col">
 					<label className="upload-form-text-label" htmlFor="stage-name">
 						Your Stage Name

@@ -123,7 +123,6 @@ def update_user_profile():
 @login_required
 def update_artist_profile():
     try:
-        # Remove the songs check - allow all users to update artist fields
         form_data = request.form
         profile_image: FileStorage | None = request.files.get("profile_image")
 

@@ -55,7 +55,6 @@ export const createNewArtistThunk = createAsyncThunk(
 		} catch (e) {
 			console.error("Artist update error:", e);
 			if (e instanceof Error) {
-				// If it has an api property with errors
 				const apiError = (e as any).api;
 				if (apiError?.errors) {
 					return apiError.errors;

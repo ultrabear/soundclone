@@ -103,7 +103,7 @@ export interface ApiUser {
 	location?: string;
 	homepage?: string;
 	num_songs_by_artist?: number;
-}
+  }
 
 export type Login = {
 	email: string;
@@ -244,10 +244,10 @@ export const api = {
 				}),
 			);
 		},
-		update: async (songId: number, song: FormData): FPromise => {
-			return fetchWithErrNoJson(`/songs/${songId}`, {
+		update: async (songId: number, song: Song): FPromise => {
+			return fetchWithError(`/songs/${songId}`, {
 				method: "PUT",
-				body: song,
+				body: JSON.stringify(song),
 			});
 		},
 		delete: async (songId: number): FPromise => {
@@ -258,17 +258,17 @@ export const api = {
 	},
 	artists: {
 		getOne: async (artistId: number): Promise<Artist> => {
-			return notNull(fetchWithError(`/artists/${artistId}`));
+		  return notNull(fetchWithError(`/artists/${artistId}`));
 		},
-		update: async (artist: FormData): Promise<PostArtist & Timestamps> => {
-			return notNull(
-				fetchWithErrNoJson(`/artists`, {
-					method: "POST",
+			update: async (artist: FormData): Promise<PostArtist & Timestamps> => {
+				return notNull(
+				  fetchWithErrNoJson(`/artists`, {
+					method: 'POST',
 					body: artist,
-				}),
-			);
-		},
-	},
+				  }),
+				);
+			  },
+			},
 
 	auth: {
 		login: async (credentials: Login): Promise<User> => {
@@ -380,3 +380,4 @@ export const api = {
 		},
 	},
 };
+

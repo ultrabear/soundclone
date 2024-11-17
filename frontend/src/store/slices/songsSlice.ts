@@ -58,10 +58,20 @@ export const fetchNewReleases = createAsyncThunk(
 	async (_, { dispatch }) => {
 		const { songs } = await api.songs.getAll();
 
+		const p = Promise.all(
+			[...new Set(songs.map((s) => s.artist_id))].map((aid) =>
+				api.artists.getOne(aid),
+			),
+		);
+
 		// Add songs to store
 		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
 
 		dispatch(usersSlice.actions.partialAddUsers(songs.map((s) => s.artist)));
+
+		dispatch(
+			usersSlice.actions.addUsers((await p).map((a) => apiUserToStore(a))),
+		);
 	},
 );
 export const createSongThunk = createAsyncThunk(

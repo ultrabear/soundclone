@@ -6,7 +6,7 @@ import {
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch, RootState } from "..";
 import { api } from "../api";
-import type { GetSong } from "../api";
+import type { ApiError, GetSong } from "../api";
 import { apiCommentToStore, commentsSlice } from "./commentsSlice";
 import { slice as sessionSlice } from "./sessionSlice";
 import type { Song, SongId, SongSlice, UserId } from "./types";
@@ -66,9 +66,71 @@ export const fetchNewReleases = createAsyncThunk(
 );
 export const createSongThunk = createAsyncThunk(
 	"songs/createSong",
-	async (songData: FormData) => {
-		const response = await api.songs.create(songData);
-		return response.id;
+	async (
+		songData: FormData,
+		{ dispatch },
+	): Promise<ApiError | SongId | undefined> => {
+		try {
+			const response = await api.songs.create(songData);
+			const newSong = await api.songs.getOne(response.id);
+			const artist = await api.artists.getOne(newSong.artist_id);
+			artist.num_songs_by_artist++;
+			dispatch(usersSlice.actions.addUser(apiUserToStore(artist)));
+			dispatch(songsSlice.actions.addSongs([newSong].map(apiSongToStore)));
+
+			return response.id;
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
+);
+
+export const updateSongThunk = createAsyncThunk(
+	"songs/updateSong",
+	async (
+		{ songId, songData }: { songId: SongId; songData: FormData },
+		{ dispatch },
+	): Promise<ApiError | undefined> => {
+		try {
+			api.songs.update(songId, songData).then(async () => {
+				const updatedSong = await api.songs.getOne(songId);
+				dispatch(
+					songsSlice.actions.addSongs([updatedSong].map(apiSongToStore)),
+				);
+			});
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
+);
+
+export const deleteSongThunk = createAsyncThunk(
+	"songs/deleteSong",
+	async (
+		songId: SongId,
+		{ dispatch, getState },
+	): Promise<undefined | ApiError> => {
+		try {
+			api.songs.delete(songId).then(async () => {
+				const currentState = getState() as RootState;
+				const currentUser = currentState.session.user!;
+				const artistToUpdate = await api.artists.getOne(currentUser.id);
+				artistToUpdate.num_songs_by_artist--;
+				dispatch(usersSlice.actions.addUser(apiUserToStore(artistToUpdate)));
+				dispatch(songsSlice.actions.removeSong(songId));
+			});
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
 	},
 );
 
@@ -181,6 +243,9 @@ export const songsSlice = createSlice({
 			for (const song of action.payload) {
 				state.songs[song.id] = song;
 			}
+		},
+		removeSong: (state, action: PayloadAction<SongId>) => {
+			delete state.songs[action.payload];
 		},
 	},
 });

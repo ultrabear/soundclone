@@ -3,7 +3,7 @@ from flask_login import login_required, current_user  # pyright: ignore
 from sqlalchemy import select
 from ..models import Song, db
 from ..backend_api import GetSongs, ApiErrorResponse, IdAndTimestamps, GetSong, NoBody, Ok, Created
-from ..forms.song_form import SongForm
+from ..forms.song_form import SongForm, NewSongForm
 from .aws_integration import (
     get_unique_filename,
     SongFile,
@@ -107,7 +107,7 @@ def get_song(
 @login_required
 def upload_song() -> ApiErrorResponse | Created[IdAndTimestamps]:
     """Create a new song"""
-    form = SongForm()
+    form = NewSongForm()
     form["csrf_token"].data = request.cookies["csrf_token"]
 
     if form.validate_on_submit():

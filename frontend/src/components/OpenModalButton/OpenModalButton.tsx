@@ -5,12 +5,14 @@ interface OpenModalButtonTy {
 	buttonText: string; // text of the button that opens the modal
 	onButtonClick?: () => void; // optional: callback function that will be called once the modal is closed
 	onModalClose?: () => void; // optional: callback function that will be called once the button that opens the modal is clicked
+	classes?: string;
 }
 function OpenModalButton({
 	modalComponent, // component to render inside the modal
 	buttonText, // text of the button that opens the modal
 	onButtonClick, // optional: callback function that will be called once the button that opens the modal is clicked
 	onModalClose, // optional: callback function that will be called once the modal is closed
+	classes,
 }: React.PropsWithRef<OpenModalButtonTy>) {
 	const { setModalContent, setOnModalClose } = useModal();
 
@@ -21,7 +23,12 @@ function OpenModalButton({
 	};
 
 	return (
-		<button type="button" onClick={onClick}>
+		<button
+			aria-label={buttonText}
+			className={classes}
+			type="button"
+			onClick={onClick}
+		>
 			{buttonText}
 		</button>
 	);

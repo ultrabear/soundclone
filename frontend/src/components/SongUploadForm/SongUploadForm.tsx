@@ -4,17 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../store";
 import { createSongThunk } from "../../store/slices/songsSlice";
 import Layout from "../Layout/Layout";
 import "./SongUploadForm.css";
-
-const ALLOWED_SOUND_EXTENSIONS = new Set([
-	"mp3",
-	"aac",
-	"m4a",
-	"opus",
-	"wav",
-	"flac",
-	"ogg",
-]);
-const ALLOWED_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"]);
+import { ApiError } from "../../store/api";
 
 const SongUploadForm = (): JSX.Element => {
 	const dispatch = useAppDispatch();
@@ -27,9 +17,7 @@ const SongUploadForm = (): JSX.Element => {
 	const [uploading, setUploading] = useState<boolean>(false);
 	const [errors, setErrors] = useState(
 		{} as {
-			server?: string;
-			thumbUrl?: string;
-			songFile?: string;
+			server?: ApiError;
 		},
 	);
 
@@ -38,36 +26,9 @@ const SongUploadForm = (): JSX.Element => {
 		return <></>;
 	}
 
-	interface clientSideErrors {
-		thumbUrl?: string;
-		songFile?: string;
-	}
-
-	const clientSideValidations = (): clientSideErrors => {
-		const errors: clientSideErrors = {};
-		const unallowedFile = "Unallowed file extension";
-
-		// check file extensions
-		const songExt = songFile?.name.split(".").pop()?.toLowerCase();
-		if (songExt && !ALLOWED_SOUND_EXTENSIONS.has(songExt)) {
-			errors.songFile = unallowedFile;
-		}
-
-		const imageExt = thumbUrl?.name.split(".").pop()?.toLowerCase();
-		if (imageExt && !ALLOWED_IMAGE_EXTENSIONS.has(imageExt)) {
-			errors.thumbUrl = unallowedFile;
-		}
-
-		return errors;
-	};
-
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const userErrors = clientSideValidations();
-		if (Object.keys(userErrors).length > 0) {
-			return setErrors(userErrors);
-		}
-
+		setUploading(true);
 		setErrors({});
 
 		const formData = new FormData();
@@ -76,18 +37,21 @@ const SongUploadForm = (): JSX.Element => {
 		formData.append("genre", genre);
 		if (thumbUrl) formData.append("thumbnail_img", thumbUrl);
 		if (songFile) formData.append("song_file", songFile);
-		setUploading(true);
 
-		const serverResponse = await dispatch(createSongThunk(formData));
+		const response = await dispatch(createSongThunk(formData)).unwrap();
 
-		// TODO - redirect to new song's details page
-		console.log("server response: ", serverResponse);
+		if (typeof response !== "number" && response?.errors) {
+			setErrors(response.errors);
+		} else {
+			const newSongId = response;
+			navigate(`/songs/${newSongId}`);
+		}
 	};
 
 	return (
 		<Layout>
 			<h1>Track info</h1>
-			{errors.server && <p>{errors.server}</p>}
+			{errors.server && <p>{errors.server.message}</p>}
 			<form
 				className="upload-song-form  flex-col"
 				encType="multipart/form-data"
@@ -133,7 +97,6 @@ const SongUploadForm = (): JSX.Element => {
 							if (e.target.files?.length) setThumbUrl(e.target.files[0]!);
 						}}
 					/>
-					{errors.thumbUrl && <p>{errors.thumbUrl}</p>}
 				</div>
 				<div className="upload-form-field flex-col">
 					<button className="choose-file-button" type="button">
@@ -152,8 +115,6 @@ const SongUploadForm = (): JSX.Element => {
 						}}
 						required
 					/>
-
-					{errors.songFile && <p>{errors.songFile}</p>}
 				</div>
 
 				<button className="song-upload-button" type="submit">

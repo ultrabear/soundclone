@@ -4,6 +4,7 @@ import { useAppSelector } from "../../store";
 import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
+import SongsByUser from "../SongsByUser/SongsByUser";
 import "./UserView.css";
 import LikesScreen from "../PlaylistsScreen/LikesScreen";
 
@@ -26,7 +27,7 @@ function UserView({ tab }: { tab: TabType }) {
 			case "likes":
 				return <LikesScreen />;
 			case "uploads":
-				return <div>Uploads Content</div>;
+				return <SongsByUser />;
 			case "profile":
 				return <EditProfileForm />;
 			default:

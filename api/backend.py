@@ -101,14 +101,10 @@ class BasePlaylist(TypedDict):
 
 
 # I want to be able to make a playlist
-endpoint(
-    "POST", "/api/playlists", req=BasePlaylist, res=Created[IdAndTimestamps], auth=True
-)
+endpoint("POST", "/api/playlists", req=BasePlaylist, res=Created[IdAndTimestamps], auth=True)
 
 # I want to be able to update a playlist (change its name/thumbnail)
-endpoint(
-    "PUT", "/api/playlists/:playlistId", req=BasePlaylist, res=Ok[NoBody], auth=True
-)
+endpoint("PUT", "/api/playlists/:playlistId", req=BasePlaylist, res=Ok[NoBody], auth=True)
 
 
 class PlaylistInfo(BasePlaylist, IdAndTimestamps):
@@ -168,14 +164,10 @@ class Comment(TypedDict):
 
 
 # I want to be able to comment on a song on that song's page
-endpoint(
-    "POST", "/api/songs/:song_id/comments", req=Comment, res=IdAndTimestamps, auth=True
-)
+endpoint("POST", "/api/songs/:song_id/comments", req=Comment, res=IdAndTimestamps, auth=True)
 
 # I want to be able to update a comment that I left on a song's page
-endpoint(
-    "PUT", "/api/comments/:comment_id", req=Comment, res=IdAndTimestamps, auth=True
-)
+endpoint("PUT", "/api/comments/:comment_id", req=Comment, res=IdAndTimestamps, auth=True)
 
 
 class UserComment(Comment, IdAndTimestamps):

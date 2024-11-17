@@ -1,13 +1,19 @@
 import type React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { setCurrentSong, togglePlayPause } from "../../store/playerSlice";
+import {
+	setCurrentSong,
+	togglePlayPause,
+	clearQueue,
+	addToQueue,
+} from "../../store/playerSlice";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import {
 	fetchNewReleases,
 	selectNewestSongs,
 } from "../../store/slices/songsSlice";
+import { selectTop10NewestSongs } from "../../store/selectors/songSelectors";
 import type { SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
 import LoginFormModal from "../LoginFormModal/LoginFormModal";
@@ -82,6 +88,14 @@ function SongTile({
 	const artist = useAppSelector((state) =>
 		song ? state.user.users[song.artist_id]?.display_name : null,
 	);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
+	const isCurrentSong = currentSong === id;
+
+	const handlePlay = (e: React.MouseEvent) => {
+		e.preventDefault();
+		playSong(id);
+	};
 
 	if (!(song && artist)) {
 		return <div className={styles.songItem}>Loading Song/Artist...</div>;
@@ -97,13 +111,10 @@ function SongTile({
 			<button
 				type="button"
 				className={styles.songPlayButton}
-				onClick={(e) => {
-					e.preventDefault();
-					playSong(song.id);
-				}}
-				aria-label="Play song"
+				onClick={handlePlay}
+				aria-label={isCurrentSong && isPlaying ? "Pause" : "Play"}
 			>
-				▶
+				{isCurrentSong && isPlaying ? "⏸" : "▶"}
 			</button>
 		</div>
 	);
@@ -116,22 +127,58 @@ const HomePage: React.FC = () => {
 	const newReleases = useAppSelector(selectNewestSongs);
 	const { user } = useAppSelector((state) => state.session);
 	const users = useAppSelector((state) => state.user.users);
-	const playlists = useAppSelector((state) => state.playlist.playlists);
 
 	const featuredRef = useRef<HTMLDivElement>(null);
 	const releasesRef = useRef<HTMLDivElement>(null);
 
-	const handlePlaySong = (song: SongId) => {
-		dispatch(setCurrentSong(song));
-		dispatch(togglePlayPause());
+	const top10Songs = useAppSelector(selectTop10NewestSongs);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
+
+	const handlePlaySong = (clickedSongId: SongId) => {
+		const songIndex = top10Songs.findIndex((song) => song.id === clickedSongId);
+		if (songIndex !== -1) {
+			if (currentSong === clickedSongId) {
+				// If it's the same song, just toggle play/pause
+				dispatch(togglePlayPause());
+			} else {
+				if (!isPlaying) {
+					dispatch(togglePlayPause());
+				}
+				dispatch(setCurrentSong(clickedSongId));
+				dispatch(clearQueue());
+
+				top10Songs.slice(songIndex + 1).forEach((song) => {
+					dispatch(addToQueue(song.id));
+				});
+			}
+		}
 	};
+
+	const handlePlayAll = useCallback(() => {
+		const firstSong = top10Songs[0];
+		if (firstSong) {
+			if (currentSong === firstSong.id) {
+				dispatch(togglePlayPause());
+			} else {
+				if (!isPlaying) {
+					dispatch(togglePlayPause());
+				}
+				dispatch(setCurrentSong(firstSong.id));
+				dispatch(clearQueue());
+
+				top10Songs.slice(1).forEach((song) => {
+					dispatch(addToQueue(song.id));
+				});
+			}
+		}
+	}, [dispatch, top10Songs, isPlaying, currentSong]);
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				dispatch(fetchNewReleases());
 
-				// Fetch playlists if user is logged in
 				if (user) {
 					dispatch(fetchUserPlaylists());
 				}
@@ -150,9 +197,7 @@ const HomePage: React.FC = () => {
 					<div className={styles.sectionHeader}>
 						<div className={styles.headerContent}>
 							<h2 className={styles.sectionTitle}>
-								{user
-									? `Welcome back, ${user.username}!`
-									: "More of what you like"}
+								{user ? `Welcome back, ${user.username}!` : "Latest Releases"}
 							</h2>
 							{!user && (
 								<div className={styles.authButtons}>
@@ -171,36 +216,39 @@ const HomePage: React.FC = () => {
 					<div className={styles.heroSection}>
 						<div className={styles.heroArtwork}>
 							<img
-								src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Continuum_by_John_Mayer_%282006%29.jpg"
-								alt="Playlist artwork"
+								src="assets/images/fresh_10_playlist_art.png"
+								alt="New releases playlist"
+								className={styles.heroImage}
 							/>
-							<button type="button" className={styles.heroPlayButton}>
-								▶
+							<button
+								type="button"
+								className={styles.heroPlayButton}
+								onClick={handlePlayAll}
+								aria-label={
+									isPlaying && currentSong === top10Songs[0]?.id
+										? "Pause"
+										: "Play"
+								}
+							>
+								{isPlaying && currentSong === top10Songs[0]?.id ? "⏸" : "▶"}
 							</button>
 						</div>
 						<div className={styles.heroContent}>
 							<div className={styles.heroSongs}>
-								{playlists[0]?.songs &&
-									Object.keys(playlists[0].songs).map((songId) => (
-										<SongTile
-											key={Number(songId)}
-											playSong={handlePlaySong}
-											id={Number(songId)}
-										/>
-									))}
+								{top10Songs.map((song) => (
+									<SongTile
+										key={song.id}
+										id={song.id}
+										playSong={handlePlaySong}
+									/>
+								))}
 							</div>
 						</div>
 					</div>
 					<div className={styles.heroFooter}>
-						{playlists[0] && (
-							<button
-								type="button"
-								className={styles.viewPlaylistButton}
-								onClick={() => navigate(`/playlist/${playlists[0]!.id}`)}
-							>
-								Go to playlist
-							</button>
-						)}
+						<p className={styles.playlistDescription}>
+							Fresh tracks from our community - updated in real-time
+						</p>
 					</div>
 				</section>
 

@@ -70,6 +70,23 @@ export const fetchUserPlaylists = createAsyncThunk(
 export const fetchPlaylist = createAsyncThunk(
 	"playlists/fetchPlaylist",
 	async (id: number, { dispatch, getState }) => {
+		// 	 if (id === NEW_RELEASES_PLAYLIST_ID) {
+		//   const state = getState() as RootState;
+		//   const top10Songs = selectTop10NewestSongs(state);
+
+		//   const newReleasesPlaylist: Playlist = {
+		//     id: NEW_RELEASES_PLAYLIST_ID,
+		//     name: "New Releases",
+		//     thumbnail: "frontend/public/assets/images/fresh_10_playlist_art.png", // Use your default image
+		//     created_at: new Date().toISOString(),
+		//     updated_at: new Date().toISOString(),
+		//     user_id: 0,
+		//     songs: Object.fromEntries(top10Songs.map(song => [song.id, null]))
+		//   };
+
+		//   dispatch(playlistsSlice.actions.addPlaylist(newReleasesPlaylist));
+		//   return;
+		// }
 		const state = getState() as RootState;
 		const sessionUser = state.session.user!.id;
 

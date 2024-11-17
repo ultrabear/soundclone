@@ -91,16 +91,18 @@ function normalizeApiUser(u: ApiUser): [SessionUser, User] {
 		id: session.id,
 	};
 
-	if (typeof first_release === "string") {
-		user.first_release = first_release;
+	if (first_release !== undefined && first_release !== null) {
+		user.first_release =
+			typeof first_release === "string" ? first_release : undefined;
 	}
 
-	if (typeof profile_image === "string") {
-		user.profile_image = profile_image;
+	if (profile_image !== undefined && profile_image !== null) {
+		user.profile_image =
+			typeof profile_image === "string" ? profile_image : undefined;
 	}
 
-	if (typeof homepage === "string") {
-		user.homepage_url = homepage;
+	if (homepage !== undefined && homepage !== null) {
+		user.homepage_url = typeof homepage === "string" ? homepage : undefined;
 	}
 
 	return [session, user];

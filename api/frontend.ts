@@ -92,6 +92,19 @@ export type User = {
 	homepage?: string;
 };
 
+export interface ApiUser {
+	id: number;
+	username: string;
+	email: string;
+	stage_name?: string;
+	profile_image?: string;
+	first_release?: string;
+	biography?: string;
+	location?: string;
+	homepage?: string;
+	num_songs_by_artist?: number;
+}
+
 export type Login = {
 	email: string;
 	password: string;
@@ -249,13 +262,14 @@ export const api = {
 		},
 		update: async (artist: FormData): Promise<PostArtist & Timestamps> => {
 			return notNull(
-				fetchWithErrNoJson("/artists", {
+				fetchWithErrNoJson(`/artists`, {
 					method: "POST",
 					body: artist,
 				}),
 			);
 		},
 	},
+
 	auth: {
 		login: async (credentials: Login): Promise<User> => {
 			return notNull(

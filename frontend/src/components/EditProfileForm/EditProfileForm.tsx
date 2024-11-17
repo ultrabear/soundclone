@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect import
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
 	createNewArtistThunk,
 	getUserDetails,
 } from "../../store/slices/userSlice";
+import { updateUserProfileThunk } from "../../store/slices/profileThunks";
 import "./EditProfileForm.css";
 
 type LoadingState = "no" | "loading" | "response" | "finished";
@@ -14,53 +15,53 @@ const EditProfileForm = (): JSX.Element => {
 	const navigate = useNavigate();
 	const sessionUser = useAppSelector((state) => state.session.user);
 	const users = useAppSelector((state) => state.user.users);
+
+	const isArtist = useAppSelector((state) => {
+		const userId = sessionUser?.id;
+		if (!userId) return false;
+		return (state.user.users[userId]?.num_songs_by_artist ?? 0) > 0;
+	});
+
 	const [stageName, setStageName] = useState<string>("");
 	const [firstRelease, setFirstRelease] = useState<string>("");
 	const [biography, setBiography] = useState<string>("");
 	const [location, setLocation] = useState<string>("");
 	const [homepage, setHomepage] = useState<string>("");
-	const [numSongsByUser, setNumSongsByUser] = useState<number>(0);
 	const [loading, setLoading] = useState<LoadingState>("no");
 	const [existingProfileImage, setExistingProfileImage] = useState<
 		string | null
 	>(null);
 	const [imageToUpload, setImageToUpload] = useState<File | null>(null);
-	const [errors, setErrors] = useState(
-		{} as {
-			server?: string;
-		},
-	);
+	const [errors, setErrors] = useState<{ server?: string }>({});
 
-	if (!sessionUser) {
-		navigate("/");
-		return <></>; // UserView component requires an element to be returned here
-	}
-
-	if (loading === "no") {
-		setLoading("loading");
-		dispatch(getUserDetails(sessionUser.id)).then(() => setLoading("response"));
-	} else if (loading === "response") {
-		setLoading("finished");
-		const currentUsersDetails = users[sessionUser.id];
-		if (currentUsersDetails?.display_name)
-			setStageName(currentUsersDetails.display_name);
-		if (currentUsersDetails?.first_release)
-			setFirstRelease(currentUsersDetails.first_release);
-		if (currentUsersDetails?.biography)
-			setBiography(currentUsersDetails.biography);
-		if (currentUsersDetails?.location)
-			setLocation(currentUsersDetails.location);
-		if (currentUsersDetails?.homepage_url)
-			setHomepage(currentUsersDetails.homepage_url);
-		if (
-			currentUsersDetails?.num_songs_by_artist &&
-			currentUsersDetails?.num_songs_by_artist > 0
-		) {
-			setNumSongsByUser(currentUsersDetails.num_songs_by_artist);
+	useEffect(() => {
+		if (!sessionUser) {
+			navigate("/");
+			return;
 		}
-		if (currentUsersDetails?.profile_image)
-			setExistingProfileImage(currentUsersDetails.profile_image);
-	}
+
+		if (loading === "no") {
+			setLoading("loading");
+			dispatch(getUserDetails(sessionUser.id)).then(() =>
+				setLoading("response"),
+			);
+		} else if (loading === "response") {
+			setLoading("finished");
+			const currentUsersDetails = users[sessionUser.id];
+			if (currentUsersDetails?.display_name)
+				setStageName(currentUsersDetails.display_name);
+			if (currentUsersDetails?.first_release)
+				setFirstRelease(currentUsersDetails.first_release);
+			if (currentUsersDetails?.biography)
+				setBiography(currentUsersDetails.biography);
+			if (currentUsersDetails?.location)
+				setLocation(currentUsersDetails.location);
+			if (currentUsersDetails?.homepage_url)
+				setHomepage(currentUsersDetails.homepage_url);
+			if (currentUsersDetails?.profile_image)
+				setExistingProfileImage(currentUsersDetails.profile_image);
+		}
+	}, [sessionUser, loading, users, dispatch, navigate]);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -68,19 +69,50 @@ const EditProfileForm = (): JSX.Element => {
 
 		const formData = new FormData();
 
-		if (stageName) formData.append("stage_name", stageName);
-		if (firstRelease) formData.append("first_release", firstRelease);
-		if (biography) formData.append("biography", biography);
-		if (location) formData.append("location", location);
-		if (homepage) formData.append("homepage", homepage);
 		if (imageToUpload) formData.append("profile_image", imageToUpload);
 
-		const serverResponse = await dispatch(createNewArtistThunk(formData));
+		// Add artist fields if user is an artist
+		if (isArtist) {
+			if (stageName) formData.append("stage_name", stageName);
+			if (firstRelease) formData.append("first_release", firstRelease);
+			if (biography) formData.append("biography", biography);
+			if (location) formData.append("location", location);
+			if (homepage) formData.append("homepage", homepage);
 
-		if (serverResponse.payload !== undefined) {
-			setErrors({
-				server: "Failed to update artist profile",
-			});
+			try {
+				const response = await dispatch(createNewArtistThunk(formData));
+				if (response.payload) {
+					setErrors({
+						server: String(response.payload),
+					});
+				} else {
+					navigate("/user/profile");
+				}
+			} catch (err) {
+				console.error("Profile update error:", err);
+				setErrors({
+					server:
+						err instanceof Error ? err.message : "An unexpected error occurred",
+				});
+			}
+		} else {
+			// Non-artist update logic
+			try {
+				const response = await dispatch(updateUserProfileThunk(formData));
+				if (response.payload) {
+					setErrors({
+						server: String(response.payload),
+					});
+				} else {
+					navigate("/user/profile");
+				}
+			} catch (err) {
+				console.error("Profile update error:", err);
+				setErrors({
+					server:
+						err instanceof Error ? err.message : "An unexpected error occurred",
+				});
+			}
 		}
 	};
 
@@ -95,7 +127,7 @@ const EditProfileForm = (): JSX.Element => {
 				/>
 			)}
 			<form
-				className="upload-song-form  flex-col"
+				className="upload-song-form flex-col"
 				encType="multipart/form-data"
 				onSubmit={handleSubmit}
 			>
@@ -119,73 +151,73 @@ const EditProfileForm = (): JSX.Element => {
 						}}
 					/>
 				</div>
-				<div className="upload-form-field flex-col">
-					<label className="upload-form-text-label" htmlFor="stage-name">
-						Your Stage Name
-					</label>
-					<input
-						className="upload-form-text-input"
-						id="stage-name"
-						type="text"
-						value={stageName}
-						onChange={(e) => setStageName(e.target.value)}
-					/>
-				</div>
-				<div className="upload-form-field flex-col">
-					<label className="upload-form-text-label" htmlFor="first-release">
-						Your First Release
-					</label>
-					<input
-						className="upload-form-text-input"
-						id="first-release"
-						type="text"
-						value={firstRelease}
-						onChange={(e) => setFirstRelease(e.target.value)}
-					/>
-				</div>
-				<div className="upload-form-field flex-col">
-					<label className="upload-form-text-label" htmlFor="biography">
-						Your Bio
-					</label>
-					<input
-						className="upload-form-text-input"
-						id="biography"
-						type="textarea"
-						maxLength={400}
-						value={biography}
-						onChange={(e) => setBiography(e.target.value)}
-					/>
-				</div>
-				<div className="upload-form-field flex-col">
-					<label className="upload-form-text-label" htmlFor="location">
-						Your Location
-					</label>
-					<input
-						className="upload-form-text-input"
-						id="location"
-						type="text"
-						value={location}
-						onChange={(e) => setLocation(e.target.value)}
-					/>
-				</div>
-				<div className="upload-form-field flex-col">
-					<label className="upload-form-text-label" htmlFor="homepage">
-						Link To Your Website
-					</label>
-					<input
-						className="upload-form-text-input"
-						id="homepage"
-						type="text"
-						value={homepage}
-						onChange={(e) => setHomepage(e.target.value)}
-					/>
-				</div>
 
-				{numSongsByUser === 0 && (
-					<p>
-						Once you've uploaded your first song, your profile will be visible
-						to all users!
-					</p>
+				{isArtist ? (
+					<>
+						<div className="upload-form-field flex-col">
+							<label className="upload-form-text-label" htmlFor="stage-name">
+								Your Stage Name
+							</label>
+							<input
+								className="upload-form-text-input"
+								id="stage-name"
+								type="text"
+								value={stageName}
+								onChange={(e) => setStageName(e.target.value)}
+							/>
+						</div>
+						<div className="upload-form-field flex-col">
+							<label className="upload-form-text-label" htmlFor="first-release">
+								Your First Release
+							</label>
+							<input
+								className="upload-form-text-input"
+								id="first-release"
+								type="text"
+								value={firstRelease}
+								onChange={(e) => setFirstRelease(e.target.value)}
+							/>
+						</div>
+						<div className="upload-form-field flex-col">
+							<label className="upload-form-text-label" htmlFor="biography">
+								Your Bio
+							</label>
+							<input
+								className="upload-form-text-input"
+								id="biography"
+								type="textarea"
+								maxLength={400}
+								value={biography}
+								onChange={(e) => setBiography(e.target.value)}
+							/>
+						</div>
+						<div className="upload-form-field flex-col">
+							<label className="upload-form-text-label" htmlFor="location">
+								Your Location
+							</label>
+							<input
+								className="upload-form-text-input"
+								id="location"
+								type="text"
+								value={location}
+								onChange={(e) => setLocation(e.target.value)}
+							/>
+						</div>
+						<div className="upload-form-field flex-col">
+							<label className="upload-form-text-label" htmlFor="homepage">
+								Link To Your Website
+							</label>
+							<input
+								className="upload-form-text-input"
+								id="homepage"
+								type="text"
+								value={homepage}
+								onChange={(e) => setHomepage(e.target.value)}
+							/>
+						</div>
+					</>
+				) : (
+					<p>Upload your first song to unlock artist profile features!</p>
 				)}
 
 				<button className="song-upload-button" type="submit">

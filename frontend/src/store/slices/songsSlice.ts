@@ -111,27 +111,23 @@ export const createSongThunk = createAsyncThunk(
 	},
 );
 
-export const updateSongThunk = createAsyncThunk(
-	"songs/updateSong",
-	async (
-		{ songId, songData }: { songId: SongId; songData: FormData },
-		{ dispatch },
-	): Promise<ApiError | undefined> => {
-		try {
-			api.songs.update(songId, songData).then(async () => {
-				const updatedSong = await api.songs.getOne(songId);
-				dispatch(
-					songsSlice.actions.addSongs([updatedSong].map(apiSongToStore)),
-				);
-			});
-		} catch (e) {
-			if (e instanceof Error) {
-				return e.api;
-			}
-			throw e;
+export const updateSongThunk = createAsyncThunk<
+	ApiError | undefined,
+	{ songId: SongId; songData: FormData },
+	{ dispatch: AppDispatch }
+>("songs/updateSong", async ({ songId, songData }, { dispatch }) => {
+	try {
+		await api.songs.update(songId, songData);
+		const updatedSong = await api.songs.getOne(songId);
+		dispatch(songsSlice.actions.addSongs([apiSongToStore(updatedSong)]));
+		return undefined;
+	} catch (e) {
+		if (e instanceof Error) {
+			return e.api;
 		}
-	},
-);
+		throw e;
+	}
+});
 
 export const deleteSongThunk = createAsyncThunk(
 	"songs/deleteSong",

@@ -5,6 +5,7 @@ import type { SongId } from "../store/slices/types";
 import styles from "./ArtistPage/ArtistPage.module.css";
 import { setCurrentSong } from "../store/playerSlice";
 import { AddToPlaylist } from "./AddToPlaylist";
+import { Link } from "react-router-dom";
 
 type SongListItemProps = {
 	songId: SongId;
@@ -69,7 +70,9 @@ export const SongListItem: React.FC<SongListItemProps> = ({
 				<div className={styles.songThumbnail}>
 					{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
 				</div>
-				<span className={styles.songName}>{song.name}</span>
+				<Link className={styles.songName} to={`/songs/${song.id}`}>
+					{song.name}
+				</Link>
 			</div>
 			<div className={styles.songArtist}>{artistName}</div>
 			<div className={styles.songGenre}>{song.genre}</div>

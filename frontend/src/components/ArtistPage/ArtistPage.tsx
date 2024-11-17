@@ -1,28 +1,19 @@
 import type React from "react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { api } from "../../store/api";
-import { setCurrentSong } from "../../store/playerSlice";
 import {
 	fetchArtistSongs,
 	selectSongsByArtist,
 } from "../../store/slices/songsSlice";
-import type { PlaylistId, SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
 import styles from "./ArtistPage.module.css";
-import { SongListItem } from "./SongListItem";
+import { SongListItem } from "../SongListItem";
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();
-	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	const [showAddToPlaylist, setShowAddToPlaylist] = useState<PlaylistId | null>(
-		null,
-	);
 	const [loaded, setLoaded] = useState(false);
-	const [newPlaylistName, setNewPlaylistName] = useState<string>("");
-	const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
 	const [showToast, setShowToast] = useState(false);
 	const [toastMessage, setToastMessage] = useState("");
 
@@ -32,9 +23,6 @@ const ArtistPage: React.FC = () => {
 	);
 	const songs = useAppSelector((state) =>
 		selectSongsByArtist(state, Number(userId)),
-	);
-	const userPlaylists = useAppSelector((state) =>
-		Object.values(state.playlist.playlists),
 	);
 
 	const showToastMessage = (message: string) => {
@@ -54,46 +42,6 @@ const ArtistPage: React.FC = () => {
 			}
 		})();
 	}
-
-	const handlePlaySong = (songId: SongId) => {
-		dispatch(setCurrentSong(songId));
-	};
-
-	const handleAddToPlaylist = async (
-		playlistId: number,
-		songId: number,
-		playlistName: string,
-	) => {
-		try {
-			await api.playlists.addSong(playlistId, songId);
-			setShowAddToPlaylist(null);
-			showToastMessage(`Added song to ${playlistName}`);
-		} catch (error) {
-			console.error("Error adding song to playlist:", error);
-			showToastMessage("Failed to add song to playlist");
-		}
-	};
-
-	const handleCreateNewPlaylist = async (songId: number) => {
-		if (!newPlaylistName.trim()) return;
-
-		try {
-			const response = await api.playlists.create({
-				name: newPlaylistName,
-			});
-
-			await api.playlists.addSong(response.id, songId);
-			setShowAddToPlaylist(null);
-			setIsCreatingPlaylist(false);
-			setNewPlaylistName("");
-			showToastMessage("Playlist created successfully!");
-			navigate(`/playlist/${response.id}/edit`);
-		} catch (error) {
-			console.error("Error creating playlist:", error);
-			showToastMessage("Failed to create playlist");
-		}
-	};
-
 	if (!artist) {
 		return (
 			<Layout>
@@ -158,20 +106,9 @@ const ArtistPage: React.FC = () => {
 							{songs.map((song, index) => (
 								<SongListItem
 									key={song.id}
-									song={song}
+									songId={song.id}
 									index={index}
-									artistName={artist.display_name}
-									onPlay={handlePlaySong}
-									onAddToPlaylist={() => setShowAddToPlaylist(song.id)}
 									showToastMessage={showToastMessage}
-									userPlaylists={userPlaylists}
-									isCreatingPlaylist={isCreatingPlaylist}
-									newPlaylistName={newPlaylistName}
-									onCreateNewPlaylist={handleCreateNewPlaylist}
-									onNewPlaylistNameChange={setNewPlaylistName}
-									onStartCreatePlaylist={() => setIsCreatingPlaylist(true)}
-									handleAddToPlaylist={handleAddToPlaylist}
-									showAddToPlaylist={showAddToPlaylist}
 								/>
 							))}
 						</div>

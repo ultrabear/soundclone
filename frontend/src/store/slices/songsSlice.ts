@@ -6,7 +6,7 @@ import {
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch, RootState } from "..";
 import { api } from "../api";
-import type { GetSong } from "../api";
+import type { ApiError, GetSong } from "../api";
 import { apiCommentToStore, commentsSlice } from "./commentsSlice";
 import { slice as sessionSlice } from "./sessionSlice";
 import {
@@ -127,7 +127,7 @@ export const updateSongThunk = createAsyncThunk(
 	async (
 		{ songId, songData }: { songId: SongId; songData: FormData },
 		{ dispatch },
-	) => {
+	): Promise<ApiError | undefined> => {
 		try {
 			api.songs.update(songId, songData).then(async () => {
 				const updatedSong = await api.songs.getOne(songId);
@@ -139,6 +139,7 @@ export const updateSongThunk = createAsyncThunk(
 			if (e instanceof Error) {
 				return e.api;
 			}
+			throw e;
 		}
 	},
 );

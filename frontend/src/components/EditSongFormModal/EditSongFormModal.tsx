@@ -56,14 +56,20 @@ const EditSongModal = (Props: SongProps): JSX.Element => {
 
 		setUpdating(true);
 
-		await dispatch(updateSongThunk({ songId, songData: formData })).then(() => {
+		const response = await dispatch(
+			updateSongThunk({ songId, songData: formData }),
+		).unwrap();
+
+		if (response?.errors) {
+			setErrors(response.errors);
+		} else {
 			closeModal();
-		});
+		}
 	};
 
 	return (
 		<>
-			<h1>Track info</h1>
+			<h1>Edit Track nfo</h1>
 			{errors.server && <p>{errors.server.message}</p>}
 			{existingThumbnail && (
 				<img

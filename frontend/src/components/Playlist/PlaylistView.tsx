@@ -1,98 +1,16 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { setCurrentSong } from "../../store/playerSlice";
-import {
-	addSongToPlaylistThunk,
-	fetchPlaylist,
-} from "../../store/slices/playlistsSlice";
-import type { PlaylistId, SongId } from "../../store/slices/types";
+import { fetchPlaylist } from "../../store/slices/playlistsSlice";
 import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
 import { Link } from "react-router-dom";
-
-type SongListItemProps = {
-	id: SongId;
-	showAddToPlaylist: SongId | null;
-	setShowAddToPlaylist: (_: SongId) => void;
-	index: number;
-	playSong: (_: SongId) => void;
-	addToPlaylist: (s: SongId, p: PlaylistId) => void;
-};
-
-function SongListItem({
-	id,
-	index,
-	setShowAddToPlaylist,
-	showAddToPlaylist,
-	addToPlaylist,
-	playSong,
-}: SongListItemProps) {
-	const song = useAppSelector((state) => state.song.songs[id]);
-	const artist = useAppSelector((state) =>
-		song ? state.user.users[song.artist_id]?.display_name : null,
-	);
-
-	const myPlaylists = useAppSelector((state) => state.playlist.playlists);
-
-	if (!song) {
-		return <>Loading song...</>;
-	}
-
-	return (
-		<div className="song-row">
-			<div className="song-number">{index + 1}</div>
-			<div className="song-title-cell">
-				<div className="song-thumbnail">
-					{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
-				</div>
-				<span className="song-name">{song.name}</span>
-			</div>
-			<div className="song-artist">{artist}</div>
-			<div className="song-genre">{song.genre}</div>
-			<div className="song-actions">
-				<button
-					type="button"
-					className="play-song-button"
-					onClick={() => playSong(song.id)}
-					aria-label="Play song"
-				>
-					▶
-				</button>
-				<button
-					type="button"
-					className="add-to-playlist-button"
-					onClick={() => setShowAddToPlaylist(song.id)}
-					aria-label="Add to playlist"
-				>
-					+
-				</button>
-				{showAddToPlaylist === song.id && (
-					<div className="playlist-dropdown">
-						{Object.values(myPlaylists).map((playlistItem) => (
-							<button
-								type="button"
-								key={playlistItem.id}
-								onClick={() => addToPlaylist(song.id, playlistItem.id)}
-								className="playlist-option"
-							>
-								{playlistItem.name}
-							</button>
-						))}
-					</div>
-				)}
-			</div>
-		</div>
-	);
-}
+import { SongListItem } from "../SongListItem";
 
 const PlaylistView: React.FC = () => {
 	const params = useParams<{ id: string }>();
 	const dispatch = useAppDispatch();
-	const [showAddToPlaylist, setShowAddToPlaylist] = useState<SongId | null>(
-		null,
-	);
 
 	const id = Number(params.id);
 
@@ -106,24 +24,6 @@ const PlaylistView: React.FC = () => {
 			dispatch(fetchPlaylist(id));
 		}
 	}, [dispatch, id]);
-
-	const handlePlaySong = (song: SongId) => {
-		dispatch(setCurrentSong(song));
-	};
-
-	const addToPlaylist = async (songId: SongId, targetPlaylistId: number) => {
-		try {
-			await dispatch(
-				addSongToPlaylistThunk({
-					playlist: targetPlaylistId,
-					song: songId,
-				}),
-			);
-			setShowAddToPlaylist(null);
-		} catch (error) {
-			console.error("Error adding song to playlist:", error);
-		}
-	};
 
 	if (!playlist) {
 		return (
@@ -180,12 +80,8 @@ const PlaylistView: React.FC = () => {
 							{Object.keys(playlist.songs).map((songId, index) => (
 								<SongListItem
 									key={Number(songId)}
-									id={Number(songId)}
-									showAddToPlaylist={showAddToPlaylist}
-									setShowAddToPlaylist={setShowAddToPlaylist}
+									songId={Number(songId)}
 									index={index}
-									addToPlaylist={addToPlaylist}
-									playSong={handlePlaySong}
 								/>
 							))}
 						</div>

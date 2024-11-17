@@ -282,7 +282,7 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 															}
 															placeholder="Enter playlist name"
 															autoFocus
-															onKeyPress={(e) => {
+															onKeyDown={(e) => {
 																if (e.key === "Enter") {
 																	handleCreateNewPlaylist();
 																}

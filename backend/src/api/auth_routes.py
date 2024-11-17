@@ -123,9 +123,7 @@ def update_user_profile():
 @login_required
 def update_artist_profile():
     try:
-        if not current_user.songs:
-            return {"errors": "Must upload a song before updating artist profile"}, 403
-
+        # Remove the songs check - allow all users to update artist fields
         form_data = request.form
         profile_image: FileStorage | None = request.files.get("profile_image")
 

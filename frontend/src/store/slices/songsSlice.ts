@@ -112,25 +112,25 @@ export const createSongThunk = createAsyncThunk(
 );
 
 export const updateSongThunk = createAsyncThunk(
-    "songs/updateSong",
-    async (
-        { songId, songData }: { songId: SongId; songData: FormData },
-        { dispatch },
-    ): Promise<ApiError | undefined> => {
-        try {
-            api.songs.update(songId, songData).then(async () => {
-                const updatedSong = await api.songs.getOne(songId);
-                dispatch(
-                    songsSlice.actions.addSongs([updatedSong].map(apiSongToStore)),
-                );
-            });
-        } catch (e) {
-            if (e instanceof Error) {
-                return e.api;
-            }
-            throw e;
-        }
-    },
+	"songs/updateSong",
+	async (
+		{ songId, songData }: { songId: SongId; songData: FormData },
+		{ dispatch },
+	): Promise<ApiError | undefined> => {
+		try {
+			api.songs.update(songId, songData).then(async () => {
+				const updatedSong = await api.songs.getOne(songId);
+				dispatch(
+					songsSlice.actions.addSongs([updatedSong].map(apiSongToStore)),
+				);
+			});
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
 );
 
 export const deleteSongThunk = createAsyncThunk(

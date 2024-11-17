@@ -41,10 +41,7 @@ export const createNewArtistThunk = createAsyncThunk(
 
 			if (!currentUser) throw new Error("No user logged in");
 
-			console.log("Sending artist data:", Object.fromEntries(artist.entries()));
-
 			const artistUser = await api.artists.update(artist);
-			console.log("Received artist update response:", artistUser);
 
 			const { id, username } = currentUser;
 			const newArtist = {
@@ -58,10 +55,17 @@ export const createNewArtistThunk = createAsyncThunk(
 		} catch (e) {
 			console.error("Artist update error:", e);
 			if (e instanceof Error) {
-				console.log("Error details:", e.api);
-				return e.api?.errors || e.api?.message || "Failed to update profile";
+				// If it has an api property with errors
+				const apiError = (e as any).api;
+				if (apiError?.errors) {
+					return apiError.errors;
+				}
+				if (apiError?.message) {
+					return apiError.message;
+				}
+				return e.message;
 			}
-			throw e;
+			return "Failed to update profile";
 		}
 	},
 );

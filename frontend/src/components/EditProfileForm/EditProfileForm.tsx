@@ -71,51 +71,67 @@ const EditProfileForm = (): JSX.Element => {
 
 		if (imageToUpload) formData.append("profile_image", imageToUpload);
 
-		// Add artist fields if user is an artist
-		if (isArtist) {
-			if (stageName) formData.append("stage_name", stageName);
-			if (firstRelease) formData.append("first_release", firstRelease);
-			if (biography) formData.append("biography", biography);
-			if (location) formData.append("location", location);
-			if (homepage) formData.append("homepage", homepage);
+		// Always include artist fields regardless of isArtist status
+		if (stageName) formData.append("stage_name", stageName);
+		if (firstRelease) formData.append("first_release", firstRelease);
+		if (biography) formData.append("biography", biography);
+		if (location) formData.append("location", location);
+		if (homepage) formData.append("homepage", homepage);
 
-			try {
-				const response = await dispatch(createNewArtistThunk(formData));
-				if (response.payload) {
-					setErrors({
-						server: String(response.payload),
-					});
-				} else {
-					navigate("/user/profile");
+		try {
+			const response = await dispatch(createNewArtistThunk(formData));
+
+			if (response.payload) {
+				// Handle different error formats
+				if (typeof response.payload === "string") {
+					setErrors({ server: response.payload });
+				} else if (typeof response.payload === "object") {
+					// If it's an error object with a nested errors object
+					if ("errors" in response.payload) {
+						const errorPayload = response.payload as {
+							errors: string | Record<string, string>;
+						};
+						if (typeof errorPayload.errors === "string") {
+							setErrors({ server: errorPayload.errors });
+						} else {
+							// If it's an object of errors, join them
+							setErrors({
+								server: Object.values(errorPayload.errors).join(", "),
+							});
+						}
+					} else {
+						// If it's just an error object, stringify it nicely
+						setErrors({
+							server: JSON.stringify(response.payload, null, 2),
+						});
+					}
 				}
-			} catch (err) {
-				console.error("Profile update error:", err);
-				setErrors({
-					server:
-						err instanceof Error ? err.message : "An unexpected error occurred",
-				});
+			} else {
+				navigate("/user/profile");
 			}
-		} else {
-			// Non-artist update logic
-			try {
-				const response = await dispatch(updateUserProfileThunk(formData));
-				if (response.payload) {
-					setErrors({
-						server: String(response.payload),
-					});
+		} catch (err) {
+			console.error("Profile update error:", err);
+			let errorMessage = "An unexpected error occurred";
+
+			if (err instanceof Error) {
+				// If the error has an api property with errors
+				const apiError = (err as any).api;
+				if (apiError?.errors) {
+					if (typeof apiError.errors === "string") {
+						errorMessage = apiError.errors;
+					} else {
+						errorMessage = Object.values(apiError.errors).join(", ");
+					}
+				} else if (apiError?.message) {
+					errorMessage = apiError.message;
 				} else {
-					navigate("/user/profile");
+					errorMessage = err.message;
 				}
-			} catch (err) {
-				console.error("Profile update error:", err);
-				setErrors({
-					server:
-						err instanceof Error ? err.message : "An unexpected error occurred",
-				});
 			}
+
+			setErrors({ server: errorMessage });
 		}
 	};
-
 	return (
 		<section className="edit-profile-section flex-col">
 			{errors.server && <p className="error-text">{errors.server}</p>}
@@ -152,72 +168,74 @@ const EditProfileForm = (): JSX.Element => {
 					/>
 				</div>
 
-				{isArtist ? (
-					<>
-						<div className="upload-form-field flex-col">
-							<label className="upload-form-text-label" htmlFor="stage-name">
-								Your Stage Name
-							</label>
-							<input
-								className="upload-form-text-input"
-								id="stage-name"
-								type="text"
-								value={stageName}
-								onChange={(e) => setStageName(e.target.value)}
-							/>
-						</div>
-						<div className="upload-form-field flex-col">
-							<label className="upload-form-text-label" htmlFor="first-release">
-								Your First Release
-							</label>
-							<input
-								className="upload-form-text-input"
-								id="first-release"
-								type="text"
-								value={firstRelease}
-								onChange={(e) => setFirstRelease(e.target.value)}
-							/>
-						</div>
-						<div className="upload-form-field flex-col">
-							<label className="upload-form-text-label" htmlFor="biography">
-								Your Bio
-							</label>
-							<input
-								className="upload-form-text-input"
-								id="biography"
-								type="textarea"
-								maxLength={400}
-								value={biography}
-								onChange={(e) => setBiography(e.target.value)}
-							/>
-						</div>
-						<div className="upload-form-field flex-col">
-							<label className="upload-form-text-label" htmlFor="location">
-								Your Location
-							</label>
-							<input
-								className="upload-form-text-input"
-								id="location"
-								type="text"
-								value={location}
-								onChange={(e) => setLocation(e.target.value)}
-							/>
-						</div>
-						<div className="upload-form-field flex-col">
-							<label className="upload-form-text-label" htmlFor="homepage">
-								Link To Your Website
-							</label>
-							<input
-								className="upload-form-text-input"
-								id="homepage"
-								type="text"
-								value={homepage}
-								onChange={(e) => setHomepage(e.target.value)}
-							/>
-						</div>
-					</>
-				) : (
-					<p>Upload your first song to unlock artist profile features!</p>
+				{/* Always show artist fields, but with different messaging */}
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="stage-name">
+						Your Stage Name
+					</label>
+					<input
+						className="upload-form-text-input"
+						id="stage-name"
+						type="text"
+						value={stageName}
+						onChange={(e) => setStageName(e.target.value)}
+					/>
+				</div>
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="first-release">
+						Your First Release
+					</label>
+					<input
+						className="upload-form-text-input"
+						id="first-release"
+						type="text"
+						value={firstRelease}
+						onChange={(e) => setFirstRelease(e.target.value)}
+					/>
+				</div>
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="biography">
+						Your Bio
+					</label>
+					<input
+						className="upload-form-text-input"
+						id="biography"
+						type="textarea"
+						maxLength={400}
+						value={biography}
+						onChange={(e) => setBiography(e.target.value)}
+					/>
+				</div>
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="location">
+						Your Location
+					</label>
+					<input
+						className="upload-form-text-input"
+						id="location"
+						type="text"
+						value={location}
+						onChange={(e) => setLocation(e.target.value)}
+					/>
+				</div>
+				<div className="upload-form-field flex-col">
+					<label className="upload-form-text-label" htmlFor="homepage">
+						Link To Your Website
+					</label>
+					<input
+						className="upload-form-text-input"
+						id="homepage"
+						type="text"
+						value={homepage}
+						onChange={(e) => setHomepage(e.target.value)}
+					/>
+				</div>
+
+				{!isArtist && (
+					<p className="info-text">
+						Note: Your artist profile will become public once you upload your
+						first song!
+					</p>
 				)}
 
 				<button className="song-upload-button" type="submit">

@@ -61,9 +61,31 @@ export const fetchNewReleases = createAsyncThunk(
 		// Add songs to store
 		dispatch(songsSlice.actions.addSongs(songs.map(apiSongToStore)));
 
-		dispatch(usersSlice.actions.partialAddUsers(songs.map((s) => s.artist)));
+		// Get unique artist IDs
+		const uniqueArtistIds = [...new Set(songs.map((song) => song.artist_id))];
+
+		// Fetch complete artist data for each unique artist
+		const artistPromises = uniqueArtistIds.map((id) => api.artists.getOne(id));
+		const artists = await Promise.all(artistPromises);
+
+		// Add complete artist data to store
+		dispatch(
+			usersSlice.actions.addUsers(
+				artists.map((artist) => ({
+					id: artist.id as UserId,
+					display_name: artist.stage_name,
+					profile_image: artist.profile_image,
+					first_release: artist.first_release,
+					biography: artist.biography,
+					location: artist.location,
+					homepage_url: artist.homepage,
+					num_songs_by_artist: artist.num_songs_by_artist,
+				})),
+			),
+		);
 	},
 );
+
 export const createSongThunk = createAsyncThunk(
 	"songs/createSong",
 	async (
@@ -73,6 +95,7 @@ export const createSongThunk = createAsyncThunk(
 		try {
 			const response = await api.songs.create(songData);
 			const newSong = await api.songs.getOne(response.id);
+			("");
 			const artist = await api.artists.getOne(newSong.artist_id);
 			artist.num_songs_by_artist++;
 			dispatch(usersSlice.actions.addUser(apiUserToStore(artist)));

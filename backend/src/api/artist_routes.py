@@ -91,7 +91,7 @@ def post_artist() -> Union[ReturnPostArtist, Tuple[ApiError, int]]:
 
             # handle thumbnail if user provided
             if form.data["profile_image"] is not None:
-                profile_image = create_resource_on_aws(form.data["thumbnail_img"], "image")
+                profile_image = create_resource_on_aws(form.data["profile_image"], "image")
                 user.profile_image = profile_image
 
             if form.data["first_release"] is not None:

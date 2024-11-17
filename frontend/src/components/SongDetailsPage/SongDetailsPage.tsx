@@ -138,7 +138,6 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 const SongDetailsPage: React.FC = () => {
 	const { songId } = useParams<{ songId: string }>();
 	const dispatch = useAppDispatch();
-	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
 	const song = useAppSelector((state) => selectSongById(state, Number(songId)));
@@ -172,13 +171,9 @@ const SongDetailsPage: React.FC = () => {
 		const loadSongDetails = async () => {
 			if (songId) {
 				try {
-					setLoading(true);
-
 					await dispatch(fetchSong(Number(songId)));
 				} catch (err) {
 					setError("Failed to load song details.");
-				} finally {
-					setLoading(false);
 				}
 			} else {
 				setError("Song ID not provided.");
@@ -251,14 +246,6 @@ const SongDetailsPage: React.FC = () => {
 		}
 	};
 
-	if (loading) {
-		return (
-			<Layout>
-				<div className={styles.loading}>Loading song details...</div>
-			</Layout>
-		);
-	}
-
 	if (error || !song) {
 		return (
 			<Layout>
@@ -307,6 +294,15 @@ const SongDetailsPage: React.FC = () => {
 											<div className={styles.songGenre}>{song.genre}</div>
 										)}
 									</div>
+									<div className={styles.songMeta}>
+										<button
+											type="button"
+											className={styles.likeButton}
+											onClick={handleLike}
+										>
+											{isLiked ? "♥" : "♡"} {song.likes}
+										</button>
+									</div>
 								</div>
 							</div>
 
@@ -344,13 +340,6 @@ const SongDetailsPage: React.FC = () => {
 									/>
 									<button type="submit" className={styles.submitButton}>
 										Submit
-									</button>
-									<button
-										type="button"
-										className={styles.likeButton}
-										onClick={handleLike}
-									>
-										{isLiked ? "♥" : "♡"} {song.likes}
 									</button>
 								</form>
 							</div>

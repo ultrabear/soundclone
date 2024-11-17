@@ -31,6 +31,7 @@ export type GetSong = Song &
 		song_ref: string;
 		thumb_url: string;
 		num_likes: number;
+		artist: { id: number; display_name: string };
 	};
 export type GetSongs = { songs: GetSong[] };
 

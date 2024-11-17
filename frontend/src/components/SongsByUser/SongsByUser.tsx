@@ -8,9 +8,8 @@ import {
 import type { SongId } from "../../store/slices/types";
 import { useNavigate } from "react-router-dom";
 import OpenModalButton from "../OpenModalButton/OpenModalButton";
-// import DeleteSongModal from "../DeleteSongModal/DeleteSongModal";
+import DeleteSongModal from "../DeleteSongModal/DeleteSongModal";
 import EditSongFormModal from "../EditSongFormModal/EditSongFormModal";
-// TODO Import any needed CSS and move some styles from ArtistSongsPage CSS to central location for use with classes here
 
 type LoadingState = "no" | "loading" | "response" | "finished";
 
@@ -43,11 +42,11 @@ function UploadedSong({ songId }: { songId: SongId }) {
 						buttonText="Edit Song"
 						classes="action-button"
 					/>
-					{/* <OpenModalButton
+					<OpenModalButton
 						modalComponent={<DeleteSongModal songId={song.id} />}
 						buttonText="Delete Song"
 						classes="action-button"
-					/> */}
+					/>
 				</div>
 			</div>
 		</div>

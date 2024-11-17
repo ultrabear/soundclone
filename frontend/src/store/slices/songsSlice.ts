@@ -123,7 +123,11 @@ export const createSongThunk = createAsyncThunk(
 		try {
 			const response = await api.songs.create(songData);
 			const newSong = await api.songs.getOne(response.id);
+			const artist = await api.artists.getOne(newSong.artist_id);
+			artist.num_songs_by_artist++;
+			dispatch(userSlice.actions.addUser(apiUserToStore(artist)));
 			dispatch(songsSlice.actions.addSongs([newSong].map(apiSongToStore)));
+
 			return response.id;
 		} catch (e) {
 			if (e instanceof Error) {
@@ -146,6 +150,30 @@ export const updateSongThunk = createAsyncThunk(
 				dispatch(
 					songsSlice.actions.addSongs([updatedSong].map(apiSongToStore)),
 				);
+			});
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+			throw e;
+		}
+	},
+);
+
+export const deleteSongThunk = createAsyncThunk(
+	"songs/deleteSong",
+	async (
+		songId: SongId,
+		{ dispatch, getState },
+	): Promise<undefined | ApiError> => {
+		try {
+			api.songs.delete(songId).then(async () => {
+				const currentState = getState() as RootState;
+				const currentUser = currentState.session.user!;
+				const artistToUpdate = await api.artists.getOne(currentUser.id);
+				artistToUpdate.num_songs_by_artist--;
+				dispatch(userSlice.actions.addUser(apiUserToStore(artistToUpdate)));
+				dispatch(songsSlice.actions.removeSong(songId));
 			});
 		} catch (e) {
 			if (e instanceof Error) {
@@ -242,6 +270,9 @@ export const songsSlice = createSlice({
 			for (const song of action.payload) {
 				state.songs[song.id] = song;
 			}
+		},
+		removeSong: (state, action: PayloadAction<SongId>) => {
+			delete state.songs[action.payload];
 		},
 	},
 });

@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { likeSong, unlikeSong } from "../store/slices/songsSlice";
 import type { SongId } from "../store/slices/types";
 import styles from "./ArtistPage/ArtistPage.module.css";
-import { setCurrentSong } from "../store/playerSlice";
+import { setCurrentSong, togglePlayPause } from "../store/playerSlice";
 import { AddToPlaylist } from "./AddToPlaylist";
 import { Link } from "react-router-dom";
 
@@ -28,9 +28,19 @@ export const SongListItem: React.FC<SongListItemProps> = ({
 	const session = useAppSelector((state) => state.session.user);
 	const isLiked = useAppSelector((state) => songId in state.session.likes);
 	const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
+	const isCurrentSong = currentSong === songId;
 
-	const onPlay = (songId: SongId) => {
-		dispatch(setCurrentSong(songId));
+	const handlePlayPause = () => {
+		if (isCurrentSong) {
+			dispatch(togglePlayPause());
+		} else {
+			if (!isPlaying) {
+				dispatch(togglePlayPause());
+			}
+			dispatch(setCurrentSong(songId));
+		}
 	};
 
 	const handleLike = async () => {
@@ -89,11 +99,12 @@ export const SongListItem: React.FC<SongListItemProps> = ({
 				<button
 					type="button"
 					className={styles.actionButton}
-					onClick={() => onPlay(song.id)}
-					aria-label="Play song"
+					onClick={handlePlayPause}
+					aria-label={isCurrentSong && isPlaying ? "Pause song" : "Play song"}
 				>
-					▶
+					{isCurrentSong && isPlaying ? "⏸" : "▶"}
 				</button>
+
 				<button
 					type="button"
 					className={styles.actionButton}

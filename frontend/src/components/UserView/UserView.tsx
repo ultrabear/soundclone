@@ -5,7 +5,6 @@ import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
 import SongsByUser from "../SongsByUser/SongsByUser";
-import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import "./UserView.css";
 import LikesScreen from "../PlaylistsScreen/LikesScreen";
 

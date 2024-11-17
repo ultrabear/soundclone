@@ -75,7 +75,7 @@ export const createSongThunk = createAsyncThunk(
 			const newSong = await api.songs.getOne(response.id);
 			const artist = await api.artists.getOne(newSong.artist_id);
 			artist.num_songs_by_artist++;
-			dispatch(userSlice.actions.addUser(apiUserToStore(artist)));
+			dispatch(usersSlice.actions.addUser(apiUserToStore(artist)));
 			dispatch(songsSlice.actions.addSongs([newSong].map(apiSongToStore)));
 
 			return response.id;
@@ -122,7 +122,7 @@ export const deleteSongThunk = createAsyncThunk(
 				const currentUser = currentState.session.user!;
 				const artistToUpdate = await api.artists.getOne(currentUser.id);
 				artistToUpdate.num_songs_by_artist--;
-				dispatch(userSlice.actions.addUser(apiUserToStore(artistToUpdate)));
+				dispatch(usersSlice.actions.addUser(apiUserToStore(artistToUpdate)));
 				dispatch(songsSlice.actions.removeSong(songId));
 			});
 		} catch (e) {

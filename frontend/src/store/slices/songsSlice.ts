@@ -122,6 +122,27 @@ export const createSongThunk = createAsyncThunk(
 	},
 );
 
+export const updateSongThunk = createAsyncThunk(
+	"songs/updateSong",
+	async (
+		{ songId, songData }: { songId: SongId; songData: FormData },
+		{ dispatch },
+	) => {
+		try {
+			api.songs.update(songId, songData).then(async () => {
+				const updatedSong = await api.songs.getOne(songId);
+				dispatch(
+					songsSlice.actions.addSongs([updatedSong].map(apiSongToStore)),
+				);
+			});
+		} catch (e) {
+			if (e instanceof Error) {
+				return e.api;
+			}
+		}
+	},
+);
+
 export const fetchArtistSongs = createAsyncThunk(
 	"songs/fetchArtistSongs",
 	async (artistId: UserId, { dispatch }) => {

@@ -230,10 +230,10 @@ export const api = {
 				}),
 			);
 		},
-		update: async (songId: number, song: Song): FPromise => {
-			return fetchWithError(`/songs/${songId}`, {
+		update: async (songId: number, song: FormData): FPromise => {
+			return fetchWithErrNoJson(`/songs/${songId}`, {
 				method: "PUT",
-				body: JSON.stringify(song),
+				body: song,
 			});
 		},
 		delete: async (songId: number): FPromise => {

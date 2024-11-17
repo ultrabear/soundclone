@@ -9,4 +9,7 @@ class SongForm(FlaskForm):
     name = StringField("song-name", validators=[DataRequired()])
     genre = StringField("genre")
     thumbnail_img = FileField("thumbnail-file", validators=[FileAllowed(list(ALLOWED_IMAGE_EXTENSIONS))])
+
+
+class NewSongForm(SongForm):
     song_file = FileField("song-file", validators=[FileRequired(), FileAllowed(list(ALLOWED_SOUND_EXTENSIONS))])

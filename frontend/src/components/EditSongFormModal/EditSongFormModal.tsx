@@ -1,7 +1,7 @@
 import { useState } from "react";
-// import { useModal } from "../../context/useModal";
+import { useModal } from "../../context/useModal";
 import { useAppDispatch, useAppSelector } from "../../store";
-import { fetchSong } from "../../store/slices/songsSlice";
+import { fetchSong, updateSongThunk } from "../../store/slices/songsSlice";
 import { ApiError, type SongId } from "../../store/api";
 
 type LoadingState = "no" | "loading" | "response" | "finished";
@@ -14,7 +14,7 @@ const EditSongModal = (Props: SongProps): JSX.Element => {
 	const { songId } = Props;
 	const song = useAppSelector((state) => state.song.songs[songId]);
 	const dispatch = useAppDispatch();
-	// const { closeModal } = useModal();
+	const { closeModal } = useModal();
 	const [loading, setLoading] = useState<LoadingState>("no");
 	const [name, setName] = useState<string>("");
 	const [genre, setGenre] = useState<string>("");
@@ -56,10 +56,9 @@ const EditSongModal = (Props: SongProps): JSX.Element => {
 
 		setUpdating(true);
 
-		// const serverResponse = await dispatch(createSongThunk(formData));
-
-		// close modal after successful update
-		// console.log("server response: ", serverResponse);
+		await dispatch(updateSongThunk({ songId, songData: formData })).then(() => {
+			closeModal();
+		});
 	};
 
 	return (

@@ -10,8 +10,8 @@ import {
 	type CommentsSlice,
 	type SongId,
 	type StoreComment,
-	upgradeTimeStamps,
 	type UserId,
+	upgradeTimeStamps,
 } from "./types";
 
 const initialState: CommentsSlice = {
@@ -116,5 +116,4 @@ export const commentsSlice = createSlice({
 	},
 });
 
-export const { clearComments } = commentsSlice.actions;
 export default commentsSlice.reducer;

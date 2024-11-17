@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../store";
+import EditProfileForm from "../EditProfileForm/EditProfileForm";
 import Layout from "../Layout/Layout";
 import PlaylistsScreen from "../PlaylistsScreen/PlaylistsScreen";
 import SongsByUser from "../SongsByUser/SongsByUser";

@@ -2,9 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
 import { type User as ApiUser, api } from "../api";
+import { playlistsSlice } from "./playlistsSlice";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
-import { slice as userSlice } from "./userSlice";
-import { clearPlaylists } from "./playlistsSlice";
+import { usersSlice } from "./userSlice";
 
 function authUserToStore(u: ApiUser): User {
 	const { stage_name, username, ...rest } = u;
@@ -19,7 +19,7 @@ export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 	try {
 		const res = await api.auth.restore();
 		dispatch(slice.actions.setUser(res));
-		dispatch(userSlice.actions.addUser(authUserToStore(res)));
+		dispatch(usersSlice.actions.addUser(authUserToStore(res)));
 	} catch (e) {
 		dispatch(slice.actions.removeUser());
 	}
@@ -34,7 +34,7 @@ export const thunkLogin =
 			const [session, user] = normalizeApiUser(response);
 
 			dispatch(slice.actions.setUser(session));
-			dispatch(userSlice.actions.addUser(user));
+			dispatch(usersSlice.actions.addUser(user));
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.api;
@@ -52,7 +52,7 @@ export const thunkSignup =
 			const [session, user] = normalizeApiUser(response);
 
 			dispatch(slice.actions.setUser(session));
-			dispatch(userSlice.actions.addUser(user));
+			dispatch(usersSlice.actions.addUser(user));
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.api;
@@ -64,7 +64,7 @@ export const thunkSignup =
 export const thunkLogout = () => async (dispatch: AppDispatch) => {
 	await api.auth.logout();
 	dispatch(slice.actions.removeUser());
-	dispatch(clearPlaylists());
+	dispatch(playlistsSlice.actions.clearPlaylists());
 };
 
 function normalizeApiUser(u: ApiUser): [SessionUser, User] {

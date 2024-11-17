@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAppDispatch } from "../../store";
-import { PlaylistTile } from "./PlaylistTile";
 import { getLikes } from "../../store/slices/songsSlice";
+import { PlaylistTile } from "./PlaylistTile";
 
 function LikesScreen() {
 	const dispatch = useAppDispatch();

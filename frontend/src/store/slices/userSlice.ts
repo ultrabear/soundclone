@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
+import type { RootState } from "..";
 import type { Artist } from "../api";
 import { api } from "../api";
 import type { User, UserId, UserSlice } from "./types";
-import { type RootState } from "..";
 
 const initialState: UserSlice = {
 	users: {},
@@ -30,7 +30,7 @@ export const getUserDetails =
 	(userId: number) => async (dispatch: AppDispatch) => {
 		const user = await api.artists.getOne(userId);
 
-		dispatch(slice.actions.addUser(apiUserToStore(user)));
+		dispatch(usersSlice.actions.addUser(apiUserToStore(user)));
 	};
 
 export const createNewArtistThunk = createAsyncThunk(
@@ -46,7 +46,7 @@ export const createNewArtistThunk = createAsyncThunk(
 				id,
 				stage_name: artistUser.stage_name || username,
 			};
-			dispatch(slice.actions.addUser(apiUserToStore(newArtist)));
+			dispatch(usersSlice.actions.addUser(apiUserToStore(newArtist)));
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.api;
@@ -56,7 +56,7 @@ export const createNewArtistThunk = createAsyncThunk(
 	},
 );
 
-export const slice = createSlice({
+export const usersSlice = createSlice({
 	name: "users",
 	initialState,
 	reducers: {
@@ -68,7 +68,19 @@ export const slice = createSlice({
 				store.users[u.id] = u;
 			}
 		},
+		partialAddUsers: (
+			store,
+			action: PayloadAction<{ id: UserId; display_name: string }[]>,
+		) => {
+			for (const { id, display_name } of action.payload) {
+				if (id in store.users) {
+					store.users[id]!.display_name = display_name;
+				} else {
+					store.users[id] = { id, display_name };
+				}
+			}
+		},
 	},
 });
 
-export default slice.reducer;
+export default usersSlice.reducer;

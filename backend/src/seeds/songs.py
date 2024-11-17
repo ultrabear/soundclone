@@ -15,7 +15,7 @@ song_data: list[SongSeed] = [
         "name": "Grandpa's Spells",
         "artist_id": 4,
         "song_genre": "jazz",
-        "thumb_url": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/bc92ae1a9219499088c33118fbfc3a2d.jpeg",
+        "thumb_url": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/002006d32ffd46fbb7ce9be4855fdce5.jpeg",
         "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/4eb3af34a8c04c36aadeeba95d924153.mp3",
     },
     {

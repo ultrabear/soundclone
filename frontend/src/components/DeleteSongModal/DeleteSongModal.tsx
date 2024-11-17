@@ -23,17 +23,25 @@ const DeleteSongModal = (Props: SongProps): JSX.Element => {
 		const response = await dispatch(deleteSongThunk(songId)).unwrap();
 		if (response?.errors) {
 			setErrors(response.errors);
+		} else {
+			closeModal();
 		}
 	};
 	return (
 		<section className="delete-modal flex-col">
 			{errors.server && <p className="error-text">{errors.server.message}</p>}
 			<h2>Permanently Delete Your Song?</h2>
-			<div className="delete-buttons-row">
-				<button onClick={deleteSong} className="delete-confirm">
+			<div className="delete-modal-button-row">
+				<button
+					onClick={deleteSong}
+					className="delete-modal-button delete-confirm"
+				>
 					Yes
 				</button>
-				<button onClick={closeModal} className="delete-cancel">
+				<button
+					onClick={closeModal}
+					className="delete-modal-button delete-cancel"
+				>
 					No
 				</button>
 			</div>

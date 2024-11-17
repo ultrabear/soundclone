@@ -69,7 +69,7 @@ const EditSongModal = (Props: SongProps): JSX.Element => {
 
 	return (
 		<>
-			<h1>Edit Track nfo</h1>
+			<h1>Edit Track Info</h1>
 			{errors.server && <p className="error-text">{errors.server.message}</p>}
 			{existingThumbnail && (
 				<img

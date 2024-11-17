@@ -1,0 +1,51 @@
+.uploads-section {
+	gap: 20px;
+}
+
+.uploads-section-image {
+	height: 250px;
+	width: 100%;
+}
+
+.hero-section.user-uploads {
+	align-items: center;
+	flex-direction: column;
+	overflow: scroll;
+	padding: 16px 8%;
+}
+
+.hero-section.user-uploads > .track-item {
+	width: 100%;
+}
+
+.hero-section.user-uploads > .track-item > .track-main .track-title,
+.hero-section.user-uploads > .track-item > .track-meta .track-date,
+.hero-section.user-uploads > .track-item > .track-meta .track-genre {
+	color: var(--text-primary);
+	font-size: clamp(18px, 2vw, 20px);
+	font-weight: bold;
+}
+
+.no-uploads-yet {
+	align-items: center;
+	justify-content: center;
+	padding: 0 10%;
+}
+
+.no-uploads-button.header-button.button-primary {
+	border-radius: 2em;
+	font-size: 2rem;
+	text-decoration: none;
+	text-align: center;
+	margin-top: 20px;
+	padding: 20px 0;
+	width: 100%;
+}
+
+.edit-song-button {
+	color: darkblue;
+}
+
+.delete-song-button {
+	color: darkred;
+}

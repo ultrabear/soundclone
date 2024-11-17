@@ -20,7 +20,7 @@
 .track-number {
 	width: 24px;
 	color: var(--text-secondary);
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	text-align: right;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .track-artist {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	color: var(--text-secondary);
 }
 
@@ -86,7 +86,7 @@
 
 .track-date,
 .track-genre {
-	font-size: 14px;
+	font-size: clamp(14px, 3vw, 18px);
 	color: var(--text-secondary);
 }
 

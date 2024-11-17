@@ -112,6 +112,20 @@ export type Login = {
 
 export type Signup = { username: string; email: string; password: string };
 
+export type SearchResultType = "song" | "artist" | "playlist";
+
+export type SearchResult = {
+	type: SearchResultType;
+	id: number;
+	name: string;
+	thumb_url: string | null;
+	artist_name: string | null;
+};
+
+export type SearchResponse = {
+	results: SearchResult[];
+};
+
 //endpoint definitions
 endpoint<Song, Id & Timestamps>("POST", "/api/songs", { RequireAuth });
 endpoint<Song, Id & Timestamps>("PUT", "/api/songs/:song_id", { RequireAuth });
@@ -377,6 +391,12 @@ export const api = {
 				method: "DELETE",
 				body: JSON.stringify({ song_id: songId }),
 			});
+		},
+	},
+
+	search: {
+		query: async (query: string): Promise<SearchResponse> => {
+			return notNull(fetchWithError(`/search?q=${encodeURIComponent(query)}`));
 		},
 	},
 };

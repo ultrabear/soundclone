@@ -1,13 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "..";
-
-export interface SearchResult {
-	type: "song" | "artist" | "playlist";
-	id: number;
-	name: string;
-	thumb_url: string | null;
-	artist_name: string | null;
-}
+import { api } from "../api";
+import type { SearchResult } from "../api";
 
 interface SearchState {
 	results: SearchResult[];
@@ -25,11 +19,7 @@ export const searchContent = createAsyncThunk(
 	"search/searchContent",
 	async (query: string) => {
 		if (!query || query.length < 2) return { results: [] };
-
-		const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-		if (!response.ok) throw new Error("Search failed");
-
-		return await response.json();
+		return await api.search.query(query);
 	},
 );
 

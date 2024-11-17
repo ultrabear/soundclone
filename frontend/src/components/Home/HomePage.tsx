@@ -216,7 +216,7 @@ const HomePage: React.FC = () => {
 					<div className={styles.heroSection}>
 						<div className={styles.heroArtwork}>
 							<img
-								src="assets/images/fresh_10_playlist_art.png"
+								src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/6d3e3b727418405c8ce8ed793719506b.png"
 								alt="New releases playlist"
 								className={styles.heroImage}
 							/>

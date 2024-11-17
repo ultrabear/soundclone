@@ -1,10 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppDispatch } from "..";
-import { type User as ApiUser, FlaskError, api } from "../api";
+import { type User as ApiUser, type FlaskError, api } from "../api";
 import { playlistsSlice } from "./playlistsSlice";
 import type { SessionSlice, SessionUser, SongId, User, UserId } from "./types";
 import { usersSlice } from "./userSlice";
+import { apiSongToStore, songsSlice } from "./songsSlice";
 
 function authUserToStore(u: ApiUser): User {
 	const { stage_name, username, ...rest } = u;
@@ -17,9 +18,18 @@ function authUserToStore(u: ApiUser): User {
 
 export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 	try {
-		const res = await api.auth.restore();
-		dispatch(slice.actions.setUser(res));
-		dispatch(usersSlice.actions.addUser(authUserToStore(res)));
+		const [user, likes] = await Promise.all([
+			api.auth.restore(),
+			api.likes.getAll(),
+		]);
+
+		dispatch(slice.actions.setUser(user));
+		dispatch(usersSlice.actions.addUser(authUserToStore(user)));
+		dispatch(slice.actions.addBulkLikes(likes.songs.map((s) => s.id)));
+		dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
+		dispatch(
+			usersSlice.actions.partialAddUsers(likes.songs.map((s) => s.artist)),
+		);
 	} catch (e) {
 		dispatch(slice.actions.removeUser());
 	}
@@ -35,6 +45,14 @@ export const thunkLogin =
 
 			dispatch(slice.actions.setUser(session));
 			dispatch(usersSlice.actions.addUser(user));
+
+			const likes = await api.likes.getAll();
+
+			dispatch(slice.actions.addBulkLikes(likes.songs.map((s) => s.id)));
+			dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
+			dispatch(
+				usersSlice.actions.partialAddUsers(likes.songs.map((s) => s.artist)),
+			);
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.api;
@@ -123,6 +141,7 @@ export const slice = createSlice({
 
 		removeUser: (state) => {
 			state.user = null;
+			state.likes = {};
 		},
 
 		addBulkLikes: (state, action: PayloadAction<SongId[]>) => {

@@ -3,6 +3,7 @@ import { useModal } from "../../context/useModal";
 import { useAppDispatch } from "../../store";
 import { thunkLogin } from "../../store/slices/sessionSlice";
 import "./LoginFormModal.css";
+import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 
 function LoginFormModal() {
 	const dispatch = useAppDispatch();
@@ -13,15 +14,10 @@ function LoginFormModal() {
 	);
 	const { closeModal } = useModal();
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const login = async (credential: { email: string; password: string }) => {
+		const serverResponse = await dispatch(thunkLogin(credential));
 
-		const serverResponse = await dispatch(
-			thunkLogin({
-				email,
-				password,
-			}),
-		);
+		console.log(serverResponse);
 
 		if (serverResponse) {
 			setErrors({
@@ -29,8 +25,15 @@ function LoginFormModal() {
 				password: serverResponse.errors?.password,
 			});
 		} else {
+			dispatch(fetchUserPlaylists());
 			closeModal();
 		}
+	};
+
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		await login({ email, password });
 	};
 
 	return (
@@ -60,13 +63,10 @@ function LoginFormModal() {
 				<button type="submit">Log In</button>
 				<p
 					onClick={() => {
-						dispatch(
-							thunkLogin({
-								email: "demo@aa.io",
-								password: "password",
-							}),
-						);
-						closeModal();
+						login({
+							email: "demo@aa.io",
+							password: "password",
+						});
 					}}
 					className="demo-user"
 				>

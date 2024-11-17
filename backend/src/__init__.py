@@ -14,6 +14,7 @@ from .api.likes_routes import bp as likes_routes
 from .seeds import seed_commands
 from .config import Config
 from typing import List, Dict, Union
+from .api.search_routes import search_routes
 
 app = Flask(__name__, static_folder="../../frontend/dist", static_url_path="/")
 
@@ -52,6 +53,8 @@ app.register_blueprint(comment_routes, url_prefix="/api")
 app.register_blueprint(likes_routes, url_prefix="/api")
 app.register_blueprint(song_routes, url_prefix="/api/songs")
 app.register_blueprint(artist_routes)
+app.register_blueprint(search_routes)
+
 
 # Initialize database
 db.init_app(app)

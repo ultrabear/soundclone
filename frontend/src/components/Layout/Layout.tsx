@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import { thunkLogout } from "../../store/slices/sessionSlice";
+import SearchBar from "../SearchBar/SearchBar";
 
 import {
 	selectLikedSongs,
@@ -59,11 +60,7 @@ const Header: React.FC = () => {
 					</Link>
 				</nav>
 				<div className="search-container">
-					<input
-						type="search"
-						className="search-input"
-						placeholder="Search for artists, bands, tracks, podcasts"
-					/>
+					<SearchBar />
 				</div>
 				<div className="header-actions">
 					{user ? (

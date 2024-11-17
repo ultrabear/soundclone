@@ -251,3 +251,19 @@ endpoint("POST", "/api/auth/signup", req=Signup, res=User, auth=False)
 
 # I want to log out
 endpoint("GET", "/api/auth/logout", req=None, res=None, auth=False)
+
+
+class SearchResultDict(TypedDict):
+    type: str
+    id: int
+    name: str
+    thumb_url: str | None
+    artist_name: str | None
+
+
+class SearchResponse(TypedDict):
+    results: list[SearchResultDict]
+
+
+# I want to be able to search by artist, song, or playlist
+endpoint("GET", "/api/search", req=None, res=SearchResponse, qp=["q"])

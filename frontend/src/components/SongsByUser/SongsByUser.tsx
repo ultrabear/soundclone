@@ -84,7 +84,7 @@ const SongsByUser: React.FC = () => {
 	return (
 		<section className="uploads-section flex-col">
 			<img
-				className="uploads-section-image"
+				className="user-view-section-image"
 				src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/f81c659b703b46d486eebcadd968685d.png"
 				alt=""
 			/>

@@ -7,6 +7,11 @@ import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
 import { Link } from "react-router-dom";
 import { SongListItem } from "../SongListItem";
+import {
+	addToQueueBulk,
+	clearQueue,
+	setCurrentSong,
+} from "../../store/playerSlice";
 
 const PlaylistView: React.FC = () => {
 	const params = useParams<{ id: string }>();
@@ -32,6 +37,15 @@ const PlaylistView: React.FC = () => {
 			</Layout>
 		);
 	}
+
+	const songs = Object.keys(playlist.songs).map(Number);
+
+	const handlePlayAll = () => {
+		dispatch(setCurrentSong(null));
+		dispatch(setCurrentSong(songs[0] ?? null));
+		dispatch(clearQueue());
+		dispatch(addToQueueBulk(songs.slice(1)));
+	};
 
 	return (
 		<Layout>
@@ -59,7 +73,11 @@ const PlaylistView: React.FC = () => {
 
 				<div className="playlist-content">
 					<div className="playlist-actions">
-						<button type="button" className="play-all-button">
+						<button
+							type="button"
+							className="play-all-button"
+							onClick={handlePlayAll}
+						>
 							▶ Play All
 						</button>
 						<Link to={`/playlist/${id}/edit`} className="edit-playlist-button">

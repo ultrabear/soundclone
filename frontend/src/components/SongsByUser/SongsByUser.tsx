@@ -83,11 +83,13 @@ const SongsByUser: React.FC = () => {
 
 	return (
 		<section className="uploads-section flex-col">
-			<img
-				className="user-view-section-image"
-				src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_uploads_image_long.png"
-				alt=""
-			/>
+			<div className="user-view-image-container">
+				<img
+					className="user-view-top-image"
+					src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_uploads_image_long.png"
+					alt=""
+				/>
+			</div>
 			<div className="hero-section user-uploads">
 				{songs.length === 0 ? (
 					<div className="no-uploads-yet flex-col">

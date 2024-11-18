@@ -83,7 +83,10 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 function SongTile({
 	id,
 	playSong,
-}: { id: SongId; playSong: (_: SongId) => void }) {
+}: {
+	id: SongId;
+	playSong: (_: SongId) => void;
+}) {
 	const song = useAppSelector((state) => state.song.songs[id]);
 	const artist = useAppSelector((state) =>
 		song ? state.user.users[song.artist_id]?.display_name : null,
@@ -216,7 +219,7 @@ const HomePage: React.FC = () => {
 					<div className={styles.heroSection}>
 						<div className={styles.heroArtwork}>
 							<img
-								src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/6d3e3b727418405c8ce8ed793719506b.png"
+								src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/fresh_10_playlist_art.png"
 								alt="New releases playlist"
 								className={styles.heroImage}
 							/>

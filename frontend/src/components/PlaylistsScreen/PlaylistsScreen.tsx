@@ -37,11 +37,13 @@ const PlaylistsScreen: React.FC = () => {
 
 	return (
 		<div className="playlists-screen">
-			<img
-				className="user-view-section-image"
-				src={MY_PLAYLIST_IMAGE}
-				alt="my-playlists-image"
-			/>
+			<div className="user-view-image-container">
+				<img
+					className="user-view-top-image"
+					src={MY_PLAYLIST_IMAGE}
+					alt="my-playlists-image"
+				/>
+			</div>
 			{Object.keys(playlists).map((playlist) => (
 				<PlaylistTile key={Number(playlist)} id={Number(playlist)} />
 			))}

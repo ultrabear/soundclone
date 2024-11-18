@@ -2,11 +2,6 @@
 	gap: 20px;
 }
 
-.user-view-section-image {
-	height: 250px;
-	width: 100%;
-}
-
 .hero-section.user-uploads {
 	align-items: center;
 	flex-direction: column;

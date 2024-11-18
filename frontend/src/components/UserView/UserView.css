@@ -1,9 +1,19 @@
 .user-view-container {
 	width: 100%;
-	padding: 0px 0;
 }
 
-.user-header {
+.user-view-image-container {
+	overflow: hidden;
+	width: 100%;
+}
+
+.user-view-top-image {
+	height: auto;
+	object-fit: cover;
+	width: 100%;
+}
+
+.user-view-image .user-header {
 	margin-bottom: 32px;
 	padding: 0 32px;
 }

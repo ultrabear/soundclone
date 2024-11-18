@@ -27,11 +27,13 @@ function LikesScreen() {
 
 	return (
 		<>
-			<img
-				className="user-view-section-image"
-				src={MY_LIKES_IMAGE}
-				alt="my-likes-image"
-			/>
+			<div className="user-view-image-container">
+				<img
+					className="user-view-top-image"
+					src={MY_LIKES_IMAGE}
+					alt="my-likes-image"
+				/>
+			</div>
 			{likes.map((s, i) => (
 				<SongListItem key={s} index={i} songId={s} />
 			))}

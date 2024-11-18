@@ -27,15 +27,15 @@ function UploadedSong({ songId }: { songId: SongId }) {
 				<div className="track-artwork">
 					{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
 				</div>
-				<div className="track-info">
+				<div className="track-info track-title-container">
 					<div className="track-title">{song.name}</div>
+					<div className="track-date title-track-tooltip">
+						{new Date(song.created_at).toLocaleDateString()}
+					</div>
 				</div>
 			</div>
 
 			<div className="track-meta">
-				<div className="track-date">
-					{new Date(song.created_at).toLocaleDateString()}
-				</div>
 				<div className="track-genre">{song.genre}</div>
 				<div className="track-actions">
 					<OpenModalButton

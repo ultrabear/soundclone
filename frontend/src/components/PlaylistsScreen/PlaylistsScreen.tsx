@@ -6,6 +6,9 @@ import "./PlaylistsScreen.css";
 import type { ApiError } from "../../store/api";
 import { PlaylistTile } from "./PlaylistTile";
 
+const MY_PLAYLIST_IMAGE =
+	"https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_playlists_image.png";
+
 const PlaylistsScreen: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const { playlists } = useAppSelector((state) => state.playlist);
@@ -34,6 +37,11 @@ const PlaylistsScreen: React.FC = () => {
 
 	return (
 		<div className="playlists-screen">
+			<img
+				className="user-view-section-image"
+				src={MY_PLAYLIST_IMAGE}
+				alt="my-playlists-image"
+			/>
 			{Object.keys(playlists).map((playlist) => (
 				<PlaylistTile key={Number(playlist)} id={Number(playlist)} />
 			))}

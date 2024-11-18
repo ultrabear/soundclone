@@ -18,6 +18,7 @@ const EditPlaylistPage = () => {
 	const dispatch = useAppDispatch();
 	const [formData, setFormData] = useState<EditPlaylistFormData>({ name: "" });
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const session = useAppSelector((state) => state.session.user?.id);
 
 	const playlist = useAppSelector((state) =>
 		id ? state.playlist.playlists[Number.parseInt(id)] : null,
@@ -83,6 +84,10 @@ const EditPlaylistPage = () => {
 			}
 		}
 	};
+
+	if (session === undefined) {
+		navigate("/");
+	}
 
 	return (
 		<Layout>

@@ -34,22 +34,32 @@ function CommentEditBox({
 }) {
 	return (
 		<form
+			className={styles.editCommentForm}
 			onSubmit={(e) => {
 				e.preventDefault();
 				edit();
 			}}
 		>
 			<input
+				className={styles.editCommentField}
 				style={{ width: "400px" }}
 				type="text"
 				minLength={10}
 				onChange={(e) => setText(e.target.value)}
 				value={text}
 			/>
-			<button type="submit">Edit</button>
-			<button type="button" onClick={close}>
-				Close
-			</button>
+			<div className={styles.commentButtonsContainer}>
+				<button className={styles.btnCommentControl} type="submit">
+					Update
+				</button>
+				<button
+					className={styles.btnCommentControl}
+					type="button"
+					onClick={close}
+				>
+					Close
+				</button>
+			</div>
 		</form>
 	);
 }
@@ -108,8 +118,9 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 					<div className={styles.commentText}>{comment.text}</div>
 				)}
 				{me && !editor && (
-					<>
+					<div className={styles.commentButtonsContainer}>
 						<button
+							className={styles.btnCommentControl}
 							type="button"
 							onClick={(e) => {
 								e.preventDefault();
@@ -120,6 +131,7 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 							Edit
 						</button>
 						<button
+							className={styles.btnCommentControl}
 							type="button"
 							onClick={(e) => {
 								e.preventDefault();
@@ -128,7 +140,7 @@ function Comment({ id }: { id: CommentId }): JSX.Element {
 						>
 							Delete
 						</button>
-					</>
+					</div>
 				)}
 			</div>
 		</div>
@@ -262,7 +274,9 @@ const SongDetailsPage: React.FC = () => {
 						className={styles.hero}
 						style={
 							{
-								"--song-thumbnail": `url(${song.thumb_url || "/default-song-art.png"})`,
+								"--song-thumbnail": `url(${
+									song.thumb_url || "/default-song-art.png"
+								})`,
 							} as React.CSSProperties
 						}
 					>

@@ -101,7 +101,7 @@ const EditProfileForm = (): JSX.Element => {
 				<img
 					className="profile-picture"
 					src={existingProfileImage}
-					alt="your profile image"
+					alt="your profile avatar"
 				/>
 			)}
 			<form

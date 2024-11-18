@@ -57,9 +57,10 @@ export function AddToPlaylist({
 		if (!newPlaylistName.trim()) return;
 
 		try {
-			const response = await api.playlists.create({
-				name: newPlaylistName,
-			});
+			const formData = new FormData();
+			formData.append("name", newPlaylistName);
+
+			const response = await api.playlists.create(formData);
 
 			await api.playlists.addSong(response.id, songId);
 			close();

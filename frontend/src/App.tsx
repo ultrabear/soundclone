@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
 	RouterProvider,
+	ScrollRestoration,
 	createBrowserRouter,
 	isRouteErrorResponse,
 	useRouteError,
@@ -58,6 +59,7 @@ function Layout() {
 
 	return (
 		<ModalProvider>
+			<ScrollRestoration />
 			<Outlet />
 			<Modal />
 		</ModalProvider>

@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import ArtistPage from "./components/ArtistPage/ArtistPage";
-import ArtistsSongsPage from "./components/ArtistsSongsPage/ArtistsSongsPage";
 import EditPlaylistPage from "./components/EditPlaylistPage/EditPlaylistPage";
 import HomePage from "./components/Home/HomePage";
 import PlaylistView from "./components/Playlist/PlaylistView";
@@ -136,16 +135,6 @@ const router = createBrowserRouter([
 				path: "/artists/:userId",
 				element: <ArtistPage />,
 				errorElement: <ErrorBoundary />,
-				children: [
-					{
-						index: true,
-						element: <ArtistsSongsPage />,
-					},
-					{
-						path: "tracks",
-						element: <ArtistsSongsPage />,
-					},
-				],
 			},
 		],
 	},

@@ -49,3 +49,15 @@
 .delete-song-button {
 	color: darkred;
 }
+
+@media screen and (max-width: 1150px) {
+	.hero-section.user-uploads {
+		height: auto;
+		min-height: 300px;
+	}
+
+	.hero-section.user-uploads > .track-item {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+}

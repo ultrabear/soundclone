@@ -97,6 +97,7 @@ export function PlaylistTile({
 		if (songId === null) {
 			dispatch(setCurrentSong(null));
 			dispatch(setCurrentSong(songs[0] ?? null));
+			dispatch(clearQueue());
 			dispatch(addToQueueBulk(songs.slice(1)));
 		} else {
 			const songIndex = songs.findIndex((song) => song === songId);

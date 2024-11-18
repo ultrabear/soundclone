@@ -5,10 +5,11 @@ import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
 import "./PlaylistsScreen.css";
 import type { ApiError } from "../../store/api";
 import { PlaylistTile } from "./PlaylistTile";
+import { selectUserPlaylists } from "../../store/selectors/userSelectors";
 
 const PlaylistsScreen: React.FC = () => {
 	const dispatch = useAppDispatch();
-	const { playlists } = useAppSelector((state) => state.playlist);
+	const playlists = useAppSelector(selectUserPlaylists);
 	const [loadState, setLoadState] = useState<"no" | "pending" | "yes">("no");
 	const [errors, setErrors] = useState<ApiError | undefined>(undefined);
 
@@ -34,8 +35,8 @@ const PlaylistsScreen: React.FC = () => {
 
 	return (
 		<div className="playlists-screen">
-			{Object.keys(playlists).map((playlist) => (
-				<PlaylistTile key={Number(playlist)} id={Number(playlist)} />
+			{playlists.map((playlist) => (
+				<PlaylistTile key={playlist.id} id={playlist.id} />
 			))}
 		</div>
 	);

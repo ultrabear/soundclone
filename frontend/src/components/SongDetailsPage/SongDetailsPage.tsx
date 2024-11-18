@@ -305,8 +305,6 @@ const SongDetailsPage: React.FC = () => {
 									</div>
 								</div>
 							</div>
-
-							<div className={styles.waveform}>Waveform Player Placeholder</div>
 						</div>
 
 						<div className={styles.heroRight}>

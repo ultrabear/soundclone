@@ -8,19 +8,19 @@ from typing import List
 playlist_data: List[BasePlaylist] = [
     {
         "name": "Jazz Classics",
-        "thumbnail": "https://example.com/thumbnail-jazz.jpg",
+        "thumbnail": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/jazz-classics.png",
     },
     {
         "name": "Hip Hop Beats",
-        "thumbnail": "https://example.com/thumbnail-hiphop.jpg",
+        "thumbnail": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/hip-hop-playlist.png",
     },
     {
         "name": "Classical Compositions",
-        "thumbnail": "https://example.com/thumbnail-classical.jpg",
+        "thumbnail": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/classical-playlist.png",
     },
     {
         "name": "Rap Anthems",
-        "thumbnail": "https://example.com/thumbnail-rap.jpg",
+        "thumbnail": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/rap-anthems-playlist.png",
     },
 ]
 

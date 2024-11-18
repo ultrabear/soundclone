@@ -1,22 +1,29 @@
 import type React from "react";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchPlaylist } from "../../store/slices/playlistsSlice";
 import Layout from "../Layout/Layout";
 import "./PlaylistView.css";
 import { Link } from "react-router-dom";
 import { SongListItem } from "../SongListItem";
+import {
+	addToQueueBulk,
+	clearQueue,
+	setCurrentSong,
+} from "../../store/playerSlice";
 
 const PlaylistView: React.FC = () => {
 	const params = useParams<{ id: string }>();
+	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
 	const id = Number(params.id);
 
+	const session = useAppSelector((state) => state.session.user);
 	const playlist = useAppSelector((state) => state.playlist.playlists[id]);
 	const playlistMaker = useAppSelector((state) =>
-		playlist ? state.user.users[playlist.id] : null,
+		playlist ? state.user.users[playlist.user_id] : null,
 	);
 
 	useEffect(() => {
@@ -31,6 +38,19 @@ const PlaylistView: React.FC = () => {
 				<div className="error-container">Playlist not found</div>
 			</Layout>
 		);
+	}
+
+	const songs = Object.keys(playlist.songs).map(Number);
+
+	const handlePlayAll = () => {
+		dispatch(setCurrentSong(null));
+		dispatch(setCurrentSong(songs[0] ?? null));
+		dispatch(clearQueue());
+		dispatch(addToQueueBulk(songs.slice(1)));
+	};
+
+	if (!session) {
+		navigate("/");
 	}
 
 	return (
@@ -59,7 +79,11 @@ const PlaylistView: React.FC = () => {
 
 				<div className="playlist-content">
 					<div className="playlist-actions">
-						<button type="button" className="play-all-button">
+						<button
+							type="button"
+							className="play-all-button"
+							onClick={handlePlayAll}
+						>
 							▶ Play All
 						</button>
 						<Link to={`/playlist/${id}/edit`} className="edit-playlist-button">

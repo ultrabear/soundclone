@@ -4,6 +4,7 @@ import { useAppDispatch } from "../../store";
 import { thunkLogin } from "../../store/slices/sessionSlice";
 import "./LoginFormModal.css";
 import { fetchUserPlaylists } from "../../store/slices/playlistsSlice";
+import { getLikes } from "../../store/slices/songsSlice";
 
 function LoginFormModal() {
 	const dispatch = useAppDispatch();
@@ -21,6 +22,7 @@ function LoginFormModal() {
 			});
 		} else {
 			dispatch(fetchUserPlaylists());
+			dispatch(getLikes());
 			closeModal();
 		}
 	};

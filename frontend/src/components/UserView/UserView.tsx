@@ -35,6 +35,10 @@ function UserView({ tab }: { tab: TabType }) {
 		}
 	};
 
+	if (!user) {
+		navigate("/");
+	}
+
 	return (
 		<Layout>
 			<div className="user-view-container">

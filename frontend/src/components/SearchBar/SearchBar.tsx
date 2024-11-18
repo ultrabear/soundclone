@@ -9,6 +9,24 @@ import {
 } from "../../store/slices/searchSlice";
 import styles from "./SearchBar.module.css";
 
+const handleSearch = (
+	searchQuery: string,
+	dispatch: ReturnType<typeof useAppDispatch>,
+	searchTimeout: ReturnType<typeof useRef<number | null>>,
+) => {
+	if (searchTimeout.current) {
+		window.clearTimeout(searchTimeout.current);
+	}
+
+	if (searchQuery.length >= 2) {
+		searchTimeout.current = window.setTimeout(() => {
+			dispatch(searchContent(searchQuery));
+		}, 300);
+	} else {
+		dispatch(clearResults());
+	}
+};
+
 export default function SearchBar() {
 	const [query, setQuery] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
@@ -19,25 +37,14 @@ export default function SearchBar() {
 	const searchRef = useRef<HTMLDivElement>(null);
 	const searchTimeout = useRef<number | null>(null);
 
-	const handleSearch = (searchQuery: string) => {
-		if (searchTimeout.current) {
-			window.clearTimeout(searchTimeout.current);
-		}
-
-		if (searchQuery.length >= 2) {
-			searchTimeout.current = window.setTimeout(() => {
-				dispatch(searchContent(searchQuery));
-			}, 300);
-		} else {
-			dispatch(clearResults());
-		}
-	};
-
 	useEffect(() => {
-		handleSearch(query);
+		handleSearch(query, dispatch, searchTimeout);
+
+		const current = searchTimeout.current;
+
 		return () => {
-			if (searchTimeout.current) {
-				window.clearTimeout(searchTimeout.current);
+			if (current != null) {
+				window.clearTimeout(current);
 			}
 		};
 	}, [query, dispatch]);
@@ -86,8 +93,8 @@ export default function SearchBar() {
 					strokeLinecap="round"
 					strokeLinejoin="round"
 				>
-					<circle cx="11" cy="11" r="8"></circle>
-					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+					<circle cx="11" cy="11" r="8" />
+					<line x1="21" y1="21" x2="16.65" y2="16.65" />
 				</svg>
 				<input
 					type="search"

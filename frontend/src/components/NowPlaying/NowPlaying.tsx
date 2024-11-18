@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AudioService from "../../services/AudioService";
 import { useAppDispatch, useAppSelector } from "../../store";
 import {
@@ -23,6 +23,7 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 	isPlaying,
 	className = "",
 }) => {
+	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
 	const [currentTime, setCurrentTime] = useState(() =>
@@ -206,6 +207,7 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 			setIsCreatingPlaylist(false);
 			setNewPlaylistName("");
 			showToastMessage("Added to new playlist!");
+			navigate(`/playlist/${response.id}/edit`);
 		} catch (error) {
 			console.error("Error creating playlist:", error);
 			showToastMessage("Failed to create playlist");

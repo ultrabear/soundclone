@@ -9,6 +9,11 @@ import {
 import Layout from "../Layout/Layout";
 import styles from "./ArtistPage.module.css";
 import { SongListItem } from "../SongListItem";
+import {
+	addToQueueBulk,
+	clearQueue,
+	setCurrentSong,
+} from "../../store/playerSlice";
 
 const ArtistPage: React.FC = () => {
 	const { userId } = useParams<{ userId: string }>();
@@ -50,6 +55,15 @@ const ArtistPage: React.FC = () => {
 		);
 	}
 
+	const songIds = songs.map((s) => s.id);
+
+	const handlePlayAll = () => {
+		dispatch(setCurrentSong(null));
+		dispatch(setCurrentSong(songIds[0] ?? null));
+		dispatch(clearQueue());
+		dispatch(addToQueueBulk(songIds.slice(1)));
+	};
+
 	return (
 		<Layout>
 			<div className={styles.container}>
@@ -88,7 +102,11 @@ const ArtistPage: React.FC = () => {
 
 				<div className={styles.content}>
 					<div className={styles.contentActions}>
-						<button type="button" className={styles.playAllButton}>
+						<button
+							type="button"
+							className={styles.playAllButton}
+							onClick={handlePlayAll}
+						>
 							▶ Play All
 						</button>
 					</div>

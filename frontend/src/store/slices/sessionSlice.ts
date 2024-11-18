@@ -45,14 +45,6 @@ export const thunkLogin =
 
 			dispatch(slice.actions.setUser(session));
 			dispatch(usersSlice.actions.addUser(user));
-
-			const likes = await api.likes.getAll();
-
-			dispatch(slice.actions.addBulkLikes(likes.songs.map((s) => s.id)));
-			dispatch(songsSlice.actions.addSongs(likes.songs.map(apiSongToStore)));
-			dispatch(
-				usersSlice.actions.partialAddUsers(likes.songs.map((s) => s.artist)),
-			);
 		} catch (e) {
 			if (e instanceof Error) {
 				return e.flaskError;

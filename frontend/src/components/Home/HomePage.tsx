@@ -16,9 +16,6 @@ import {
 import { selectTop10NewestSongs } from "../../store/selectors/songSelectors";
 import type { SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
-import LoginFormModal from "../LoginFormModal/LoginFormModal";
-import OpenModalButton from "../OpenModalButton/OpenModalButton";
-import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import styles from "./HomePage.module.css";
 
 interface ScrollableSectionProps {
@@ -202,18 +199,6 @@ const HomePage: React.FC = () => {
 							<h2 className={styles.sectionTitle}>
 								{user ? `Welcome back, ${user.username}!` : "Latest Releases"}
 							</h2>
-							{!user && (
-								<div className={styles.authButtons}>
-									<OpenModalButton
-										buttonText="Log In"
-										modalComponent={<LoginFormModal />}
-									/>
-									<OpenModalButton
-										buttonText="Sign Up"
-										modalComponent={<SignupFormModal />}
-									/>
-								</div>
-							)}
 						</div>
 					</div>
 					<div className={styles.heroSection}>

@@ -284,7 +284,7 @@ export const api = {
 		},
 		update: async (artist: FormData): Promise<PostArtist & Timestamps> => {
 			return notNull(
-				fetchWithErrNoJson(`/artists`, {
+				fetchWithErrNoJson("/artists", {
 					method: "POST",
 					body: artist,
 				}),
@@ -366,19 +366,24 @@ export const api = {
 		getCurrent: async (): Promise<ListOfPlaylist> => {
 			return notNull(fetchWithError("/playlists/current"));
 		},
-		create: async (playlist: BasePlaylist): Promise<Id & Timestamps> => {
+		create: async (playlist: FormData): Promise<Id & Timestamps> => {
 			return notNull(
-				fetchWithError("/playlists", {
+				fetchWithErrNoJson("/playlists", {
 					method: "POST",
-					body: JSON.stringify(playlist),
+					body: playlist,
 				}),
 			);
 		},
-		update: async (playlistId: number, playlist: BasePlaylist): FPromise => {
-			return fetchWithError(`/playlists/${playlistId}`, {
-				method: "PUT",
-				body: JSON.stringify(playlist),
-			});
+		update: async (
+			playlistId: number,
+			playlist: FormData,
+		): Promise<BasePlaylist> => {
+			return notNull(
+				fetchWithErrNoJson(`/playlists/${playlistId}`, {
+					method: "PUT",
+					body: playlist,
+				}),
+			);
 		},
 		delete: async (playlistId: number): FPromise => {
 			return fetchWithError(`/playlists/${playlistId}`, {

@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request
 from flask_login import login_required, current_user  # pyright: ignore
-from typing import Union, Tuple, cast
+from typing import Union, Tuple
 from datetime import datetime, timezone
 from ..models import db, Playlist, Song
 from ..backend_api import (
@@ -67,22 +67,41 @@ def create_playlist() -> Union[Created[IdAndTimestamps], Tuple[ApiError, int]]:
 # 2. Update a playlist (name can be changed)
 @playlist_routes.route("/<int:playlist_id>", methods=["PUT"])
 @login_required
-def update_playlist(playlist_id: int) -> Ok[NoBody] | ApiErrorResponse:
-    data = cast(BasePlaylist, request.get_json())
-    name = data.get("name")
+def update_playlist(playlist_id: int) -> Ok[BasePlaylist] | ApiErrorResponse:
+    data = PlaylistForm()
+    data["csrf_token"].data = request.cookies["csrf_token"]
 
-    playlist = db.session.query(Playlist).filter_by(id=playlist_id, user_id=current_user.id).first()
-    if not playlist:
-        return ApiError(
-            message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
-        ), 404
+    if data.validate_on_submit():
+        name = data.data["name"]
+        thumb = data.data["thumbnail_img"]
 
-    if name:
-        playlist.name = name
-    playlist.updated_at = datetime.now(timezone.utc)
-    db.session.commit()
+        playlist = db.session.query(Playlist).filter_by(id=playlist_id, user_id=current_user.id).first()
+        if not playlist:
+            return ApiError(
+                message="Playlist not found", errors={"playlist_id": f"No playlist found with id {playlist_id}"}
+            ), 404
 
-    return ""
+        if name:
+            playlist.name = name
+        if thumb:
+            if playlist.thumbnail:
+                delete_resource_from_aws(playlist.thumbnail, "image")
+
+            thumb_url = create_resource_on_aws(thumb, "image")
+
+            playlist.thumbnail = thumb_url
+
+        playlist.updated_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        o: BasePlaylist = {"name": playlist.name}
+
+        if playlist.thumbnail:
+            o["thumbnail"] = playlist.thumbnail
+
+        return o
+    else:
+        return data.errors, 400
 
 
 # 3.Delete a playlist

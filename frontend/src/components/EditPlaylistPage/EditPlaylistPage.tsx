@@ -9,7 +9,7 @@ import "./EditPlaylistPage.css";
 
 interface EditPlaylistFormData {
 	name: string;
-	thumbnail?: string;
+	thumbnail?: File;
 }
 
 const EditPlaylistPage = () => {
@@ -17,7 +17,7 @@ const EditPlaylistPage = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const [formData, setFormData] = useState<EditPlaylistFormData>({ name: "" });
-	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [errors, setErrors] = useState<Record<string, string | string[]>>({});
 	const session = useAppSelector((state) => state.session.user?.id);
 
 	const playlist = useAppSelector((state) =>
@@ -42,7 +42,6 @@ const EditPlaylistPage = () => {
 		if (playlist) {
 			setFormData({
 				name: playlist.name,
-				thumbnail: playlist.thumbnail,
 			});
 		}
 	}, [playlist]);
@@ -56,18 +55,24 @@ const EditPlaylistPage = () => {
 		e.preventDefault();
 		setErrors({});
 
+		const formDataUpload = new FormData();
+
+		if (formData.name) formDataUpload.append("name", formData.name);
+		if (formData.thumbnail)
+			formDataUpload.append("thumbnail_img", formData.thumbnail);
+
 		try {
 			if (id) {
-				await api.playlists.update(Number.parseInt(id), formData);
+				await api.playlists.update(Number.parseInt(id), formDataUpload);
 				dispatch(fetchPlaylist(Number.parseInt(id)));
 				navigate(`/playlist/${id}`);
 			} else {
-				const response = await api.playlists.create(formData);
+				const response = await api.playlists.create(formDataUpload);
 				navigate(`/playlist/${response.id}`);
 			}
 		} catch (err) {
-			if (err instanceof Error && err.api) {
-				setErrors(err.api.errors);
+			if (err instanceof Error && err.flaskError) {
+				setErrors(err.flaskError);
 			}
 		}
 	};
@@ -111,15 +116,29 @@ const EditPlaylistPage = () => {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="thumbnail">Thumbnail URL</label>
+						<button className="choose-file-button" type="button">
+							<label className="label-on-button" htmlFor="playlist-image-file">
+								{formData.thumbnail
+									? formData.thumbnail.name
+									: playlist?.thumbnail
+										? "Edit Playlist Image"
+										: "Add Playlist Image"}
+							</label>
+						</button>
 						<input
-							type="text"
-							id="thumbnail"
-							name="thumbnail"
-							value={formData.thumbnail || ""}
-							onChange={handleInputChange}
-							className={errors.thumbnail ? "error" : ""}
+							hidden
+							id="playlist-image-file"
+							type="file"
+							accept="image/png, image/jpeg, image/webp, image/jpg"
+							onChange={(e) => {
+								if (e.target.files?.length)
+									setFormData({
+										name: formData.name,
+										thumbnail: e.target.files[0]!,
+									});
+							}}
 						/>
+
 						{errors.thumbnail && (
 							<span className="error-message">{errors.thumbnail}</span>
 						)}

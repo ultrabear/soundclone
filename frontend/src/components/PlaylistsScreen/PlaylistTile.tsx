@@ -1,12 +1,29 @@
 import { Link } from "react-router-dom";
-import { useAppSelector } from "../../store";
+import { useAppDispatch, useAppSelector } from "../../store";
 import type { PlaylistId, SongId } from "../../store/slices/types";
+import {
+	setCurrentSong,
+	togglePlayPause,
+	clearQueue,
+	addToQueue,
+} from "../../store/playerSlice";
 
-export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
+export function SongInPlaylist({
+	id,
+	playSong,
+}: { id: SongId; playSong: (_: SongId) => void }): JSX.Element {
 	const song = useAppSelector((state) => state.song.songs[id]);
 	const user = useAppSelector((state) =>
 		song ? state.user.users[song.artist_id] : null,
 	);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
+	const isCurrentSong = currentSong === id;
+
+	const handlePlay = (e: React.MouseEvent) => {
+		e.preventDefault();
+		playSong(id);
+	};
 
 	if (!song) {
 		return <>Loading song...</>;
@@ -26,10 +43,10 @@ export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
 			<button
 				type="button"
 				className="song-play-button"
-				onClick={() => {}}
-				aria-label="Play song"
+				onClick={handlePlay}
+				aria-label={isCurrentSong && isPlaying ? "Pause" : "Play"}
 			>
-				▶
+				{isCurrentSong && isPlaying ? "⏸" : "▶"}
 			</button>
 		</div>
 	);
@@ -37,7 +54,12 @@ export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
 
 export function PlaylistTile({
 	id,
-}: { id: PlaylistId | "likes" }): JSX.Element {
+	topSongs,
+}: {
+	id: PlaylistId | "likes";
+	topSongs: { id: SongId }[];
+}): JSX.Element {
+	const dispatch = useAppDispatch();
 	let playlist:
 		| undefined
 		| {
@@ -52,6 +74,8 @@ export function PlaylistTile({
 	);
 
 	const likes = useAppSelector((state) => state.session.likes);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
 
 	if (typeof id === "number") {
 		playlist = hasId;
@@ -62,6 +86,25 @@ export function PlaylistTile({
 	if (!playlist) {
 		return <>Loading playlist...</>;
 	}
+
+	const handlePlaySong = (songId: SongId) => {
+		const songIndex = topSongs.findIndex((song) => song.id === songId);
+		if (songIndex !== -1) {
+			if (currentSong === songId) {
+				dispatch(togglePlayPause());
+			} else {
+				if (!isPlaying) {
+					dispatch(togglePlayPause());
+				}
+				dispatch(setCurrentSong(songId));
+				dispatch(clearQueue());
+
+				topSongs.slice(songIndex + 1).forEach((song) => {
+					dispatch(addToQueue(song.id));
+				});
+			}
+		}
+	};
 
 	return (
 		<div className="content-section">
@@ -76,15 +119,29 @@ export function PlaylistTile({
 					<button
 						type="button"
 						className="hero-play-button"
-						aria-label="Play playlist"
+						onClick={() =>
+							handlePlaySong(Number(Object.keys(playlist.songs)[0]))
+						}
+						aria-label={
+							isPlaying &&
+							currentSong === Number(Object.keys(playlist.songs)[0])
+								? "Pause"
+								: "Play"
+						}
 					>
-						▶
+						{isPlaying && currentSong === Number(Object.keys(playlist.songs)[0])
+							? "⏸"
+							: "▶"}
 					</button>
 				</div>
 				<div className="hero-content">
 					<div className="hero-songs">
 						{Object.keys(playlist.songs).map((song) => (
-							<SongInPlaylist key={Number(song)} id={Number(song)} />
+							<SongInPlaylist
+								key={Number(song)}
+								id={Number(song)}
+								playSong={handlePlaySong}
+							/>
 						))}
 					</div>
 				</div>

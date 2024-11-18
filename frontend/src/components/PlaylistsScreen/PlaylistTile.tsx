@@ -2,6 +2,11 @@ import { Link } from "react-router-dom";
 import { useAppSelector } from "../../store";
 import type { PlaylistId, SongId } from "../../store/slices/types";
 
+const MY_PLAYLIST_IMAGE =
+	"https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_playlists_image.png";
+const MY_LIKES_IMAGE =
+	"https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_likes_long.png";
+
 export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
 	const song = useAppSelector((state) => state.song.songs[id]);
 	const user = useAppSelector((state) =>
@@ -37,7 +42,9 @@ export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
 
 export function PlaylistTile({
 	id,
-}: { id: PlaylistId | "likes" }): JSX.Element {
+}: {
+	id: PlaylistId | "likes";
+}): JSX.Element {
 	let playlist:
 		| undefined
 		| {
@@ -68,6 +75,11 @@ export function PlaylistTile({
 			<div className="section-header">
 				<h2 className="section-title">{playlist.name}</h2>
 			</div>
+			<img
+				className="user-view-section-image"
+				src={playlist.id ? MY_PLAYLIST_IMAGE : MY_LIKES_IMAGE}
+				alt=""
+			/>
 			<div className="hero-section">
 				<div className="hero-artwork">
 					{playlist.thumbnail && (

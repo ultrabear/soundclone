@@ -40,8 +40,14 @@ const EditProfileForm = (): JSX.Element => {
 			const currentUsersDetails = users[sessionUser.id];
 			if (currentUsersDetails?.display_name)
 				setStageName(currentUsersDetails.display_name);
-			if (currentUsersDetails?.first_release)
-				setFirstRelease(currentUsersDetails.first_release);
+			if (currentUsersDetails?.first_release) {
+				const formattedFirstRelease =
+					currentUsersDetails.first_release.split(" ")[0];
+				if (formattedFirstRelease) {
+					setFirstRelease(formattedFirstRelease);
+				}
+			}
+
 			if (currentUsersDetails?.biography)
 				setBiography(currentUsersDetails.biography);
 			if (currentUsersDetails?.location)
@@ -143,7 +149,7 @@ const EditProfileForm = (): JSX.Element => {
 					<input
 						className="upload-form-text-input"
 						id="first-release"
-						type="text"
+						type="date"
 						value={firstRelease}
 						onChange={(e) => setFirstRelease(e.target.value)}
 					/>

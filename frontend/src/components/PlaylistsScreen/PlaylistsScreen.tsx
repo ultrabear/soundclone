@@ -6,12 +6,9 @@ import "./PlaylistsScreen.css";
 import type { ApiError } from "../../store/api";
 import { PlaylistTile } from "./PlaylistTile";
 
-interface PlaylistsScreenProps {}
-
-const PlaylistsScreen: React.FC<PlaylistsScreenProps> = () => {
+const PlaylistsScreen: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const { playlists } = useAppSelector((state) => state.playlist);
-	const topSongs = useAppSelector((state) => Object.values(state.song.songs));
 	const [loadState, setLoadState] = useState<"no" | "pending" | "yes">("no");
 	const [errors, setErrors] = useState<ApiError | undefined>(undefined);
 
@@ -23,7 +20,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = () => {
 					await dispatch(fetchUserPlaylists());
 				} catch (e) {
 					if (e instanceof Error) {
-						setErrors(e as unknown as ApiError);
+						setErrors(e.api);
 					}
 				}
 				setLoadState("yes");
@@ -38,11 +35,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = () => {
 	return (
 		<div className="playlists-screen">
 			{Object.keys(playlists).map((playlist) => (
-				<PlaylistTile
-					key={Number(playlist)}
-					id={Number(playlist)}
-					topSongs={topSongs}
-				/>
+				<PlaylistTile key={Number(playlist)} id={Number(playlist)} />
 			))}
 		</div>
 	);

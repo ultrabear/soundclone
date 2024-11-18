@@ -25,7 +25,7 @@ const playerSlice = createSlice({
 	name: "player",
 	initialState,
 	reducers: {
-		setCurrentSong: (state, action: PayloadAction<SongId>) => {
+		setCurrentSong: (state, action: PayloadAction<SongId | null>) => {
 			if (state.currentSong) {
 				state.history.push(state.currentSong);
 			}
@@ -37,6 +37,9 @@ const playerSlice = createSlice({
 		},
 		addToQueue: (state, action: PayloadAction<SongId>) => {
 			state.queue.push(action.payload);
+		},
+		addToQueueBulk: (state, action: PayloadAction<SongId[]>) => {
+			state.queue.push(...action.payload);
 		},
 		removeFromQueue: (state, action: PayloadAction<number>) => {
 			state.queue = state.queue.filter((_, index) => index !== action.payload);
@@ -80,6 +83,7 @@ export const {
 	setCurrentSong,
 	togglePlayPause,
 	addToQueue,
+	addToQueueBulk,
 	removeFromQueue,
 	clearQueue,
 	setVolume,

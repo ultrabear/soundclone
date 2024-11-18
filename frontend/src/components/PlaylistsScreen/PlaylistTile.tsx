@@ -6,6 +6,7 @@ import {
 	togglePlayPause,
 	clearQueue,
 	addToQueue,
+	addToQueueBulk,
 } from "../../store/playerSlice";
 
 export function SongInPlaylist({
@@ -54,10 +55,8 @@ export function SongInPlaylist({
 
 export function PlaylistTile({
 	id,
-	topSongs,
 }: {
 	id: PlaylistId | "likes";
-	topSongs: { id: SongId }[];
 }): JSX.Element {
 	const dispatch = useAppDispatch();
 	let playlist:
@@ -87,21 +86,29 @@ export function PlaylistTile({
 		return <>Loading playlist...</>;
 	}
 
-	const handlePlaySong = (songId: SongId) => {
-		const songIndex = topSongs.findIndex((song) => song.id === songId);
-		if (songIndex !== -1) {
-			if (currentSong === songId) {
-				dispatch(togglePlayPause());
-			} else {
-				if (!isPlaying) {
-					dispatch(togglePlayPause());
-				}
-				dispatch(setCurrentSong(songId));
-				dispatch(clearQueue());
+	const songs = Object.keys(playlist.songs).map(Number);
 
-				topSongs.slice(songIndex + 1).forEach((song) => {
-					dispatch(addToQueue(song.id));
-				});
+	const handlePlaySong = (songId: null | SongId) => {
+		if (songId === null) {
+			dispatch(setCurrentSong(null));
+			dispatch(setCurrentSong(songs[0] ?? null));
+			dispatch(addToQueueBulk(songs.slice(1)));
+		} else {
+			const songIndex = songs.findIndex((song) => song === songId);
+			if (songIndex !== -1) {
+				if (currentSong === songId) {
+					dispatch(togglePlayPause());
+				} else {
+					if (!isPlaying) {
+						dispatch(togglePlayPause());
+					}
+					dispatch(setCurrentSong(songId));
+					dispatch(clearQueue());
+
+					for (const song of songs.slice(songIndex + 1)) {
+						dispatch(addToQueue(song));
+					}
+				}
 			}
 		}
 	};
@@ -119,19 +126,10 @@ export function PlaylistTile({
 					<button
 						type="button"
 						className="hero-play-button"
-						onClick={() =>
-							handlePlaySong(Number(Object.keys(playlist.songs)[0]))
-						}
-						aria-label={
-							isPlaying &&
-							currentSong === Number(Object.keys(playlist.songs)[0])
-								? "Pause"
-								: "Play"
-						}
+						onClick={() => handlePlaySong(null)}
+						aria-label={"Play"}
 					>
-						{isPlaying && currentSong === Number(Object.keys(playlist.songs)[0])
-							? "⏸"
-							: "▶"}
+						{"▶"}
 					</button>
 				</div>
 				<div className="hero-content">

@@ -1,17 +1,35 @@
 import { Link } from "react-router-dom";
-import { useAppSelector } from "../../store";
+import { useAppDispatch, useAppSelector } from "../../store";
 import type { PlaylistId, SongId } from "../../store/slices/types";
+import {
+	setCurrentSong,
+	togglePlayPause,
+	clearQueue,
+	addToQueue,
+	addToQueueBulk,
+} from "../../store/playerSlice";
 
 const MY_PLAYLIST_IMAGE =
 	"https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_playlists_image.png";
 const MY_LIKES_IMAGE =
 	"https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_likes_long.png";
 
-export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
+export function SongInPlaylist({
+	id,
+	playSong,
+}: { id: SongId; playSong: (_: SongId) => void }): JSX.Element {
 	const song = useAppSelector((state) => state.song.songs[id]);
 	const user = useAppSelector((state) =>
 		song ? state.user.users[song.artist_id] : null,
 	);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
+	const isCurrentSong = currentSong === id;
+
+	const handlePlay = (e: React.MouseEvent) => {
+		e.preventDefault();
+		playSong(id);
+	};
 
 	if (!song) {
 		return <>Loading song...</>;
@@ -31,10 +49,10 @@ export function SongInPlaylist({ id }: { id: SongId }): JSX.Element {
 			<button
 				type="button"
 				className="song-play-button"
-				onClick={() => {}}
-				aria-label="Play song"
+				onClick={handlePlay}
+				aria-label={isCurrentSong && isPlaying ? "Pause" : "Play"}
 			>
-				▶
+				{isCurrentSong && isPlaying ? "⏸" : "▶"}
 			</button>
 		</div>
 	);
@@ -45,6 +63,7 @@ export function PlaylistTile({
 }: {
 	id: PlaylistId | "likes";
 }): JSX.Element {
+	const dispatch = useAppDispatch();
 	let playlist:
 		| undefined
 		| {
@@ -59,6 +78,8 @@ export function PlaylistTile({
 	);
 
 	const likes = useAppSelector((state) => state.session.likes);
+	const isPlaying = useAppSelector((state) => state.player.isPlaying);
+	const currentSong = useAppSelector((state) => state.player.currentSong);
 
 	if (typeof id === "number") {
 		playlist = hasId;
@@ -69,6 +90,33 @@ export function PlaylistTile({
 	if (!playlist) {
 		return <>Loading playlist...</>;
 	}
+
+	const songs = Object.keys(playlist.songs).map(Number);
+
+	const handlePlaySong = (songId: null | SongId) => {
+		if (songId === null) {
+			dispatch(setCurrentSong(null));
+			dispatch(setCurrentSong(songs[0] ?? null));
+			dispatch(addToQueueBulk(songs.slice(1)));
+		} else {
+			const songIndex = songs.findIndex((song) => song === songId);
+			if (songIndex !== -1) {
+				if (currentSong === songId) {
+					dispatch(togglePlayPause());
+				} else {
+					if (!isPlaying) {
+						dispatch(togglePlayPause());
+					}
+					dispatch(setCurrentSong(songId));
+					dispatch(clearQueue());
+
+					for (const song of songs.slice(songIndex + 1)) {
+						dispatch(addToQueue(song));
+					}
+				}
+			}
+		}
+	};
 
 	return (
 		<div className="content-section">
@@ -88,15 +136,20 @@ export function PlaylistTile({
 					<button
 						type="button"
 						className="hero-play-button"
-						aria-label="Play playlist"
+						onClick={() => handlePlaySong(null)}
+						aria-label={"Play"}
 					>
-						▶
+						{"▶"}
 					</button>
 				</div>
 				<div className="hero-content">
 					<div className="hero-songs">
 						{Object.keys(playlist.songs).map((song) => (
-							<SongInPlaylist key={Number(song)} id={Number(song)} />
+							<SongInPlaylist
+								key={Number(song)}
+								id={Number(song)}
+								playSong={handlePlaySong}
+							/>
 						))}
 					</div>
 				</div>

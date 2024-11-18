@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchPlaylist } from "../../store/slices/playlistsSlice";
 import Layout from "../Layout/Layout";
@@ -15,13 +15,15 @@ import {
 
 const PlaylistView: React.FC = () => {
 	const params = useParams<{ id: string }>();
+	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
 	const id = Number(params.id);
 
+	const session = useAppSelector((state) => state.session.user);
 	const playlist = useAppSelector((state) => state.playlist.playlists[id]);
 	const playlistMaker = useAppSelector((state) =>
-		playlist ? state.user.users[playlist.id] : null,
+		playlist ? state.user.users[playlist.user_id] : null,
 	);
 
 	useEffect(() => {
@@ -46,6 +48,10 @@ const PlaylistView: React.FC = () => {
 		dispatch(clearQueue());
 		dispatch(addToQueueBulk(songs.slice(1)));
 	};
+
+	if (!session) {
+		navigate("/");
+	}
 
 	return (
 		<Layout>

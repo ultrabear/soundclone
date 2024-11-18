@@ -9,20 +9,15 @@ function LoginFormModal() {
 	const dispatch = useAppDispatch();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [errors, setErrors] = useState(
-		{} as { email?: string; password?: string },
-	);
+	const [errors, setErrors] = useState({} as { credential?: string });
 	const { closeModal } = useModal();
 
 	const login = async (credential: { email: string; password: string }) => {
 		const serverResponse = await dispatch(thunkLogin(credential));
 
-		console.log(serverResponse);
-
 		if (serverResponse) {
 			setErrors({
-				email: serverResponse.errors?.email,
-				password: serverResponse.errors?.password,
+				credential: "Invalid credentials",
 			});
 		} else {
 			dispatch(fetchUserPlaylists());
@@ -39,6 +34,7 @@ function LoginFormModal() {
 	return (
 		<>
 			<h1 className="login-header">Log In</h1>
+			{errors.credential && <p className="error-text">{errors.credential}</p>}
 			<form className="form-container flex-col" onSubmit={handleSubmit}>
 				<label>
 					Email
@@ -49,7 +45,6 @@ function LoginFormModal() {
 						required
 					/>
 				</label>
-				{errors.email && <p className="error-text">{errors.email}</p>}
 				<label>
 					Password
 					<input
@@ -59,7 +54,6 @@ function LoginFormModal() {
 						required
 					/>
 				</label>
-				{errors.password && <p className="error-text">{errors.password}</p>}
 				<button type="submit">Log In</button>
 				<p
 					onClick={() => {

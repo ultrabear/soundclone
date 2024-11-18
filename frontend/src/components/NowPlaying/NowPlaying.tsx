@@ -198,9 +198,10 @@ const NowPlaying: React.FC<NowPlayingProps> = ({
 		if (!newPlaylistName.trim() || !songId) return;
 
 		try {
-			const response = await api.playlists.create({
-				name: newPlaylistName,
-			});
+			const data = new FormData();
+			data.append("name", newPlaylistName);
+
+			const response = await api.playlists.create(data);
 
 			await api.playlists.addSong(response.id, songId);
 			setShowAddToPlaylist(false);

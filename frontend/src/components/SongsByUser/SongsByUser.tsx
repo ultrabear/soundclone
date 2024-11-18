@@ -27,15 +27,15 @@ function UploadedSong({ songId }: { songId: SongId }) {
 				<div className="track-artwork">
 					{song.thumb_url && <img src={song.thumb_url} alt={song.name} />}
 				</div>
-				<div className="track-info">
+				<div className="track-info track-title-container">
 					<div className="track-title">{song.name}</div>
+					<div className="track-date title-track-tooltip">
+						{new Date(song.created_at).toLocaleDateString()}
+					</div>
 				</div>
 			</div>
 
 			<div className="track-meta">
-				<div className="track-date">
-					{new Date(song.created_at).toLocaleDateString()}
-				</div>
 				<div className="track-genre">{song.genre}</div>
 				<div className="track-actions">
 					<OpenModalButton
@@ -83,11 +83,13 @@ const SongsByUser: React.FC = () => {
 
 	return (
 		<section className="uploads-section flex-col">
-			<img
-				className="user-view-section-image"
-				src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/f81c659b703b46d486eebcadd968685d.png"
-				alt=""
-			/>
+			<div className="user-view-image-container">
+				<img
+					className="user-view-top-image"
+					src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_uploads_image_long.png"
+					alt=""
+				/>
+			</div>
 			<div className="hero-section user-uploads">
 				{songs.length === 0 ? (
 					<div className="no-uploads-yet flex-col">

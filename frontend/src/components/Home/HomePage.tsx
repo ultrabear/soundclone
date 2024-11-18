@@ -16,9 +16,6 @@ import {
 import { selectTop10NewestSongs } from "../../store/selectors/songSelectors";
 import type { SongId } from "../../store/slices/types";
 import Layout from "../Layout/Layout";
-import LoginFormModal from "../LoginFormModal/LoginFormModal";
-import OpenModalButton from "../OpenModalButton/OpenModalButton";
-import SignupFormModal from "../SignupFormModal/SignupFormModal";
 import styles from "./HomePage.module.css";
 
 interface ScrollableSectionProps {
@@ -83,7 +80,10 @@ const ScrollableSection: React.FC<ScrollableSectionProps> = ({
 function SongTile({
 	id,
 	playSong,
-}: { id: SongId; playSong: (_: SongId) => void }) {
+}: {
+	id: SongId;
+	playSong: (_: SongId) => void;
+}) {
 	const song = useAppSelector((state) => state.song.songs[id]);
 	const artist = useAppSelector((state) =>
 		song ? state.user.users[song.artist_id]?.display_name : null,
@@ -199,24 +199,12 @@ const HomePage: React.FC = () => {
 							<h2 className={styles.sectionTitle}>
 								{user ? `Welcome back, ${user.username}!` : "Latest Releases"}
 							</h2>
-							{!user && (
-								<div className={styles.authButtons}>
-									<OpenModalButton
-										buttonText="Log In"
-										modalComponent={<LoginFormModal />}
-									/>
-									<OpenModalButton
-										buttonText="Sign Up"
-										modalComponent={<SignupFormModal />}
-									/>
-								</div>
-							)}
 						</div>
 					</div>
 					<div className={styles.heroSection}>
 						<div className={styles.heroArtwork}>
 							<img
-								src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/6d3e3b727418405c8ce8ed793719506b.png"
+								src="https://soundclone-image-files.s3.us-east-1.amazonaws.com/fresh_10_playlist_art.png"
 								alt="New releases playlist"
 								className={styles.heroImage}
 							/>

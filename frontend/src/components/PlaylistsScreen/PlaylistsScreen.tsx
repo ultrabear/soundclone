@@ -7,6 +7,9 @@ import type { ApiError } from "../../store/api";
 import { PlaylistTile } from "./PlaylistTile";
 import { selectUserPlaylists } from "../../store/selectors/userSelectors";
 
+const MY_PLAYLIST_IMAGE =
+	"https://soundclone-image-files.s3.us-east-1.amazonaws.com/my_playlists_image.png";
+
 const PlaylistsScreen: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const playlists = useAppSelector(selectUserPlaylists);
@@ -35,6 +38,13 @@ const PlaylistsScreen: React.FC = () => {
 
 	return (
 		<div className="playlists-screen">
+			<div className="user-view-image-container">
+				<img
+					className="user-view-top-image"
+					src={MY_PLAYLIST_IMAGE}
+					alt="my-playlists-image"
+				/>
+			</div>
 			{playlists.map((playlist) => (
 				<PlaylistTile key={playlist.id} id={playlist.id} />
 			))}

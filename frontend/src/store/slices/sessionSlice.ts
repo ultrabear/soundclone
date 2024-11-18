@@ -37,7 +37,7 @@ export const thunkAuthenticate = () => async (dispatch: AppDispatch) => {
 
 export const thunkLogin =
 	(credentials: { email: string; password: string }) =>
-	async (dispatch: AppDispatch) => {
+	async (dispatch: AppDispatch): Promise<FlaskError | undefined> => {
 		try {
 			const response = await api.auth.login(credentials);
 
@@ -47,7 +47,7 @@ export const thunkLogin =
 			dispatch(usersSlice.actions.addUser(user));
 		} catch (e) {
 			if (e instanceof Error) {
-				return e.api;
+				return e.flaskError;
 			}
 			throw e;
 		}

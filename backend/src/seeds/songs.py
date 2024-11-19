@@ -29,7 +29,7 @@ song_data: list[SongSeed] = [
         "name": "Ory's Creole Trombone",
         "artist_id": 5,
         "song_genre": "jazz",
-        "thumb_url": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/bb9fad5df8294de5980c53add6e0c6fa.png",
+        "thumb_url": "https://soundclone-image-files.s3.us-east-1.amazonaws.com/kid-ory.png",
         "song_ref": "https://soundclone-sound-files.s3.us-east-1.amazonaws.com/Orys_Creole_Trombone.wav",
     },
     {
